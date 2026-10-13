@@ -15,8 +15,19 @@
 </section>
 
 {% if vehiculos %}
-<div class="grid-cards">
+{% if vehiculos|length > 1 %}
+<div class="orden-barra no-print">
+  <button class="btn btn-ghost" type="button" id="orden-btn" data-url="{{ url_for('vehiculos_orden') }}">⇅ Ordenar</button>
+  <span class="muted small" id="orden-ayuda" hidden>Usá las flechas para mover cada vehículo. Se guarda solo.</span>
+</div>
+{% endif %}
+<div class="grid-cards" id="lista-autos">
   {% for v in vehiculos %}
+  <div class="car-item" data-id="{{ v.id }}">
+  <div class="orden-ctl" hidden>
+    <button type="button" class="btn btn-ghost" data-mover="-1" aria-label="Mover antes">◀ <span class="orden-txt">Antes</span></button>
+    <button type="button" class="btn btn-ghost" data-mover="1" aria-label="Mover después"><span class="orden-txt">Después</span> ▶</button>
+  </div>
   <a class="card car-card" href="{{ url_for('vehiculo', vid=v.id) }}">
     {% set al = alertas.get(v.id) %}
     {% if al and (al.vencido or al.pronto) %}
@@ -43,8 +54,10 @@
       </div>
     </dl>
   </a>
+  </div>
   {% endfor %}
 </div>
+<script src="{{ url_for('static', filename='orden-autos.js') }}"></script>
 {% else %}
 <div class="empty card">
   <div class="empty-icon">🚗</div>

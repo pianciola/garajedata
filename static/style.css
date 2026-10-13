@@ -964,3 +964,13 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .prox-pronto { border-left-color: var(--warn); } .prox-pronto small { color: var(--warn); }
 .prox-vencido { border-left-color: var(--danger); } .prox-vencido small { color: var(--danger); }
 .prox-vacio { color: var(--muted); }
+
+/* ---------- ordenar vehículos ---------- */
+.orden-barra { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; flex-wrap: wrap; }
+.car-item { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.car-item > .car-card { flex: 1; }
+.orden-ctl { display: flex; gap: 8px; }
+.orden-ctl[hidden] { display: none; }
+.orden-ctl .btn { flex: 1; justify-content: center; }
+.orden-ctl .btn:disabled { opacity: .35; cursor: default; }
+.ordenando .car-card { pointer-events: none; outline: 2px dashed var(--border, #3a3f48); }

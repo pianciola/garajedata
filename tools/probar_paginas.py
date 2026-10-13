@@ -217,6 +217,11 @@ for p in ("/vehiculo/1", "/vehiculo/3", "/vehiculo/3/editar", "/vehiculo/3/expor
 esperar("borrar registro ajeno", c.post("/registro/1/eliminar"), 404)
 esperar("borrar vehículo ajeno", c.post("/vehiculo/3/eliminar"), 404)
 esperar("editar vehículo ajeno", c.post("/vehiculo/3/editar", data={"marca": "x"}), 404)
+# Orden de la lista: se respeta y no se pueden tocar autos ajenos
+ids_c = [int(x) for x in re.findall(r'data-id="(\d+)"', c.get("/").get_data(as_text=True))]
+esperar("orden", c.post("/vehiculos/orden", data={"ids": ",".join(map(str, reversed(ids_c))) + ",9999"}), 204)
+if [int(x) for x in re.findall(r'data-id="(\d+)"', c.get("/").get_data(as_text=True))] != ids_c[::-1]:
+    fallas.append("no se guardó el orden de los vehículos")
 esperar("foto ajena", c.get(f"/archivo/{fid}"), 404)
 esperar("editar foto ajena", c.post("/vehiculo/3/foto", data={"imagen_modo": "3d"}), 404)
 for p in ("/archivo/1", "/vehiculo/3/libro", "/vehiculo/3/compartir", "/vehiculo/3/documentos"):

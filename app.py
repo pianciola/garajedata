@@ -153,6 +153,7 @@ COLUMNAS_NUEVAS = {
     "share_costos": "INTEGER DEFAULT 1", "share_adjuntos": "INTEGER DEFAULT 1",
     "imagen_modo": "TEXT", "foto_id": "INTEGER", "km_mes": "INTEGER",
     "foto_x": "INTEGER", "foto_y": "INTEGER", "foto_zoom": "INTEGER", "foto_ajuste": "TEXT",
+    "orden": "INTEGER",
 }
 
 
@@ -859,7 +860,8 @@ def index():
         FROM vehiculos v LEFT JOIN registros r ON r.vehiculo_id = v.id
         WHERE v.usuario_id = ?
         GROUP BY v.id
-        ORDER BY COALESCE(NULLIF(v.nombre, ''), v.marca || ' ' || v.modelo) COLLATE NOCASE
+        ORDER BY v.orden IS NULL, v.orden,
+                 COALESCE(NULLIF(v.nombre, ''), v.marca || ' ' || v.modelo) COLLATE NOCASE
     """, (g.usuario["id"],)).fetchall()
     alertas, cartel, proximos = {}, [], {}
     for v in vehiculos:
@@ -871,12 +873,30 @@ def index():
     return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=cartel, proximos=proximos)
 
 
+@app.post("/vehiculos/orden")
+@requiere_login
+def vehiculos_orden():
+    """Guarda el orden elegido para la lista de vehículos (ids separados por coma)."""
+    db = get_db()
+    propios = {r["id"] for r in db.execute("SELECT id FROM vehiculos WHERE usuario_id = ?", (g.usuario["id"],))}
+    pedidos = [to_int(x) for x in request.form.get("ids", "").split(",")]
+    ids = [i for i in dict.fromkeys(pedidos) if i in propios]
+    resto = sorted(propios - set(ids))
+    for n, vid in enumerate(ids + resto, 1):
+        db.execute("UPDATE vehiculos SET orden = ? WHERE id = ? AND usuario_id = ?", (n, vid, g.usuario["id"]))
+    db.commit()
+    return ("", 204)
+
+
 @app.route("/vehiculo/nuevo", methods=["GET", "POST"])
 @requiere_login
 def vehiculo_nuevo():
     if request.method == "POST":
         d = datos_vehiculo_form()
-        d.update(usuario_id=g.usuario["id"], creado=date.today().isoformat())
+        ultimo = get_db().execute("SELECT MAX(orden) FROM vehiculos WHERE usuario_id = ?",
+                                  (g.usuario["id"],)).fetchone()[0]
+        d.update(usuario_id=g.usuario["id"], creado=date.today().isoformat(),
+                 orden=(ultimo or 0) + 1)
         cols = list(d)
         cur = get_db().execute(
             f"INSERT INTO vehiculos ({', '.join(cols)}) VALUES ({', '.join(':' + c for c in cols)})", d)
