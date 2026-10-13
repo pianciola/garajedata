@@ -20,7 +20,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import archivos
 from catalogo import canon_marca, canon_modelo, catalogo_js, logo_marca, logo_oscuro
-from mantenimiento import (DOCUMENTOS, REPETICION_SUGERIDA, REPETICIONES, USOS, km_estimado,
+from mantenimiento import (KM_MES_MAX, DOCUMENTOS, REPETICION_SUGERIDA, REPETICIONES, USOS, km_estimado,
                            plan_mantenimiento, promedio_medido, sumar_meses, vencimientos)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -151,6 +151,7 @@ COLUMNAS_NUEVAS = {
     "refrigerante": "TEXT", "frenos": "TEXT", "neumaticos": "TEXT", "presion_del": "TEXT",
     "presion_tras": "TEXT", "uso": "TEXT", "creado": "TEXT", "share_token": "TEXT",
     "share_costos": "INTEGER DEFAULT 1", "share_adjuntos": "INTEGER DEFAULT 1",
+    "imagen_modo": "TEXT", "foto_id": "INTEGER", "km_mes": "INTEGER",
 }
 
 
@@ -414,6 +415,12 @@ def datos_vehiculo_form():
     carroceria = f.get("carroceria")
     marca = canon_marca(f.get("marca"))
     transmision = f.get("transmision")
+    uso = f.get("uso") if f.get("calcular_uso") and f.get("uso") in USOS else None
+    km_mes = to_int(f.get("km_mes"))
+    if uso == "personalizado" and not (km_mes and 0 < km_mes <= KM_MES_MAX):
+        flash(f"Para el plan de mantenimiento personalizado poné los km por mes (entre 1 y {KM_MES_MAX:,}"
+              .replace(",", ".") + ").", "error")
+        uso = None
     return {
         "version": texto("version", 60),
         "transmision": transmision if transmision in TRANSMISIONES else None,
@@ -439,8 +446,10 @@ def datos_vehiculo_form():
         "neumaticos": texto("neumaticos", 60),
         "presion_del": texto("presion_del", 20),
         "presion_tras": texto("presion_tras", 20),
+        "imagen_modo": "foto" if f.get("imagen_modo") == "foto" else "3d",
         # El plan de mantenimiento es opcional: solo con la casilla tildada.
-        "uso": f.get("uso") if f.get("calcular_uso") and f.get("uso") in USOS else None,
+        "uso": uso,
+        "km_mes": km_mes if uso == "personalizado" else None,
     }
 
 
@@ -666,7 +675,7 @@ def logout():
 
 # ---------------------------------------------------------------- rutas: vehículos
 
-CAMPOS_VEHICULO = ["nombre", "marca", "modelo", "version", "anio", "patente", "km_inicial", "notas",
+CAMPOS_VEHICULO = ["imagen_modo", "km_mes", "nombre", "marca", "modelo", "version", "anio", "patente", "km_inicial", "notas",
                    "carroceria", "color", "transmision", "motor", "combustible", "tanque",
                    "codigo_pintura", "vin", "bujias", "aceite", "aceite_litros", "refrigerante",
                    "frenos", "neumaticos", "presion_del", "presion_tras", "uso"]
@@ -706,6 +715,82 @@ def contar_avisos(a):
     return {"vencido": estados.count("vencido"), "pronto": estados.count("pronto")}
 
 
+def guardar_portada(vid):
+    """Foto propia del auto (en lugar del modelo 3D): sube, reemplaza o quita la
+    foto y deja el modo coherente (sin foto no se puede mostrar la foto)."""
+    db = get_db()
+    v = db.execute("SELECT * FROM vehiculos WHERE id = ?", (vid,)).fetchone()
+    previas = db.execute("SELECT * FROM archivos WHERE vehiculo_id = ? AND categoria = 'portada'",
+                         (vid,)).fetchall()
+    nueva = request.files.get("foto")
+    foto_id = v["foto_id"]
+
+    def quitar_previas():
+        for a in previas:
+            db.execute("DELETE FROM archivos WHERE id = ?", (a["id"],))
+        archivos.borrar([a["archivo"] for a in previas])
+
+    if request.form.get("quitar_foto"):
+        quitar_previas()
+        foto_id = None
+    if nueva and nueva.filename:
+        try:
+            en_disco, mime, peso, nombre = archivos.guardar(nueva, espacio_usado(), solo_imagen=True)
+        except ValueError as e:
+            flash(str(e), "error")
+        else:
+            quitar_previas()
+            foto_id = db.execute(
+                "INSERT INTO archivos (vehiculo_id, registro_id, categoria, nombre, archivo, mime, bytes, creado) "
+                "VALUES (?, NULL, 'portada', ?, ?, ?, ?, ?)",
+                (vid, nombre, en_disco, mime, peso, datetime.now().isoformat(timespec="seconds"))).lastrowid
+    modo = v["imagen_modo"]
+    if modo == "foto" and not foto_id:
+        modo = "3d"
+        flash("Para mostrar tu foto primero elegí una. Por ahora se ve el modelo 3D.", "error")
+    db.execute("UPDATE vehiculos SET foto_id = ?, imagen_modo = ? WHERE id = ?", (foto_id, modo, vid))
+    db.commit()
+
+
+def lista_avisos(v, a, con_nombre=False):
+    """Avisos urgentes (vencidos o por vencer) de un vehículo, para el cartel lateral."""
+    nombre = nombre_auto(v)
+    url = url_for("vehiculo", vid=v["id"])
+    salida = []
+
+    def agregar(clave, titulo, detalle, estado):
+        salida.append({"clave": f"{v['id']}:{clave}", "titulo": titulo, "detalle": detalle,
+                       "estado": estado, "url": url, "auto": nombre if con_nombre else None})
+
+    for rec in a["recordatorios"]:
+        if rec["estado"] == "ok":
+            continue
+        partes = []
+        if rec["estado"] == "vencido":
+            partes.append("Vencido")
+        else:
+            if rec["faltan_km"] is not None:
+                partes.append(f"faltan {miles(rec['faltan_km'])} km")
+            if rec["faltan_dias"] is not None:
+                partes.append(f"{rec['faltan_dias']} días")
+        agregar("rec:" + rec["registro"]["titulo"].strip().lower(), rec["registro"]["titulo"],
+                " · ".join(partes), rec["estado"])
+    for p in a["plan"]:
+        if p["estado"] in ("vencido", "pronto"):
+            detalle = "Ya toca" if p["estado"] == "vencido" else \
+                f"≈ {fecha(p['fecha'])}" + (f" · {miles(p['faltan_km'])} km" if p["faltan_km"] is not None else "")
+            agregar("plan:" + p["clave"], p["nombre"] + " (estimado)", detalle, p["estado"])
+    for d in a["documentos"]:
+        if d["estado"] not in ("vencido", "pronto") or d["dias"] is None:
+            continue
+        detalle = (f"Venció hace {-d['dias']} {'día' if d['dias'] == -1 else 'días'}" if d["dias"] < 0
+                   else "Vence hoy" if d["dias"] == 0
+                   else f"Faltan {d['dias']} {'día' if d['dias'] == 1 else 'días'}")
+        agregar("doc:" + d["doc"]["tipo"], d["nombre"], detalle, d["estado"])
+    salida.sort(key=lambda x: x["estado"] != "vencido")
+    return salida
+
+
 @app.route("/")
 def index():
     if g.usuario is None:
@@ -718,8 +803,13 @@ def index():
         GROUP BY v.id
         ORDER BY COALESCE(NULLIF(v.nombre, ''), v.marca || ' ' || v.modelo) COLLATE NOCASE
     """, (g.usuario["id"],)).fetchall()
-    alertas = {v["id"]: contar_avisos(avisos(v)) for v in vehiculos}
-    return render_template("index.html", vehiculos=vehiculos, alertas=alertas)
+    alertas, cartel = {}, []
+    for v in vehiculos:
+        a = avisos(v)
+        alertas[v["id"]] = contar_avisos(a)
+        cartel += lista_avisos(v, a, con_nombre=len(vehiculos) > 1)
+    cartel.sort(key=lambda x: x["estado"] != "vencido")
+    return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=cartel)
 
 
 @app.route("/vehiculo/nuevo", methods=["GET", "POST"])
@@ -732,6 +822,7 @@ def vehiculo_nuevo():
         cur = get_db().execute(
             f"INSERT INTO vehiculos ({', '.join(cols)}) VALUES ({', '.join(':' + c for c in cols)})", d)
         get_db().commit()
+        guardar_portada(cur.lastrowid)
         flash("Vehículo agregado.", "ok")
         return redirect(url_for("vehiculo", vid=cur.lastrowid))
     return render_template("vehiculo_form.html", v=None, medido=None)
@@ -764,12 +855,12 @@ def vehiculo(vid):
     todos = registros_de(vid)
     a = avisos(v, todos)
     boveda = db.execute("SELECT * FROM archivos WHERE vehiculo_id = ? AND registro_id IS NULL "
-                        "ORDER BY categoria, id", (vid,)).fetchall()
+                        "AND COALESCE(categoria, '') <> 'portada' ORDER BY categoria, id", (vid,)).fetchall()
     return render_template(
         "vehiculo.html", v=v, registros=registros, stats=stats, km_real=km_actual(v),
         km_hoy=a["km_hoy"], recordatorios=a["recordatorios"], plan=a["plan"],
         documentos=a["documentos"], boveda=boveda, adjuntos=adjuntos_por_registro(vid),
-        cat=cat, q=q, anio=anio, espacio=espacio_usado())
+        cat=cat, q=q, anio=anio, espacio=espacio_usado(), cartel=lista_avisos(v, a))
 
 
 @app.route("/vehiculo/<int:vid>/editar", methods=["GET", "POST"])
@@ -782,6 +873,7 @@ def vehiculo_editar(vid):
         get_db().execute(
             f"UPDATE vehiculos SET {', '.join(f'{c} = :{c}' for c in CAMPOS_VEHICULO)} WHERE id = :id", d)
         get_db().commit()
+        guardar_portada(vid)
         flash("Datos del vehículo actualizados.", "ok")
         return redirect(url_for("vehiculo", vid=vid))
     return render_template("vehiculo_form.html", v=v, medido=promedio_medido(registros_de(vid)))
@@ -1045,9 +1137,9 @@ def compartido(token):
 @app.route("/c/<token>/archivo/<int:aid>")
 def archivo_compartido(token, aid):
     v = vehiculo_compartido(token)
-    a = get_db().execute("SELECT * FROM archivos WHERE id = ? AND vehiculo_id = ? AND registro_id IS NOT NULL",
-                         (aid, v["id"])).fetchone()
-    if a is None or not v["share_adjuntos"]:
+    a = get_db().execute("SELECT * FROM archivos WHERE id = ? AND vehiculo_id = ? "
+                         "AND (registro_id IS NOT NULL OR categoria = 'portada')", (aid, v["id"])).fetchone()
+    if a is None or (a["categoria"] != "portada" and not v["share_adjuntos"]):
         abort(404)
     return enviar_archivo(a)
 

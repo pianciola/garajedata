@@ -5,11 +5,32 @@
 <a class="back" href="{{ url_for('vehiculo', vid=v.id) if editando else url_for('index') }}">← Volver</a>
 <section class="card form-card">
   <h1>{{ 'Editar vehículo' if editando else 'Nuevo vehículo' }}</h1>
-  <form method="post" class="form">
+  <form method="post" class="form" enctype="multipart/form-data">
     {% set carr_actual = (v.carroceria if v else none) or 'sedan' %}
     {% set color_actual = (v.color if v else none) or COLOR_DEFAULT %}
-    <div class="car-stage car-stage-form" data-car3d data-interactive data-type="{{ carr_actual }}" data-color="{{ color_actual }}"
-         data-type-from="input[name=carroceria]" data-color-from="input[name=color]" title="Arrastrá para girar"></div>
+    {% set modo = (v.imagen_modo if v and v.foto_id else none) or '3d' %}
+    <div class="car-stage car-stage-form" id="stage-3d" data-car3d data-interactive data-type="{{ carr_actual }}" data-color="{{ color_actual }}"
+         data-type-from="input[name=carroceria]" data-color-from="input[name=color]" title="Arrastrá para girar" {% if modo == 'foto' %}hidden{% endif %}></div>
+    <div class="car-stage car-stage-form car-photo" id="stage-foto" {% if modo != 'foto' %}hidden{% endif %}>
+      <img id="foto-prev" alt="Tu foto del auto" {% if v and v.foto_id %}src="{{ url_for('archivo', aid=v.foto_id) }}"{% endif %}>
+      <span class="foto-vacia" id="foto-vacia" {% if v and v.foto_id %}hidden{% endif %}>Elegí una foto de tu auto</span>
+    </div>
+
+    <fieldset>
+      <legend>Imagen del auto</legend>
+      <div class="trans-picker">
+        <label class="body-option"><input type="radio" name="imagen_modo" value="3d" {% if modo != 'foto' %}checked{% endif %}><span>Modelo 3D</span></label>
+        <label class="body-option"><input type="radio" name="imagen_modo" value="foto" {% if modo == 'foto' %}checked{% endif %}><span>Mi foto</span></label>
+      </div>
+      <div class="foto-opciones" id="foto-opciones" {% if modo != 'foto' %}hidden{% endif %}>
+        <label class="file-drop file-drop-sm">
+          <input type="file" name="foto" id="foto-input" accept="image/jpeg,image/png,image/webp">
+          <span>📷 {{ 'Cambiar la foto' if v and v.foto_id else 'Elegir una foto' }}</span>
+        </label>
+        <p class="muted small">JPG, PNG o WEBP. Se achica sola. Queda mejor una foto horizontal del auto.</p>
+        {% if v and v.foto_id %}<label class="check"><input type="checkbox" name="quitar_foto" value="1"> <span>Quitar mi foto</span></label>{% endif %}
+      </div>
+    </fieldset>
 
     <fieldset>
       <legend>Tipo de carrocería</legend>
@@ -156,13 +177,20 @@
             <input type="radio" name="uso" value="{{ key }}" {% if (uso_actual or 'promedio') == key %}checked{% endif %}>
             <span class="uso-card">
               <strong>{{ label }}</strong>
-              <b>≈ {{ kpm|miles }} km/mes</b>
+              {% if kpm %}<b>≈ {{ kpm|miles }} km/mes</b>{% else %}
+              <span class="uso-km">
+                <input type="text" name="km_mes" id="km-mes" class="num-miles" inputmode="numeric" autocomplete="off"
+                       value="{{ (v.km_mes|num) if v and v.km_mes else '' }}" placeholder="Ej: 900" aria-label="Km por mes">
+                <b>km/mes</b>
+              </span>
+              {% endif %}
               <small>{{ desc }}</small>
             </span>
           </label>
           {% endfor %}
         </div>
-        {% if medido %}<p class="muted small">Según tus registros venís haciendo <b>≈ {{ medido|miles }} km por mes</b>.</p>{% endif %}
+        {% if medido %}<p class="muted small">Según tus registros venís haciendo <b>≈ {{ medido|miles }} km por mes</b>.
+          <button class="link-btn" type="button" id="usar-medido" data-km="{{ medido }}">Usar este número</button></p>{% endif %}
       </div>
     </details>
 

@@ -82,6 +82,17 @@ for texto in ("Ficha técnica", "8AFZA123456789012", "4,30 L con filtro", "estim
     if texto not in html:
         fallas.append(f"falta en la ficha: {texto}")
 esperar("editar con promedio", c.get("/vehiculo/3/editar"), 200)
+esperar("km por mes propios", c.post("/vehiculo/3/editar", data={"marca": "Ford", "modelo": "Focus", "km_inicial": "129.500",
+    "calcular_uso": "1", "uso": "personalizado", "km_mes": "1.800"}), 302)
+html = c.get("/vehiculo/3/editar").get_data(as_text=True)
+if 'value="1.800"' not in html or 'value="personalizado" checked' not in html:
+    fallas.append("no se guardó el perfil personalizado")
+esperar("personalizado sin km", c.post("/vehiculo/3/editar", data={"marca": "Ford", "modelo": "Focus",
+    "calcular_uso": "1", "uso": "personalizado", "km_mes": ""}), 302)
+if 'value="personalizado" checked' in c.get("/vehiculo/3/editar").get_data(as_text=True):
+    fallas.append("aceptó personalizado sin km por mes")
+esperar("volver a mucho", c.post("/vehiculo/3/editar", data={"marca": "Ford", "modelo": "Focus", "km_inicial": "129.500",
+    "calcular_uso": "1", "uso": "mucho"}), 302)
 esperar("sin plan", c.post("/vehiculo/2/editar", data={"uso": "poco"}), 302)
 
 # Documentación y vencimientos
@@ -137,6 +148,38 @@ html = c.get("/vehiculo/3/compartir").get_data(as_text=True)
 token = re.search(r'id="link">[^<]*/c/([\w-]+)<', html).group(1)
 esperar("service worker", c.get("/sw.js"), 200)
 
+# Foto propia en lugar del modelo 3D
+esperar("foto sin archivo", c.post("/vehiculo/3/editar", data={"imagen_modo": "foto"}), 302)
+if 'class="car-stage car-photo' in c.get("/vehiculo/3").get_data(as_text=True):
+    fallas.append("mostró foto sin tener una")
+esperar("foto pdf rechazada", c.post("/vehiculo/3/editar", content_type="multipart/form-data", data={
+    "imagen_modo": "foto", "foto": (io.BytesIO(PDF), "x.pdf")}), 302)
+esperar("foto ok", c.post("/vehiculo/3/editar", content_type="multipart/form-data", data={
+    "imagen_modo": "foto", "foto": (io.BytesIO(PNG), "auto.png")}), 302)
+for pagina in ("/vehiculo/3", "/", "/vehiculo/3/libro", "/vehiculo/3/editar"):
+    if "car-photo" not in c.get(pagina).get_data(as_text=True):
+        fallas.append(f"no se ve la foto en {pagina}")
+fid = int(re.search(r"/archivo/(\d+)\" alt=\"Foto de", c.get("/vehiculo/3").get_data(as_text=True)).group(1))
+esperar("servir foto", c.get(f"/archivo/{fid}"), 200)
+if "auto.png" in c.get("/vehiculo/3").get_data(as_text=True).split("Bóveda digital")[1]:
+    fallas.append("la foto del auto aparece en la bóveda")
+esperar("volver al 3D", c.post("/vehiculo/3/editar", data={"imagen_modo": "3d"}), 302)
+if "data-car3d" not in c.get("/vehiculo/3").get_data(as_text=True):
+    fallas.append("no volvió el modelo 3D")
+esperar("foto vuelve", c.post("/vehiculo/3/editar", data={"imagen_modo": "foto"}), 302)
+if "car-photo" not in c.get("/vehiculo/3").get_data(as_text=True):
+    fallas.append("la foto guardada no volvió")
+
+# Libro: opciones de qué mostrar y compartido con foto
+html = c.get("/vehiculo/3/libro").get_data(as_text=True)
+for esperado in ('data-toggle="costos"', 'data-incluir', 'Qué se ve en el PDF'):
+    if esperado not in html:
+        fallas.append(f"falta en el libro: {esperado}")
+
+# Cartel de recordatorios
+if 'id="cartel"' not in c.get("/").get_data(as_text=True) or 'id="cartel"' not in c.get("/vehiculo/3").get_data(as_text=True):
+    fallas.append("no aparece el cartel de recordatorios")
+
 # Otra cuenta no ve ni toca nada de la primera
 esperar("salir", c.get("/logout"), 302)
 esperar("usuario repetido", c.post("/registro", data={"usuario": "JUAN", "clave": "123456", "clave2": "123456"}), 200)
@@ -149,6 +192,7 @@ for p in ("/vehiculo/1", "/vehiculo/3", "/vehiculo/3/editar", "/vehiculo/3/expor
 esperar("borrar registro ajeno", c.post("/registro/1/eliminar"), 404)
 esperar("borrar vehículo ajeno", c.post("/vehiculo/3/eliminar"), 404)
 esperar("editar vehículo ajeno", c.post("/vehiculo/3/editar", data={"marca": "x"}), 404)
+esperar("foto ajena", c.get(f"/archivo/{fid}"), 404)
 for p in ("/archivo/1", "/vehiculo/3/libro", "/vehiculo/3/compartir", "/vehiculo/3/documentos"):
     esperar(f"ajeno {p}", c.get(p), 404)
 esperar("borrar archivo ajeno", c.post("/archivo/1/eliminar"), 404)
@@ -164,6 +208,7 @@ for privado in ("La Segunda", "cedula.png", "Bóveda", "/registro/"):
     if privado in html:
         fallas.append(f"el compartido muestra algo privado: {privado}")
 esperar("foto de registro compartida", c.get(f"/c/{token}/archivo/3"), 200)
+esperar("foto del auto compartida", c.get(f"/c/{token}/archivo/{fid}"), 200)
 esperar("bóveda no compartida", c.get(f"/c/{token}/archivo/1"), 404)
 esperar("link inventado", c.get("/c/inventado"), 404)
 
@@ -176,6 +221,7 @@ if r.headers.get("Location") != "/":
 esperar("ocultar adjuntos", c.post("/vehiculo/3/compartir", data={"accion": "opciones", "costos": "1"}), 302)
 c2 = app.test_client()
 esperar("foto oculta", c2.get(f"/c/{token}/archivo/3"), 404)
+esperar("foto del auto sigue visible", c2.get(f"/c/{token}/archivo/{fid}"), 200)
 esperar("dejar de compartir", c.post("/vehiculo/3/compartir", data={"accion": "desactivar"}), 302)
 esperar("link anulado", c2.get(f"/c/{token}"), 404)
 esperar("quitar adjunto", c.post("/registro/2/editar", data={"titulo": "Bujías", "quitar": "3"}), 302)

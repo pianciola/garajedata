@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ nombre_auto(v) }}{% endblock %}
 {% block content %}
+{% from "_auto.html" import vista with context %}
 <a class="back" href="{{ url_for('index') }}">← Mis vehículos</a>
 
 <section class="hero hero-car">
@@ -24,7 +25,7 @@
     <a class="btn btn-ghost" href="{{ url_for('compartir', vid=v.id) }}">{{ 'Compartida ✓' if v.share_token else 'Compartir' }}</a>
   </div>
   </div>
-  <div class="car-stage car-stage-hero" data-car3d data-interactive data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}" title="Arrastrá para girar"></div>
+  {{ vista(v, 'car-stage-hero', url_for('archivo', aid=v.foto_id) if v.foto_id else none, true) }}
 </section>
 
 <div class="stats">

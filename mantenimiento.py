@@ -15,7 +15,10 @@ USOS = {
     "poco": ("Manejo poco", 500, "Hasta ~6.000 km por año: salidas cortas y fines de semana."),
     "promedio": ("Manejo promedio", 1250, "~15.000 km por año: uso diario normal."),
     "mucho": ("Manejo mucho", 2500, "~30.000 km por año o más: ruta, trabajo, aplicaciones."),
+    # Los km por mes los pone la persona (columna km_mes).
+    "personalizado": ("Personalizado", None, "Elegí vos cuántos km hacés por mes."),
 }
+KM_MES_MAX = 30000
 
 # Services más importantes: (clave, nombre, cada km, cada meses, palabras del título,
 # combustibles a los que NO aplica). Intervalos generales y conservadores: el
@@ -70,7 +73,12 @@ def sumar_meses(d, meses):
     return date(anio, mes, min(d.day, calendar.monthrange(anio, mes)[1]))
 
 
-def km_por_mes(uso):
+def km_por_mes(v):
+    """Km por mes del perfil de uso del vehículo (el elegido, o el que cargó a mano)."""
+    uso = v["uso"]
+    if uso == "personalizado":
+        n = v["km_mes"]
+        return n if isinstance(n, int) and 0 < n <= KM_MES_MAX else None
     return USOS[uso][1] if uso in USOS else None
 
 
@@ -97,7 +105,7 @@ def km_estimado(v, registros, hoy=None):
     if not conocidos:
         return 0
     km, cuando = max(conocidos, key=lambda x: x[0])
-    kpm = km_por_mes(v["uso"])
+    kpm = km_por_mes(v)
     if not kpm or not cuando or cuando >= hoy:
         return km
     return km + round(kpm * (hoy - cuando).days / DIAS_MES)
@@ -114,7 +122,7 @@ def estado(dias, faltan_km=None, aviso_dias=30):
 def plan_mantenimiento(v, registros, hoy=None):
     """Para cada service del plan: último registro que lo menciona y cuándo toca
     el próximo, por km (estimados con el perfil de uso) o por tiempo."""
-    kpm = km_por_mes(v["uso"])
+    kpm = km_por_mes(v)
     if not kpm:
         return []
     hoy = hoy or date.today()

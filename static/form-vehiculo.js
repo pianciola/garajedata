@@ -154,12 +154,51 @@
   colorInput.addEventListener("input", marcarColor);
 })();
 
+// Imagen del auto: modelo 3D o foto propia, con vista previa de la foto elegida.
+(() => {
+  const radios = document.querySelectorAll("input[name=imagen_modo]");
+  const st3d = document.getElementById("stage-3d"), stFoto = document.getElementById("stage-foto");
+  const opciones = document.getElementById("foto-opciones"), input = document.getElementById("foto-input");
+  const img = document.getElementById("foto-prev"), vacia = document.getElementById("foto-vacia");
+  if (!radios.length || !st3d || !stFoto) return;
+  const modo = () => document.querySelector("input[name=imagen_modo]:checked")?.value;
+  function actualizar() {
+    const foto = modo() === "foto";
+    st3d.hidden = foto; stFoto.hidden = !foto; opciones.hidden = !foto;
+  }
+  radios.forEach((r) => r.addEventListener("change", actualizar));
+  input.addEventListener("change", () => {
+    const f = input.files[0];
+    if (!f) return;
+    img.src = URL.createObjectURL(f);
+    vacia.hidden = true;
+  });
+  const quitar = document.querySelector("input[name=quitar_foto]");
+  if (quitar) quitar.addEventListener("change", () => {
+    img.style.opacity = quitar.checked ? ".25" : "";
+  });
+  actualizar();
+})();
+
 // Plan de mantenimiento: los perfiles de uso solo se eligen con la casilla tildada.
 (() => {
   const casilla = document.getElementById("calcular-uso");
   const perfiles = document.getElementById("uso-picker");
   if (!casilla || !perfiles) return;
   const actualizar = () => perfiles.classList.toggle("apagado", !casilla.checked);
+  const kmMes = document.getElementById("km-mes");
+  const personalizado = document.querySelector("input[name=uso][value=personalizado]");
+  if (kmMes && personalizado) {
+    // Escribir los km por mes elige solo la opción "Personalizado".
+    kmMes.addEventListener("focus", () => { personalizado.checked = true; });
+    kmMes.addEventListener("input", () => { personalizado.checked = true; });
+    const medido = document.getElementById("usar-medido");
+    if (medido) medido.addEventListener("click", () => {
+      casilla.checked = true; actualizar();
+      personalizado.checked = true;
+      kmMes.value = Number(medido.dataset.km).toLocaleString("es-AR");
+    });
+  }
   casilla.addEventListener("change", actualizar);
   perfiles.addEventListener("click", () => {
     if (!casilla.checked) { casilla.checked = true; actualizar(); }

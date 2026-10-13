@@ -595,10 +595,10 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .check { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-weight: 600; }
 .check input { margin-top: 4px; flex: none; width: 17px; height: 17px; }
 
-.uso-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; transition: opacity .2s; }
+.uso-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; transition: opacity .2s; }
 .uso-picker.apagado { opacity: .4; }
 .uso-option { cursor: pointer; }
-.uso-option input { position: absolute; opacity: 0; pointer-events: none; }
+.uso-option > input { position: absolute; opacity: 0; pointer-events: none; }
 .uso-card {
   display: grid; gap: 2px; height: 100%; padding: 12px; border: 1px solid var(--border);
   border-radius: 6px; background: var(--surface);
@@ -606,9 +606,9 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .uso-card strong { font-family: var(--display); text-transform: uppercase; letter-spacing: .05em; font-size: 1rem; }
 .uso-card b { color: var(--accent); font-family: var(--display); letter-spacing: .04em; }
 .uso-card small { color: var(--muted); font-size: .78rem; line-height: 1.35; }
-.uso-option input:checked + .uso-card { border-color: var(--accent); background: var(--accent-soft); }
-.uso-option input:focus-visible + .uso-card { box-shadow: 0 0 0 3px rgba(227, 38, 43, .3); }
-.uso-picker.apagado .uso-option input:checked + .uso-card { border-color: var(--border); background: var(--surface); }
+.uso-option > input:checked + .uso-card { border-color: var(--accent); background: var(--accent-soft); }
+.uso-option > input:focus-visible + .uso-card { box-shadow: 0 0 0 3px rgba(227, 38, 43, .3); }
+.uso-picker.apagado .uso-option > input:checked + .uso-card { border-color: var(--border); background: var(--surface); }
 
 .odo-est { display: block; margin-top: 4px; color: var(--warn); font-size: .8rem; font-style: normal; letter-spacing: .04em; }
 .tag-est {
@@ -834,7 +834,7 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 /* Radios ocultos de los selectores (carrocería, categoría, uso…): sin esto
    heredan width: 100% de los inputs y estiran la página hacia el costado en celular. */
 .body-option, .cat-option, .uso-option, .swatch-custom { position: relative; }
-.body-option input, .cat-option input, .uso-option input {
+.body-option input, .cat-option input, .uso-option > input {
   width: 1px; height: 1px; padding: 0; margin: 0; left: 0; top: 0; overflow: hidden;
 }
 @media (max-width: 720px) {
@@ -842,3 +842,72 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
   .quitar { padding: 8px 0 8px 8px; }
   .quitar input { width: 18px; height: 18px; }
 }
+
+/* ---------- foto propia del auto ---------- */
+.car-photo { overflow: hidden; }
+.car-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.car-photo .foto-vacia {
+  position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted);
+  font-family: var(--display); letter-spacing: .12em; text-transform: uppercase; font-size: .9rem;
+}
+.car-photo img:not([src]) { display: none; }
+.foto-opciones { display: grid; gap: 10px; margin-top: 12px; }
+.libro-imagen { min-width: 0; }
+.libro-imagen .car-stage { height: 190px; border-radius: 8px; border: 1px solid var(--border); }
+
+/* ---------- libro de servicio: elegir qué se ve ---------- */
+.libro-opciones { padding: 16px 20px; margin-bottom: 14px; }
+.libro-opciones > summary { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; cursor: pointer; list-style: none; }
+.libro-opciones > summary::-webkit-details-marker { display: none; }
+.libro-opciones > summary h2::after { content: " ▾"; color: var(--muted); font-size: .9rem; }
+.libro-opciones[open] > summary h2::after { content: " ▴"; }
+.libro-opciones-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 18px; margin: 14px 0; }
+.libro-opciones-grid .check { font-weight: 500; padding: 5px 0; }
+.libro-opciones-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.incluir { display: flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--muted); font-size: .8rem; cursor: pointer; }
+.incluir input { width: 16px; height: 16px; }
+.libro-item.excluido { opacity: .35; }
+.libro-item.excluido .libro-item-cuerpo { filter: grayscale(1); }
+
+/* ---------- cartel lateral de recordatorios ---------- */
+.cartel {
+  position: fixed; right: 18px; bottom: 18px; z-index: 40; width: min(330px, calc(100vw - 24px));
+  padding: 14px 16px 12px; border-radius: var(--radius); border: 1px solid var(--border-strong);
+  border-left: 4px solid var(--warn);
+  background: linear-gradient(180deg, var(--surface-3), var(--surface-2)); box-shadow: 0 14px 40px rgba(0, 0, 0, .55);
+  transform: translateX(calc(100% + 32px)); opacity: 0; visibility: hidden;
+  transition: transform .45s cubic-bezier(.2, .9, .3, 1.1), opacity .3s, visibility 0s .45s;
+}
+.cartel.cartel-urgente { border-left-color: var(--danger); }
+.cartel.abierto { transform: none; opacity: 1; visibility: visible; transition-delay: 0s; }
+.cartel header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.cartel header strong { font-family: var(--display); letter-spacing: .1em; text-transform: uppercase; font-size: .95rem; }
+.cartel-x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 6px 8px; margin: -6px -8px -6px 0; border-radius: 6px; }
+.cartel-x:hover { color: var(--text); background: var(--surface-3); }
+.cartel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cartel li a {
+  display: grid; gap: 1px; padding: 8px 10px; border-radius: 6px; background: #0e1013; color: var(--text);
+  border-left: 3px solid var(--warn);
+}
+.cartel li.cartel-vencido a { border-left-color: var(--danger); }
+.cartel li a:hover { text-decoration: none; background: var(--surface); }
+.cartel li strong { font-family: var(--display); letter-spacing: .03em; text-transform: uppercase; }
+.cartel li small { color: var(--muted); }
+.cartel li span { font-size: .85rem; color: var(--warn); font-weight: 600; }
+.cartel li.cartel-vencido span { color: var(--danger); }
+.cartel-mas { margin: 6px 2px 0; color: var(--muted); font-size: .82rem; }
+.cartel footer { margin-top: 8px; text-align: right; }
+.cartel-despues { background: none; border: 0; color: var(--muted); font: inherit; font-size: .82rem; cursor: pointer; padding: 8px 4px; }
+.cartel-despues:hover { color: var(--text); text-decoration: underline; }
+@media (prefers-reduced-motion: reduce) { .cartel { transition: opacity .2s; transform: none; } }
+@media (max-width: 720px) { .cartel { right: 12px; bottom: 12px; } }
+@media print {
+  .cartel, .no-print { display: none !important; }
+  .libro-item.excluido { display: none !important; }
+  .libro-imagen .car-stage { border-color: #cfd3d8; }
+}
+
+.uso-km { display: flex; align-items: center; gap: 8px; }
+.uso-km input { width: 100%; min-width: 0; padding: 6px 8px; text-align: right; font-family: var(--display); font-size: 1.05rem; }
+.uso-card b { white-space: nowrap; }
+.link-btn { background: none; border: 0; padding: 4px 0 4px 6px; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }

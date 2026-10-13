@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Libro de servicio · {{ nombre_auto(v) }}{% endblock %}
 {% block content %}
+{% from "_auto.html" import vista with context %}
+{% set es_foto = v.imagen_modo == 'foto' and v.foto_id %}
 <div class="libro-toolbar no-print">
   {% if compartido %}
     <div class="vista-banner">👁 <b>Modo vista</b> · Bitácora compartida. Solo lectura.</div>
@@ -9,11 +11,35 @@
   {% endif %}
   <button class="btn btn-primary" type="button" onclick="window.print()">Descargar PDF</button>
 </div>
+
+<details class="card libro-opciones no-print" id="libro-opciones" open>
+  <summary><h2>Qué se ve en el PDF</h2><small class="muted">Elegí qué mostrar y qué no</small></summary>
+  <div class="libro-opciones-grid">
+    <label class="check"><input type="checkbox" data-toggle="imagen" checked> <span>{{ 'Foto del auto' if es_foto else 'Imagen del auto' }}</span></label>
+    <label class="check"><input type="checkbox" data-toggle="patente" checked> <span>Patente</span></label>
+    <label class="check"><input type="checkbox" data-toggle="km" checked> <span>Kilometraje actual</span></label>
+    <label class="check"><input type="checkbox" data-toggle="resumen" checked> <span>Registros y período</span></label>
+    <label class="check"><input type="checkbox" data-toggle="ficha" checked> <span>Ficha técnica</span></label>
+    <label class="check"><input type="checkbox" data-toggle="categorias" checked> <span>Etiquetas por categoría</span></label>
+    <label class="check"><input type="checkbox" data-toggle="costos" checked> <span>Costos (total y de cada trabajo)</span></label>
+    <label class="check"><input type="checkbox" data-toggle="kmitem" checked> <span>Km de cada trabajo</span></label>
+    <label class="check"><input type="checkbox" data-toggle="detalle" checked> <span>Detalle de cada trabajo</span></label>
+    <label class="check"><input type="checkbox" data-toggle="quien" checked> <span>Quién lo hizo</span></label>
+    <label class="check"><input type="checkbox" data-toggle="adjuntos" checked> <span>Fotos y facturas</span></label>
+  </div>
+  <div class="libro-opciones-acciones">
+    <button class="btn btn-ghost btn-sm" type="button" data-todo="1">Mostrar todo</button>
+    <button class="btn btn-ghost btn-sm" type="button" data-todo="0">Ocultar todo</button>
+    <button class="btn btn-ghost btn-sm" type="button" data-registros="1">Incluir todos los registros</button>
+    <button class="btn btn-ghost btn-sm" type="button" data-registros="0">Quitar todos</button>
+  </div>
+  <p class="muted small">Cada registro tiene su casilla <b>«Incluir»</b> para dejarlo afuera. Tus elecciones quedan guardadas en este dispositivo.</p>
+</details>
 {% if not compartido %}
 <p class="muted small no-print libro-tip">En la ventana de impresión elegí <b>«Guardar como PDF»</b> como destino.</p>
 {% endif %}
 
-<article class="libro">
+<article class="libro" id="libro" data-clave="libro:{{ 'c' if compartido else 'v' }}{{ v.id }}">
   <header class="libro-head">
     <div class="libro-marca">Garaje<b>Data</b> · Libro de servicio</div>
     <div class="muted small">Generado el {{ hoy|fecha }}</div>
@@ -26,29 +52,31 @@
         <h1>{{ nombre_auto(v) }}</h1>
       </div>
       <p class="muted">{{ [v.marca, v.modelo, v.version, v.anio, CARROCERIAS.get(v.carroceria), TRANSMISIONES.get(v.transmision)]|select|join(' · ') }}</p>
-      {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
+      {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}" data-s="patente"><b>{{ pt[1] }}</b></span>{% endif %}
     </div>
-    <div class="car-stage libro-car no-print" data-car3d data-interactive data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}" title="Arrastrá para girar"></div>
+    <div class="libro-imagen{{ '' if es_foto else ' no-print' }}" data-s="imagen">
+      {{ vista(v, 'libro-car', url_archivo(v.foto_id) if v.foto_id else none, true) }}
+    </div>
   </section>
 
-  <section class="libro-resumen">
-    <div><span>Kilometraje</span><strong>{{ km_hoy|miles }} km</strong></div>
-    <div><span>Registros</span><strong>{{ registros|length }}</strong></div>
-    <div><span>Período</span><strong>{% if desde %}{{ desde|fecha }} – {{ hasta|fecha }}{% else %}—{% endif %}</strong></div>
-    {% if mostrar_costos %}<div><span>Invertido</span><strong>{{ total|plata }}</strong></div>{% endif %}
+  <section class="libro-resumen" id="resumen">
+    <div data-s="km"><span>Kilometraje</span><strong>{{ km_hoy|miles }} km</strong></div>
+    <div data-s="resumen"><span>Registros</span><strong id="res-n">{{ registros|length }}</strong></div>
+    <div data-s="resumen"><span>Período</span><strong id="res-periodo">{% if desde %}{{ desde|fecha }} – {{ hasta|fecha }}{% else %}—{% endif %}</strong></div>
+    {% if mostrar_costos %}<div data-s="costos"><span>Invertido</span><strong id="res-total">{{ total|plata }}</strong></div>{% endif %}
   </section>
 
   {% if registros %}
-  <div class="libro-cats">
+  <div class="libro-cats" data-s="categorias" id="libro-cats">
     {% for key, label in CATEGORIAS.items() if por_categoria[key] %}
-      <span class="badge badge-{{ key }}">{{ label }}: {{ por_categoria[key] }}</span>
+      <span class="badge badge-{{ key }}" data-cat="{{ key }}" data-etiqueta="{{ label }}">{{ label }}: {{ por_categoria[key] }}</span>
     {% endfor %}
   </div>
   {% endif %}
 
   {% set ficha = ficha_tecnica(v) %}
   {% if ficha %}
-  <section class="libro-seccion">
+  <section class="libro-seccion" data-s="ficha">
     <h2>Ficha técnica</h2>
     <dl class="ficha-grid">
       {% for etiqueta, valor in ficha %}<div{% if valor|length > 16 %} class="ancho"{% endif %}><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}
@@ -61,21 +89,22 @@
     {% if registros %}
     <ol class="libro-lista">
       {% for r in registros %}
-      <li class="libro-item cat-{{ r.categoria }}">
+      <li class="libro-item cat-{{ r.categoria }}" data-id="{{ r.id }}" data-fecha="{{ r.fecha }}" data-costo="{{ r.costo if r.costo is not none else '' }}" data-cat="{{ r.categoria }}">
         <div class="libro-item-fecha">
           <strong>{{ r.fecha|fecha }}</strong>
-          {% if r.km %}<span>{{ r.km|miles }} km</span>{% endif %}
+          {% if r.km %}<span data-s="kmitem">{{ r.km|miles }} km</span>{% endif %}
+          <label class="incluir no-print"><input type="checkbox" data-incluir checked> Incluir</label>
         </div>
         <div class="libro-item-cuerpo">
           <div class="libro-item-head">
             <span class="badge badge-{{ r.categoria }}">{{ CATEGORIAS.get(r.categoria, r.categoria) }}</span>
-            {% if mostrar_costos and r.costo is not none %}<span class="cost">{{ r.costo|plata }}</span>{% endif %}
+            {% if mostrar_costos and r.costo is not none %}<span class="cost" data-s="costos">{{ r.costo|plata }}</span>{% endif %}
           </div>
           <h3>{{ r.titulo }}</h3>
-          {% if r.detalle %}<p class="detail">{{ r.detalle }}</p>{% endif %}
-          {% set q_ = quien(r) %}{% if q_ %}<p class="muted small">Hecho por: {{ q_ }}</p>{% endif %}
+          {% if r.detalle %}<p class="detail" data-s="detalle">{{ r.detalle }}</p>{% endif %}
+          {% set q_ = quien(r) %}{% if q_ %}<p class="muted small" data-s="quien">Hecho por: {{ q_ }}</p>{% endif %}
           {% if adjuntos.get(r.id) %}
-          <div class="libro-adjuntos">
+          <div class="libro-adjuntos" data-s="adjuntos">
             {% for a in adjuntos[r.id] %}
               {% if a.mime.startswith('image/') %}
               <a href="{{ url_archivo(a.id) }}" target="_blank" rel="noopener"><img src="{{ url_archivo(a.id) }}" alt="{{ a.nombre }}" loading="eager"></a>
@@ -94,8 +123,11 @@
     {% endif %}
   </section>
 
-  <footer class="libro-pie">
-    Historial cargado por el dueño del vehículo en GarajeData. {% if registros %}{{ registros|length }} registros entre el {{ desde|fecha }} y el {{ hasta|fecha }}.{% endif %}
+  <footer class="libro-pie" id="libro-pie">
+    Historial cargado por el dueño del vehículo en GarajeData.
   </footer>
 </article>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='libro.js') }}"></script>
 {% endblock %}

@@ -63,7 +63,7 @@ def achicar(datos, mime):
     return (nuevo, "image/jpeg") if len(nuevo) < len(datos) or mime != "image/jpeg" else (datos, mime)
 
 
-def guardar(archivo, usados):
+def guardar(archivo, usados, solo_imagen=False):
     """Valida y guarda un archivo subido. Devuelve (nombre_en_disco, mime, bytes, nombre_original).
     Lanza ValueError con un mensaje para el usuario si no se puede."""
     datos = archivo.read(MAX_BYTES + 1)
@@ -75,6 +75,8 @@ def guardar(archivo, usados):
     tipo = tipo_de(datos)
     if tipo is None:
         raise ValueError(f"«{nombre}» no es una foto (JPG, PNG, WEBP) ni un PDF.")
+    if solo_imagen and tipo[0] == "application/pdf":
+        raise ValueError("La foto del auto tiene que ser una imagen (JPG, PNG o WEBP), no un PDF.")
     datos, mime = achicar(datos, tipo[0])
     if usados + len(datos) > CUPO_USUARIO:
         raise ValueError("Llegaste al límite de 100 MB de archivos de tu cuenta. Borrá alguno para subir más.")

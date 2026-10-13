@@ -41,6 +41,28 @@
     {% block content %}{% endblock %}
   </main>
 
+  {% if cartel %}
+  <aside class="cartel" id="cartel" role="status" aria-live="polite" aria-label="Recordatorios de mantenimiento">
+    <header>
+      <strong>⏰ Recordatorios</strong>
+      <button class="cartel-x" type="button" data-cerrar aria-label="Cerrar">✕</button>
+    </header>
+    <ul>
+      {% for a in cartel[:3] %}
+      <li class="cartel-{{ a.estado }}" data-clave="{{ a.clave }}">
+        <a href="{{ a.url }}">
+          <strong>{{ a.titulo }}</strong>
+          {% if a.auto %}<small>{{ a.auto }}</small>{% endif %}
+          <span>{{ a.detalle }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% if cartel|length > 3 %}<p class="cartel-mas">y {{ cartel|length - 3 }} más</p>{% endif %}
+    <footer><button class="cartel-despues" type="button" data-manana>Recordármelo mañana</button></footer>
+  </aside>
+  {% endif %}
+
   <footer class="wrap footer">
     GarajeData · bitácora del automotor
     {% set creditos = creditos_modelos() %}
@@ -59,6 +81,7 @@
   </script>
   <script src="{{ url_for('static', filename='numeros.js') }}"></script>
   <script src="{{ url_for('static', filename='archivos.js') }}"></script>
+  {% if cartel %}<script src="{{ url_for('static', filename='avisos.js') }}"></script>{% endif %}
   <script>
     // Copia offline de la bitácora y la bóveda: solo con la sesión abierta.
     // Sin sesión (o al salir) se borra, así no queda nada en el dispositivo.

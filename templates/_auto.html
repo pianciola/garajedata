@@ -1,0 +1,9 @@
+{# Imagen del auto: su foto propia o, si no tiene, el modelo 3D giratorio.
+   Se importa con: {% from "_auto.html" import vista with context %} #}
+{% macro vista(v, clase='', foto_url=none, interactivo=false) -%}
+{% if v.imagen_modo == 'foto' and v.foto_id and foto_url -%}
+<div class="car-stage car-photo {{ clase }}"><img src="{{ foto_url }}" alt="Foto de {{ nombre_auto(v) }}" loading="lazy" decoding="async"></div>
+{%- else -%}
+<div class="car-stage {{ clase }}" data-car3d {% if interactivo %}data-interactive title="Arrastrá para girar"{% endif %} data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}"></div>
+{%- endif %}
+{%- endmacro %}

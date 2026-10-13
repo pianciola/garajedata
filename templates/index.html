@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Mis vehículos{% endblock %}
 {% block content %}
+{% from "_auto.html" import vista with context %}
 <section class="hero">
   <div>
     <div class="eyebrow">Tu garaje</div>
@@ -23,7 +24,7 @@
       ⚠ {{ al.vencido + al.pronto }} {{ 'aviso' if al.vencido + al.pronto == 1 else 'avisos' }}
     </span>
     {% endif %}
-    <div class="car-stage" data-car3d data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}"></div>
+    {{ vista(v, foto_url=url_for('archivo', aid=v.foto_id) if v.foto_id else none) }}
     <div class="car-card-head">
       <div>
         <h2 class="name-logo">{% if logo_marca(v.marca) %}<img class="brand-logo{{ " logo-oscuro" if logo_oscuro(v.marca) }}" src="{{ logo_marca(v.marca) }}" alt="{{ v.marca }}" loading="lazy">{% endif %}{{ nombre_auto(v) }}</h2>
