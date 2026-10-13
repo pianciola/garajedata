@@ -772,6 +772,11 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
   .badge { color: #111; border: 1px solid var(--cat); background: none; }
   .brand-logo.logo-oscuro { filter: none; }
   .plate { box-shadow: none; }
+  /* Sin esto el navegador no imprime los fondos (casilla «Gráficos de fondo» apagada, que es
+     lo normal): la patente vieja quedaba con letras claras sobre papel blanco, invisibles. */
+  .plate, .plate *, .plate::before, .plate::after, .brand-logo, .badge, .libro-resumen, .ficha-grid {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
   .libro-item { break-inside: avoid; }
   .libro-adjuntos img { width: 46%; height: auto; max-height: 90mm; object-fit: contain; }
   .pdf-chip { color: #111; }
