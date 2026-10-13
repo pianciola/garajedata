@@ -11,44 +11,8 @@
     {% set modo = (v.imagen_modo if v and v.foto_id else none) or '3d' %}
     <div class="car-stage car-stage-form" id="stage-3d" data-car3d data-interactive data-type="{{ carr_actual }}" data-color="{{ color_actual }}"
          data-type-from="input[name=carroceria]" data-color-from="input[name=color]" title="Arrastrá para girar" {% if modo == 'foto' %}hidden{% endif %}></div>
-    {% set fx = v.foto_x if v and v.foto_x is not none else 50 %}
-    {% set fy = v.foto_y if v and v.foto_y is not none else 50 %}
-    {% set fz = (v.foto_zoom if v and v.foto_zoom else 100) %}
-    {% set completa = v and v.foto_ajuste == 'completa' %}
-    <div class="car-stage car-stage-form car-photo{{ ' foto-completa' if completa }}" id="stage-foto" style="--fx: {{ fx }}%; --fy: {{ fy }}%; --fz: {{ fz / 100 }}" {% if modo != 'foto' %}hidden{% endif %}>
-      <img id="foto-prev" alt="Tu foto del auto" {% if v and v.foto_id %}src="{{ url_for('archivo', aid=v.foto_id) }}"{% endif %}>
-      <span class="foto-vacia" id="foto-vacia" {% if v and v.foto_id %}hidden{% endif %}>Elegí una foto de tu auto</span>
-    </div>
-
-    <fieldset>
-      <legend>Imagen del auto</legend>
-      <div class="trans-picker">
-        <label class="body-option"><input type="radio" name="imagen_modo" value="3d" {% if modo != 'foto' %}checked{% endif %}><span>Modelo 3D</span></label>
-        <label class="body-option"><input type="radio" name="imagen_modo" value="foto" {% if modo == 'foto' %}checked{% endif %}><span>Mi foto</span></label>
-      </div>
-      <div class="foto-opciones" id="foto-opciones" {% if modo != 'foto' %}hidden{% endif %}>
-        <label class="file-drop file-drop-sm">
-          <input type="file" name="foto" id="foto-input" accept="image/jpeg,image/png,image/webp">
-          <span>📷 {{ 'Cambiar la foto' if v and v.foto_id else 'Elegir una foto' }}</span>
-        </label>
-        <p class="muted small">JPG, PNG o WEBP. Se achica sola. Queda mejor una foto horizontal del auto.</p>
-        <div class="foto-ajuste" id="foto-ajuste">
-          <div class="foto-ajuste-titulo">
-            <strong>Ajustar la foto</strong>
-            <button class="link-btn" type="button" id="foto-reset">Restablecer</button>
-          </div>
-          <p class="muted small">Arrastrá la foto para moverla, o usá los controles. Se ve igual en la lista, la ficha y el libro.</p>
-          <div class="trans-picker foto-ajuste-modo">
-            <label class="body-option"><input type="radio" name="foto_ajuste" value="cubrir" {% if not completa %}checked{% endif %}><span>Llenar el marco</span></label>
-            <label class="body-option"><input type="radio" name="foto_ajuste" value="completa" {% if completa %}checked{% endif %}><span>Foto completa</span></label>
-          </div>
-          <label class="rango"><span>Zoom</span><input type="range" name="foto_zoom" id="foto-zoom" min="100" max="300" step="5" value="{{ fz }}"><output id="foto-zoom-v">{{ fz }}%</output></label>
-          <label class="rango"><span>Izquierda ↔ derecha</span><input type="range" name="foto_x" id="foto-x" min="0" max="100" value="{{ fx }}"></label>
-          <label class="rango"><span>Arriba ↕ abajo</span><input type="range" name="foto_y" id="foto-y" min="0" max="100" value="{{ fy }}"></label>
-        </div>
-        {% if v and v.foto_id %}<label class="check"><input type="checkbox" name="quitar_foto" value="1"> <span>Quitar mi foto</span></label>{% endif %}
-      </div>
-    </fieldset>
+    {% set stage3d = "#stage-3d" %}
+    {% include "_foto_editor.html" %}
 
     <fieldset>
       <legend>Tipo de carrocería</legend>
@@ -236,6 +200,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='foto-editor.js') }}"></script>
 <script id="catalogo" type="application/json">{{ catalogo_js()|tojson }}</script>
 <script src="{{ url_for('static', filename='form-vehiculo.js') }}"></script>
 {% endblock %}

@@ -931,3 +931,26 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .rango input[type=range] { padding: 0; width: 100%; accent-color: var(--accent); background: none; border: 0; height: 28px; }
 .rango:not(:has(output)) { grid-template-columns: 11.5em 1fr; }
 @media (max-width: 720px) { .rango { grid-template-columns: 1fr auto; } .rango > span { grid-column: 1 / -1; } .rango:not(:has(output)) { grid-template-columns: 1fr; } }
+
+/* ---------- editar la foto desde la ficha ---------- */
+.hero-visual { position: relative; min-width: 0; }
+.foto-editar {
+  position: absolute; top: 10px; right: 10px; z-index: 3; width: 38px; height: 38px; padding: 0;
+  display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+  color: #fff; background: rgba(10, 11, 13, .62); border: 1px solid rgba(255, 255, 255, .25);
+  backdrop-filter: blur(6px); transition: background .15s, transform .15s, border-color .15s;
+}
+.foto-editar:hover, .foto-editar:focus-visible { background: var(--accent); border-color: var(--accent); transform: scale(1.06); }
+.dialogo {
+  width: min(560px, calc(100vw - 24px)); max-height: 92vh; overflow: auto; padding: 22px;
+  color: var(--text); background: linear-gradient(180deg, var(--surface-2), var(--surface) 140px);
+  border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: 0 24px 70px rgba(0, 0, 0, .7);
+}
+.dialogo::backdrop { background: rgba(4, 5, 6, .72); backdrop-filter: blur(2px); }
+.dialogo .form { margin-top: 0; }
+.dialogo[open] { animation: dialogo-entra .22s ease-out; }
+@keyframes dialogo-entra { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+.foto-aviso3d { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .dialogo[open] { animation: none; } }
+@media (max-width: 720px) { .hero-visual { order: -1; } .dialogo { padding: 16px; } }
+@media print { .foto-editar, .dialogo { display: none !important; } }

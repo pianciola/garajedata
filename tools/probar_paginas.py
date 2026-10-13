@@ -173,6 +173,18 @@ esperar("ajuste fuera de rango", c.post("/vehiculo/3/editar", data={"imagen_modo
 html = c.get("/vehiculo/3").get_data(as_text=True)
 if "--fx: 100%" not in html or "--fz: 3.0" not in html or "foto-completa" in html:
     fallas.append("el ajuste fuera de rango no se limitó")
+html = c.get("/vehiculo/3").get_data(as_text=True)
+if 'id="abrir-foto"' not in html or 'action="/vehiculo/3/foto"' not in html:
+    fallas.append("falta el botón o la ventanita para editar la foto desde la ficha")
+esperar("foto desde la ficha", c.post("/vehiculo/3/foto", content_type="multipart/form-data", data={
+    "imagen_modo": "foto", "foto_zoom": "200", "foto_x": "10", "foto_y": "90", "foto_ajuste": "cubrir",
+    "foto": (io.BytesIO(PNG), "nueva.png")}), 302)
+html = c.get("/vehiculo/3").get_data(as_text=True)
+if "--fx: 10%" not in html or "--fz: 2.0" not in html:
+    fallas.append("el ajuste desde la ficha no se guardó")
+fid = int(re.search(r"/archivo/(\d+)\" alt=\"Foto de", html).group(1))  # la foto anterior se reemplazó
+esperar("foto desde la ficha pdf", c.post("/vehiculo/3/foto", content_type="multipart/form-data", data={
+    "imagen_modo": "foto", "foto": (io.BytesIO(PDF), "x.pdf")}), 302)
 esperar("volver al 3D", c.post("/vehiculo/3/editar", data={"imagen_modo": "3d"}), 302)
 if "data-car3d" not in c.get("/vehiculo/3").get_data(as_text=True):
     fallas.append("no volvió el modelo 3D")
@@ -203,6 +215,7 @@ esperar("borrar registro ajeno", c.post("/registro/1/eliminar"), 404)
 esperar("borrar vehículo ajeno", c.post("/vehiculo/3/eliminar"), 404)
 esperar("editar vehículo ajeno", c.post("/vehiculo/3/editar", data={"marca": "x"}), 404)
 esperar("foto ajena", c.get(f"/archivo/{fid}"), 404)
+esperar("editar foto ajena", c.post("/vehiculo/3/foto", data={"imagen_modo": "3d"}), 404)
 for p in ("/archivo/1", "/vehiculo/3/libro", "/vehiculo/3/compartir", "/vehiculo/3/documentos"):
     esperar(f"ajeno {p}", c.get(p), 404)
 esperar("borrar archivo ajeno", c.post("/archivo/1/eliminar"), 404)

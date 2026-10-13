@@ -413,6 +413,19 @@ def limitar(valor, minimo, maximo, defecto):
     return min(maximo, max(minimo, n)) if n is not None else defecto
 
 
+def datos_foto_form():
+    """Imagen del auto: modo (3D o foto), posición (0-100 %), zoom (100-300 %) y si la
+    foto llena el marco o se ve entera."""
+    f = request.form
+    return {
+        "imagen_modo": "foto" if f.get("imagen_modo") == "foto" else "3d",
+        "foto_x": limitar(f.get("foto_x"), 0, 100, 50),
+        "foto_y": limitar(f.get("foto_y"), 0, 100, 50),
+        "foto_zoom": limitar(f.get("foto_zoom"), 100, 300, 100),
+        "foto_ajuste": "completa" if f.get("foto_ajuste") == "completa" else "cubrir",
+    }
+
+
 def datos_vehiculo_form():
     f = request.form
     color = f.get("color", "").strip().lower()
@@ -452,12 +465,7 @@ def datos_vehiculo_form():
         "neumaticos": texto("neumaticos", 60),
         "presion_del": texto("presion_del", 20),
         "presion_tras": texto("presion_tras", 20),
-        "imagen_modo": "foto" if f.get("imagen_modo") == "foto" else "3d",
-        # Ajuste de la foto: posición (0-100 %), zoom (100-300 %) y si llena el marco o se ve entera.
-        "foto_x": limitar(f.get("foto_x"), 0, 100, 50),
-        "foto_y": limitar(f.get("foto_y"), 0, 100, 50),
-        "foto_zoom": limitar(f.get("foto_zoom"), 100, 300, 100),
-        "foto_ajuste": "completa" if f.get("foto_ajuste") == "completa" else "cubrir",
+        **datos_foto_form(),
         # El plan de mantenimiento es opcional: solo con la casilla tildada.
         "uso": uso,
         "km_mes": km_mes if uso == "personalizado" else None,
@@ -888,6 +896,21 @@ def vehiculo_editar(vid):
         flash("Datos del vehículo actualizados.", "ok")
         return redirect(url_for("vehiculo", vid=vid))
     return render_template("vehiculo_form.html", v=v, medido=promedio_medido(registros_de(vid)))
+
+
+@app.route("/vehiculo/<int:vid>/foto", methods=["POST"])
+@requiere_login
+def vehiculo_foto(vid):
+    """Cambiar o ajustar la foto del auto directo desde la ficha, sin pasar por todo el formulario."""
+    get_vehiculo(vid)
+    d = datos_foto_form()
+    d["id"] = vid
+    get_db().execute("UPDATE vehiculos SET imagen_modo = :imagen_modo, foto_x = :foto_x, foto_y = :foto_y, "
+                     "foto_zoom = :foto_zoom, foto_ajuste = :foto_ajuste WHERE id = :id", d)
+    get_db().commit()
+    guardar_portada(vid)
+    flash("Imagen del auto actualizada.", "ok")
+    return redirect(url_for("vehiculo", vid=vid))
 
 
 @app.route("/vehiculo/<int:vid>/eliminar", methods=["POST"])

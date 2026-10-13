@@ -1,0 +1,45 @@
+{# Elegir entre modelo 3D y foto propia, y ajustarla. Lo usan el formulario del
+   vehículo y la ventanita de la ficha. Atributos:
+   data-stage3d  selector del visor 3D de la página (si lo hay), que se oculta con la foto. #}
+{% set modo = (v.imagen_modo if v and v.foto_id else none) or '3d' %}
+{% set fx = v.foto_x if v and v.foto_x is not none else 50 %}
+{% set fy = v.foto_y if v and v.foto_y is not none else 50 %}
+{% set fz = (v.foto_zoom if v and v.foto_zoom else 100) %}
+{% set completa = v and v.foto_ajuste == 'completa' %}
+<div class="foto-editor" data-foto-editor {% if stage3d %}data-stage3d="{{ stage3d }}"{% endif %}>
+  <div class="car-stage car-stage-form car-photo{{ ' foto-completa' if completa }}" data-ed="stage" style="--fx: {{ fx }}%; --fy: {{ fy }}%; --fz: {{ fz / 100 }}" {% if modo != 'foto' %}hidden{% endif %}>
+    <img data-ed="img" alt="Tu foto del auto" draggable="false" {% if v and v.foto_id %}src="{{ url_for('archivo', aid=v.foto_id) }}"{% endif %}>
+    <span class="foto-vacia" data-ed="vacia" {% if v and v.foto_id %}hidden{% endif %}>Elegí una foto de tu auto</span>
+  </div>
+  {% if not stage3d %}<p class="muted small foto-aviso3d" data-ed="aviso3d" {% if modo == 'foto' %}hidden{% endif %}>Se muestra el modelo 3D de tu carrocería y color. Elegí «Mi foto» para usar una foto propia.</p>{% endif %}
+
+  <fieldset>
+    <legend>Imagen del auto</legend>
+    <div class="trans-picker">
+      <label class="body-option"><input type="radio" name="imagen_modo" value="3d" {% if modo != 'foto' %}checked{% endif %}><span>Modelo 3D</span></label>
+      <label class="body-option"><input type="radio" name="imagen_modo" value="foto" {% if modo == 'foto' %}checked{% endif %}><span>Mi foto</span></label>
+    </div>
+    <div class="foto-opciones" data-ed="opciones" {% if modo != 'foto' %}hidden{% endif %}>
+      <label class="file-drop file-drop-sm">
+        <input type="file" name="foto" data-ed="archivo" accept="image/jpeg,image/png,image/webp">
+        <span>📷 {{ 'Cambiar la foto' if v and v.foto_id else 'Elegir una foto' }}</span>
+      </label>
+      <p class="muted small">JPG, PNG o WEBP. Se achica sola. Queda mejor una foto horizontal del auto.</p>
+      <div class="foto-ajuste">
+        <div class="foto-ajuste-titulo">
+          <strong>Ajustar la foto</strong>
+          <button class="link-btn" type="button" data-ed="reset">Restablecer</button>
+        </div>
+        <p class="muted small">Arrastrá la foto para moverla, o usá los controles. Se ve igual en la lista, la ficha y el libro.</p>
+        <div class="trans-picker foto-ajuste-modo">
+          <label class="body-option"><input type="radio" name="foto_ajuste" value="cubrir" {% if not completa %}checked{% endif %}><span>Llenar el marco</span></label>
+          <label class="body-option"><input type="radio" name="foto_ajuste" value="completa" {% if completa %}checked{% endif %}><span>Foto completa</span></label>
+        </div>
+        <label class="rango"><span>Zoom</span><input type="range" name="foto_zoom" min="100" max="300" step="5" value="{{ fz }}"><output data-ed="zoomv">{{ fz }}%</output></label>
+        <label class="rango"><span>Izquierda ↔ derecha</span><input type="range" name="foto_x" min="0" max="100" value="{{ fx }}"></label>
+        <label class="rango"><span>Arriba ↕ abajo</span><input type="range" name="foto_y" min="0" max="100" value="{{ fy }}"></label>
+      </div>
+      {% if v and v.foto_id %}<label class="check"><input type="checkbox" name="quitar_foto" value="1"> <span>Quitar mi foto</span></label>{% endif %}
+    </div>
+  </fieldset>
+</div>
