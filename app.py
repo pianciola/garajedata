@@ -21,7 +21,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import archivos
 from catalogo import canon_marca, canon_modelo, catalogo_js, logo_marca, logo_oscuro
 from mantenimiento import (KM_MES_MAX, DOCUMENTOS, REPETICION_SUGERIDA, REPETICIONES, USOS, km_estimado,
-                           plan_mantenimiento, promedio_medido, sumar_meses, vencimientos)
+                           km_por_mes, plan_mantenimiento, promedio_medido, sumar_meses, vencimientos)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("DB_PATH", os.path.join(BASE_DIR, "bitacora.db"))
@@ -771,6 +771,45 @@ def guardar_portada(vid):
     db.commit()
 
 
+def proximo_control(v, a):
+    """El control de mantenimiento que viene antes (cargado a mano o estimado por el
+    plan de uso), para la tarjeta del auto. Devuelve None si no hay ninguno programado."""
+    kpm = km_por_mes(v) or 1250
+    orden = {"vencido": 0, "pronto": 1, "ok": 2}
+    candidatos = []  # (estado, días aproximados, título, detalle)
+
+    def km_a_dias(km):
+        return km / kpm * 30.44
+
+    for rec in a["recordatorios"]:
+        dias = [d for d in (rec["faltan_dias"],
+                            km_a_dias(rec["faltan_km"]) if rec["faltan_km"] is not None else None) if d is not None]
+        if rec["estado"] == "vencido":
+            detalle = "Vencido"
+        else:
+            partes = []
+            if rec["faltan_km"] is not None:
+                partes.append(f"en {miles(rec['faltan_km'])} km")
+            elif rec["faltan_dias"] is not None:
+                partes.append(f"en {rec['faltan_dias']} días")
+            detalle = " · ".join(partes)
+        candidatos.append((rec["estado"], min(dias) if dias else 9999, rec["registro"]["titulo"], detalle))
+    for p in a["plan"]:
+        if p["estado"] == "sin_dato":
+            continue
+        if p["estado"] == "vencido":
+            detalle = "Ya toca"
+        elif p["faltan_km"] is not None:
+            detalle = f"en ≈ {miles(p['faltan_km'])} km"
+        else:
+            detalle = f"en ≈ {p['dias']} días"
+        candidatos.append((p["estado"], p["dias"], p["nombre"], detalle))
+    if not candidatos:
+        return None
+    estado, _, titulo, detalle = min(candidatos, key=lambda c: (orden[c[0]], c[1]))
+    return {"estado": estado, "titulo": titulo, "detalle": detalle}
+
+
 def lista_avisos(v, a, con_nombre=False):
     """Avisos urgentes (vencidos o por vencer) de un vehículo, para el cartel lateral."""
     nombre = nombre_auto(v)
@@ -816,19 +855,20 @@ def index():
         return render_template("bienvenida.html")
     vehiculos = get_db().execute("""
         SELECT v.*, COUNT(r.id) AS n, MAX(r.fecha) AS ultimo,
-               MAX(r.km) AS max_km, COALESCE(SUM(r.costo), 0) AS gasto
+               MAX(r.km) AS max_km
         FROM vehiculos v LEFT JOIN registros r ON r.vehiculo_id = v.id
         WHERE v.usuario_id = ?
         GROUP BY v.id
         ORDER BY COALESCE(NULLIF(v.nombre, ''), v.marca || ' ' || v.modelo) COLLATE NOCASE
     """, (g.usuario["id"],)).fetchall()
-    alertas, cartel = {}, []
+    alertas, cartel, proximos = {}, [], {}
     for v in vehiculos:
         a = avisos(v)
         alertas[v["id"]] = contar_avisos(a)
+        proximos[v["id"]] = proximo_control(v, a)
         cartel += lista_avisos(v, a, con_nombre=len(vehiculos) > 1)
     cartel.sort(key=lambda x: x["estado"] != "vencido")
-    return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=cartel)
+    return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=cartel, proximos=proximos)
 
 
 @app.route("/vehiculo/nuevo", methods=["GET", "POST"])

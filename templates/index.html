@@ -36,7 +36,11 @@
       <div><dt>Kilometraje</dt><dd>{{ [v.km_inicial or 0, v.max_km or 0]|max|miles }} km</dd></div>
       <div><dt>Registros</dt><dd>{{ v.n }}</dd></div>
       <div><dt>Último</dt><dd>{{ v.ultimo|fecha }}</dd></div>
-      <div><dt>Gastado</dt><dd>{{ v.gasto|plata }}</dd></div>
+      {% set px = proximos.get(v.id) %}
+      <div class="prox{{ ' prox-' ~ px.estado if px }}" title="{{ px.titulo ~ ' · ' ~ px.detalle if px else 'Cargá un próximo control en algún registro' }}">
+        <dt>Próximo control</dt>
+        {% if px %}<dd><span class="prox-titulo">{{ px.titulo }}</span><small>{{ px.detalle }}</small></dd>{% else %}<dd class="prox-vacio">—</dd>{% endif %}
+      </div>
     </dl>
   </a>
   {% endfor %}

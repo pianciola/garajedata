@@ -954,3 +954,13 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .dialogo[open] { animation: none; } }
 @media (max-width: 720px) { .hero-visual { order: -1; } .dialogo { padding: 16px; } }
 @media print { .foto-editar, .dialogo { display: none !important; } }
+
+/* ---------- tarjeta del auto: próximo control ---------- */
+.mini-stats .prox { min-width: 0; border-left: 3px solid transparent; }
+.mini-stats .prox dd { display: grid; line-height: 1.15; }
+.prox-titulo { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-stats .prox small { font-family: "Inter", sans-serif; font-size: .78rem; font-weight: 600; letter-spacing: 0; }
+.prox-ok { border-left-color: var(--ok); } .prox-ok small { color: var(--ok); }
+.prox-pronto { border-left-color: var(--warn); } .prox-pronto small { color: var(--warn); }
+.prox-vencido { border-left-color: var(--danger); } .prox-vencido small { color: var(--danger); }
+.prox-vacio { color: var(--muted); }

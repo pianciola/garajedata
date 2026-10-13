@@ -103,6 +103,9 @@ esperar("guardar documentos", c.post("/vehiculo/3/documentos", data={
 html = c.get("/vehiculo/3").get_data(as_text=True)
 if "Venció hace" not in html or "La Segunda" not in html:
     fallas.append("no se ven los vencimientos")
+html = c.get("/").get_data(as_text=True)
+if "Próximo control" not in html or "Gastado" in html or "prox-vencido" not in html and "prox-pronto" not in html and "prox-ok" not in html:
+    fallas.append("la tarjeta no muestra el próximo control")
 if "avisos" not in c.get("/").get_data(as_text=True):
     fallas.append("la tarjeta no muestra avisos")
 esperar("renovar vtv", c.post("/documento/1/renovar"), 302)
