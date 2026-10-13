@@ -152,6 +152,7 @@ COLUMNAS_NUEVAS = {
     "presion_tras": "TEXT", "uso": "TEXT", "creado": "TEXT", "share_token": "TEXT",
     "share_costos": "INTEGER DEFAULT 1", "share_adjuntos": "INTEGER DEFAULT 1",
     "imagen_modo": "TEXT", "foto_id": "INTEGER", "km_mes": "INTEGER",
+    "foto_x": "INTEGER", "foto_y": "INTEGER", "foto_zoom": "INTEGER", "foto_ajuste": "TEXT",
 }
 
 
@@ -407,6 +408,11 @@ def calcular_recordatorios(vid, km_hoy):
     return recordatorios
 
 
+def limitar(valor, minimo, maximo, defecto):
+    n = to_int(valor)
+    return min(maximo, max(minimo, n)) if n is not None else defecto
+
+
 def datos_vehiculo_form():
     f = request.form
     color = f.get("color", "").strip().lower()
@@ -447,6 +453,11 @@ def datos_vehiculo_form():
         "presion_del": texto("presion_del", 20),
         "presion_tras": texto("presion_tras", 20),
         "imagen_modo": "foto" if f.get("imagen_modo") == "foto" else "3d",
+        # Ajuste de la foto: posición (0-100 %), zoom (100-300 %) y si llena el marco o se ve entera.
+        "foto_x": limitar(f.get("foto_x"), 0, 100, 50),
+        "foto_y": limitar(f.get("foto_y"), 0, 100, 50),
+        "foto_zoom": limitar(f.get("foto_zoom"), 100, 300, 100),
+        "foto_ajuste": "completa" if f.get("foto_ajuste") == "completa" else "cubrir",
         # El plan de mantenimiento es opcional: solo con la casilla tildada.
         "uso": uso,
         "km_mes": km_mes if uso == "personalizado" else None,
@@ -675,7 +686,7 @@ def logout():
 
 # ---------------------------------------------------------------- rutas: vehículos
 
-CAMPOS_VEHICULO = ["imagen_modo", "km_mes", "nombre", "marca", "modelo", "version", "anio", "patente", "km_inicial", "notas",
+CAMPOS_VEHICULO = ["imagen_modo", "km_mes", "foto_x", "foto_y", "foto_zoom", "foto_ajuste", "nombre", "marca", "modelo", "version", "anio", "patente", "km_inicial", "notas",
                    "carroceria", "color", "transmision", "motor", "combustible", "tanque",
                    "codigo_pintura", "vin", "bujias", "aceite", "aceite_litros", "refrigerante",
                    "frenos", "neumaticos", "presion_del", "presion_tras", "uso"]

@@ -163,6 +163,16 @@ fid = int(re.search(r"/archivo/(\d+)\" alt=\"Foto de", c.get("/vehiculo/3").get_
 esperar("servir foto", c.get(f"/archivo/{fid}"), 200)
 if "auto.png" in c.get("/vehiculo/3").get_data(as_text=True).split("Bóveda digital")[1]:
     fallas.append("la foto del auto aparece en la bóveda")
+esperar("ajustar foto", c.post("/vehiculo/3/editar", data={"imagen_modo": "foto", "foto_x": "20", "foto_y": "80",
+    "foto_zoom": "150", "foto_ajuste": "completa"}), 302)
+html = c.get("/vehiculo/3").get_data(as_text=True)
+if "--fx: 20%" not in html or "--fy: 80%" not in html or "--fz: 1.5" not in html or "foto-completa" not in html:
+    fallas.append("no se aplicó el ajuste de la foto")
+esperar("ajuste fuera de rango", c.post("/vehiculo/3/editar", data={"imagen_modo": "foto", "foto_x": "999", "foto_y": "-5",
+    "foto_zoom": "9000", "foto_ajuste": "x"}), 302)
+html = c.get("/vehiculo/3").get_data(as_text=True)
+if "--fx: 100%" not in html or "--fz: 3.0" not in html or "foto-completa" in html:
+    fallas.append("el ajuste fuera de rango no se limitó")
 esperar("volver al 3D", c.post("/vehiculo/3/editar", data={"imagen_modo": "3d"}), 302)
 if "data-car3d" not in c.get("/vehiculo/3").get_data(as_text=True):
     fallas.append("no volvió el modelo 3D")

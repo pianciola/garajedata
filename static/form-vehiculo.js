@@ -173,6 +173,44 @@
     img.src = URL.createObjectURL(f);
     vacia.hidden = true;
   });
+  // Ajuste de la foto: zoom, posición y modo, con arrastre directo sobre la vista previa.
+  const zoom = document.getElementById("foto-zoom"), px = document.getElementById("foto-x"), py = document.getElementById("foto-y");
+  const zoomTxt = document.getElementById("foto-zoom-v");
+  const modos = document.querySelectorAll("input[name=foto_ajuste]");
+  function aplicarAjuste() {
+    stFoto.style.setProperty("--fx", px.value + "%");
+    stFoto.style.setProperty("--fy", py.value + "%");
+    stFoto.style.setProperty("--fz", zoom.value / 100);
+    zoomTxt.textContent = zoom.value + "%";
+    stFoto.classList.toggle("foto-completa", document.querySelector("input[name=foto_ajuste]:checked")?.value === "completa");
+  }
+  [zoom, px, py].forEach((r) => r.addEventListener("input", aplicarAjuste));
+  modos.forEach((m) => m.addEventListener("change", aplicarAjuste));
+  document.getElementById("foto-reset")?.addEventListener("click", () => {
+    zoom.value = 100; px.value = 50; py.value = 50;
+    document.querySelector("input[name=foto_ajuste][value=cubrir]").checked = true;
+    aplicarAjuste();
+  });
+  let arrastre = null;
+  stFoto.addEventListener("pointerdown", (e) => {
+    if (e.button > 0 || !img.getAttribute("src")) return;
+    arrastre = { x: e.clientX, y: e.clientY, fx: +px.value, fy: +py.value };
+    stFoto.setPointerCapture(e.pointerId);
+    stFoto.classList.add("arrastrando");
+  });
+  stFoto.addEventListener("pointermove", (e) => {
+    if (!arrastre) return;
+    const caja = stFoto.getBoundingClientRect(), z = zoom.value / 100;
+    // Mover la foto hacia un lado muestra más del lado contrario.
+    px.value = Math.min(100, Math.max(0, arrastre.fx - (e.clientX - arrastre.x) / caja.width * 100 / z));
+    py.value = Math.min(100, Math.max(0, arrastre.fy - (e.clientY - arrastre.y) / caja.height * 100 / z));
+    aplicarAjuste();
+  });
+  const soltar = () => { arrastre = null; stFoto.classList.remove("arrastrando"); };
+  stFoto.addEventListener("pointerup", soltar);
+  stFoto.addEventListener("pointercancel", soltar);
+  aplicarAjuste();
+
   const quitar = document.querySelector("input[name=quitar_foto]");
   if (quitar) quitar.addEventListener("change", () => {
     img.style.opacity = quitar.checked ? ".25" : "";

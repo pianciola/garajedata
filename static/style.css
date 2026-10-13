@@ -911,3 +911,23 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .uso-km input { width: 100%; min-width: 0; padding: 6px 8px; text-align: right; font-family: var(--display); font-size: 1.05rem; }
 .uso-card b { white-space: nowrap; }
 .link-btn { background: none; border: 0; padding: 4px 0 4px 6px; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }
+
+/* ---------- ajuste de la foto (posición, zoom, llenar / completa) ---------- */
+.car-photo img {
+  object-position: var(--fx, 50%) var(--fy, 50%);
+  transform: scale(var(--fz, 1)); transform-origin: var(--fx, 50%) var(--fy, 50%);
+  user-select: none; -webkit-user-drag: none;
+}
+.car-photo.foto-completa img { object-fit: contain; }
+#stage-foto { cursor: grab; touch-action: none; }
+#stage-foto.arrastrando { cursor: grabbing; }
+.foto-ajuste { display: grid; gap: 10px; padding: 14px; border: 1px dashed var(--border-strong); border-radius: 8px; background: #0e1013; }
+.foto-ajuste-titulo { display: flex; justify-content: space-between; align-items: center; }
+.foto-ajuste-titulo strong { font-family: var(--display); letter-spacing: .08em; text-transform: uppercase; }
+.foto-ajuste p { margin: 0; }
+.rango { display: grid; grid-template-columns: 11.5em 1fr auto; align-items: center; gap: 10px; font-size: .9rem; }
+.rango > span { color: #c4c9d2; }
+.rango output { min-width: 3.2em; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rango input[type=range] { padding: 0; width: 100%; accent-color: var(--accent); background: none; border: 0; height: 28px; }
+.rango:not(:has(output)) { grid-template-columns: 11.5em 1fr; }
+@media (max-width: 720px) { .rango { grid-template-columns: 1fr auto; } .rango > span { grid-column: 1 / -1; } .rango:not(:has(output)) { grid-template-columns: 1fr; } }
