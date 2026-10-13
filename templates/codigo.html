@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Código de recuperación{% endblock %}
+{% block content %}
+<section class="card form-card narrow">
+  <div class="eyebrow">Guardalo bien</div>
+  <h1>Código de recuperación</h1>
+  <p class="muted">Si te olvidás la contraseña, con este código y tu usuario creás una nueva. No guardamos tu email, así que <b>es la única forma de recuperar la cuenta</b>.</p>
+  <div class="codigo-box">
+    <code id="codigo">{{ codigo }}</code>
+    <button class="btn btn-ghost btn-sm" type="button" id="copiar">Copiar</button>
+  </div>
+  <p class="muted codigo-aviso">Se muestra <b>una sola vez</b>. Anotalo, sacale una captura o guardalo en tus notas. Cada vez que lo usás se genera uno nuevo.</p>
+  <div class="form-actions">
+    <a class="btn btn-primary" href="{{ url_for('index') }}">Ya lo guardé</a>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById("copiar").addEventListener("click", async (e) => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById("codigo").textContent);
+      e.target.textContent = "¡Copiado!";
+    } catch { e.target.textContent = "Copialo a mano"; }
+  });
+</script>
+{% endblock %}

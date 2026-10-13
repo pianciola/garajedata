@@ -1,0 +1,8 @@
+__pycache__/
+*.db
+.venv/
+para_subir/
+uploads/
+.secret_key
+contrasena.txt
+uploads_demo/

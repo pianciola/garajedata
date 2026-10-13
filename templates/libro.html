@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Libro de servicio · {{ nombre_auto(v) }}{% endblock %}
+{% block content %}
+<div class="libro-toolbar no-print">
+  {% if compartido %}
+    <div class="vista-banner">👁 <b>Modo vista</b> · Bitácora compartida. Solo lectura.</div>
+  {% else %}
+    <a class="back" href="{{ url_for('vehiculo', vid=v.id) }}">← {{ nombre_auto(v) }}</a>
+  {% endif %}
+  <button class="btn btn-primary" type="button" onclick="window.print()">Descargar PDF</button>
+</div>
+{% if not compartido %}
+<p class="muted small no-print libro-tip">En la ventana de impresión elegí <b>«Guardar como PDF»</b> como destino.</p>
+{% endif %}
+
+<article class="libro">
+  <header class="libro-head">
+    <div class="libro-marca">Garaje<b>Data</b> · Libro de servicio</div>
+    <div class="muted small">Generado el {{ hoy|fecha }}</div>
+  </header>
+
+  <section class="libro-auto">
+    <div class="libro-auto-info">
+      <div class="title-main">
+        {% if logo_marca(v.marca) %}<img class="brand-logo brand-logo-lg{{ " logo-oscuro" if logo_oscuro(v.marca) }}" src="{{ logo_marca(v.marca) }}" alt="{{ v.marca }}">{% endif %}
+        <h1>{{ nombre_auto(v) }}</h1>
+      </div>
+      <p class="muted">{{ [v.marca, v.modelo, v.version, v.anio, CARROCERIAS.get(v.carroceria), TRANSMISIONES.get(v.transmision)]|select|join(' · ') }}</p>
+      {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
+    </div>
+    <div class="car-stage libro-car no-print" data-car3d data-interactive data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}" title="Arrastrá para girar"></div>
+  </section>
+
+  <section class="libro-resumen">
+    <div><span>Kilometraje</span><strong>{{ km_hoy|miles }} km</strong></div>
+    <div><span>Registros</span><strong>{{ registros|length }}</strong></div>
+    <div><span>Período</span><strong>{% if desde %}{{ desde|fecha }} – {{ hasta|fecha }}{% else %}—{% endif %}</strong></div>
+    {% if mostrar_costos %}<div><span>Invertido</span><strong>{{ total|plata }}</strong></div>{% endif %}
+  </section>
+
+  {% if registros %}
+  <div class="libro-cats">
+    {% for key, label in CATEGORIAS.items() if por_categoria[key] %}
+      <span class="badge badge-{{ key }}">{{ label }}: {{ por_categoria[key] }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% set ficha = ficha_tecnica(v) %}
+  {% if ficha %}
+  <section class="libro-seccion">
+    <h2>Ficha técnica</h2>
+    <dl class="ficha-grid">
+      {% for etiqueta, valor in ficha %}<div{% if valor|length > 16 %} class="ancho"{% endif %}><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}
+    </dl>
+  </section>
+  {% endif %}
+
+  <section class="libro-seccion">
+    <h2>Historial de mantenimiento</h2>
+    {% if registros %}
+    <ol class="libro-lista">
+      {% for r in registros %}
+      <li class="libro-item cat-{{ r.categoria }}">
+        <div class="libro-item-fecha">
+          <strong>{{ r.fecha|fecha }}</strong>
+          {% if r.km %}<span>{{ r.km|miles }} km</span>{% endif %}
+        </div>
+        <div class="libro-item-cuerpo">
+          <div class="libro-item-head">
+            <span class="badge badge-{{ r.categoria }}">{{ CATEGORIAS.get(r.categoria, r.categoria) }}</span>
+            {% if mostrar_costos and r.costo is not none %}<span class="cost">{{ r.costo|plata }}</span>{% endif %}
+          </div>
+          <h3>{{ r.titulo }}</h3>
+          {% if r.detalle %}<p class="detail">{{ r.detalle }}</p>{% endif %}
+          {% set q_ = quien(r) %}{% if q_ %}<p class="muted small">Hecho por: {{ q_ }}</p>{% endif %}
+          {% if adjuntos.get(r.id) %}
+          <div class="libro-adjuntos">
+            {% for a in adjuntos[r.id] %}
+              {% if a.mime.startswith('image/') %}
+              <a href="{{ url_archivo(a.id) }}" target="_blank" rel="noopener"><img src="{{ url_archivo(a.id) }}" alt="{{ a.nombre }}" loading="eager"></a>
+              {% else %}
+              <a class="pdf-chip" href="{{ url_archivo(a.id) }}" target="_blank" rel="noopener"><span class="pdf-icon">PDF</span>{{ a.nombre }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="muted">Todavía no hay registros cargados.</p>
+    {% endif %}
+  </section>
+
+  <footer class="libro-pie">
+    Historial cargado por el dueño del vehículo en GarajeData. {% if registros %}{{ registros|length }} registros entre el {{ desde|fecha }} y el {{ hasta|fecha }}.{% endif %}
+  </footer>
+</article>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Mis vehículos{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <div class="eyebrow">Tu garaje</div>
+    <h1>Mis vehículos</h1>
+    <p class="muted">Services, fluidos, piezas, arreglos y modificaciones: la historia completa de cada fierro.</p>
+    {% if vehiculos %}<p class="garage-count"><b>{{ vehiculos|length }}</b> {{ 'vehículo' if vehiculos|length == 1 else 'vehículos' }} en boxes</p>{% endif %}
+  </div>
+  {% if can_edit %}
+    <a class="btn btn-primary" href="{{ url_for('vehiculo_nuevo') }}">+ Agregar vehículo</a>
+  {% endif %}
+</section>
+
+{% if vehiculos %}
+<div class="grid-cards">
+  {% for v in vehiculos %}
+  <a class="card car-card" href="{{ url_for('vehiculo', vid=v.id) }}">
+    {% set al = alertas.get(v.id) %}
+    {% if al and (al.vencido or al.pronto) %}
+    <span class="alert-badge {{ 'alert-vencido' if al.vencido else 'alert-pronto' }}" title="Controles o vencimientos para revisar">
+      ⚠ {{ al.vencido + al.pronto }} {{ 'aviso' if al.vencido + al.pronto == 1 else 'avisos' }}
+    </span>
+    {% endif %}
+    <div class="car-stage" data-car3d data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}"></div>
+    <div class="car-card-head">
+      <div>
+        <h2 class="name-logo">{% if logo_marca(v.marca) %}<img class="brand-logo{{ " logo-oscuro" if logo_oscuro(v.marca) }}" src="{{ logo_marca(v.marca) }}" alt="{{ v.marca }}" loading="lazy">{% endif %}{{ nombre_auto(v) }}</h2>
+        <p class="muted">{{ [v.marca, v.modelo, v.version, v.anio, CARROCERIAS.get(v.carroceria), TRANSMISIONES.get(v.transmision)]|select|join(' · ') or 'Sin datos de modelo' }}</p>
+      </div>
+      {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
+    </div>
+    <dl class="mini-stats">
+      <div><dt>Kilometraje</dt><dd>{{ [v.km_inicial or 0, v.max_km or 0]|max|miles }} km</dd></div>
+      <div><dt>Registros</dt><dd>{{ v.n }}</dd></div>
+      <div><dt>Último</dt><dd>{{ v.ultimo|fecha }}</dd></div>
+      <div><dt>Gastado</dt><dd>{{ v.gasto|plata }}</dd></div>
+    </dl>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty card">
+  <div class="empty-icon">🚗</div>
+  <h2>Todavía no hay vehículos</h2>
+  <p class="muted">Agregá tu auto con el botón de arriba para empezar a llevar la bitácora.</p>
+</div>
+{% endif %}
+{% endblock %}

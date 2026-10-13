@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0b0d">
+  <title>{% block title %}GarajeData{% endblock %} · Bitácora del automotor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Saira+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="{{ url_for('index') }}">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h-2v-5l2-5h11l3 5h2v5h-2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M9.5 17h5"/></svg>
+        </span>
+        <span>Garaje<b>Data</b></span>
+      </a>
+      <nav>
+        {% if usuario %}
+          <a class="user-chip" href="{{ url_for('cuenta') }}" title="Mi cuenta">{{ usuario.usuario }}</a>
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('logout') }}">Salir</a>
+        {% elif request.endpoint != 'login' %}
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('login') }}">Ingresar</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in msgs %}
+        <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="wrap footer">
+    GarajeData · bitácora del automotor
+    {% set creditos = creditos_modelos() %}
+    {% if creditos %}
+    <div class="models-credit">Modelos 3D:
+      {% for c in creditos %}{% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.credito }}</a>{% else %}{{ c.credito }}{% endif %}{{ ' · ' if not loop.last }}{% endfor %}
+    </div>
+    {% endif %}
+  </footer>
+
+  <script type="importmap">
+    {"imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }}
+  </script>
+  <script src="{{ url_for('static', filename='numeros.js') }}"></script>
+  <script src="{{ url_for('static', filename='archivos.js') }}"></script>
+  <script>
+    // Copia offline de la bitácora y la bóveda: solo con la sesión abierta.
+    // Sin sesión (o al salir) se borra, así no queda nada en el dispositivo.
+    {% if usuario %}
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("{{ url_for('service_worker') }}").catch(() => {});
+    {% else %}
+    if ("caches" in window) caches.delete("garajedata-v1").catch(() => {});
+    {% endif %}
+  </script>
+  <script type="module">
+    // El visor 3D (three.js, ~700 KB) se baja solo en las páginas que muestran un auto.
+    if (document.querySelector("[data-car3d]")) import("{{ url_for('static', filename='car3d.js') }}");
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

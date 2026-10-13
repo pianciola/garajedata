@@ -1,0 +1,219 @@
+"""Prueba rápida: abre todas las páginas y formularios con una base temporal.
+
+Uso:  python tools/probar_paginas.py
+No toca bitacora.db. Termina con "TODO OK" o lista lo que falló.
+"""
+import io
+import os
+import re
+import sqlite3
+import sys
+import tempfile
+
+RAIZ = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+sys.path.insert(0, RAIZ)
+DB = os.path.join(tempfile.mkdtemp(), "prueba.db")
+os.environ["DB_PATH"] = DB
+os.environ["UPLOAD_DIR"] = os.path.join(os.path.dirname(DB), "uploads")
+
+# Base "vieja", de antes de las cuentas: un vehículo sin dueño.
+with sqlite3.connect(DB) as db:
+    db.execute("CREATE TABLE vehiculos (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, "
+               "marca TEXT, modelo TEXT, anio INTEGER, patente TEXT, km_inicial INTEGER, notas TEXT)")
+    db.execute("INSERT INTO vehiculos (nombre, marca, modelo) VALUES ('', 'Ford', 'Focus')")
+
+from app import app  # noqa: E402
+
+c = app.test_client()
+fallas = []
+
+
+def esperar(nombre, respuesta, codigo):
+    if respuesta.status_code != codigo:
+        fallas.append(f"{nombre}: esperaba {codigo}, dio {respuesta.status_code}")
+    return respuesta
+
+
+# Sin cuenta: bienvenida y redirección al ingreso
+esperar("bienvenida", c.get("/"), 200)
+esperar("registro form", c.get("/registro"), 200)
+esperar("login form", c.get("/login"), 200)
+esperar("vehículo sin cuenta", c.get("/vehiculo/1"), 302)
+esperar("alta sin cuenta", c.post("/vehiculo/nuevo", data={}), 302)
+
+# Registro: errores y alta. La primera cuenta se queda con el vehículo viejo.
+esperar("usuario corto", c.post("/registro", data={"usuario": "ab", "clave": "123456", "clave2": "123456"}), 200)
+esperar("claves distintas", c.post("/registro", data={"usuario": "juan", "clave": "123456", "clave2": "x"}), 200)
+esperar("registro ok", c.post("/registro", data={"usuario": "juan", "clave": "123456", "clave2": "123456"}), 302)
+esperar("vehículo heredado", c.get("/vehiculo/1"), 200)
+
+# Vehículo vacío y vehículo completo
+esperar("alta vacía", c.post("/vehiculo/nuevo", data={}), 302)
+esperar("alta completa", c.post("/vehiculo/nuevo", data={
+    "marca": "ford", "modelo": "focus", "version": "MK1", "anio": "2006", "patente": "abc123",
+    "km_inicial": "129.500", "carroceria": "hatchback", "color": "#c0262d", "transmision": "manual"}), 302)
+
+# Registros: nuevo, con datos, con error de validación
+for vid in (2, 3):
+    esperar(f"form registro nuevo v{vid}", c.get(f"/vehiculo/{vid}/registro/nuevo"), 200)
+esperar("registro completo", c.post("/vehiculo/3/registro/nuevo", data={
+    "titulo": "Cambio de aceite", "categoria": "fluidos", "fecha": "2026-01-10", "km": "130.000",
+    "costo": "85.000,50", "prox_km": "140.000", "prox_fecha": "2027-01-10"}), 302)
+esperar("registro sin título", c.post("/vehiculo/3/registro/nuevo", data={"titulo": ""}), 200)
+
+paginas = ["/", "/vehiculo/2", "/vehiculo/3", "/vehiculo/nuevo", "/vehiculo/2/editar", "/vehiculo/3/editar",
+           "/vehiculo/3/registro/nuevo?cat=piezas", "/registro/1/editar", "/vehiculo/3/exportar",
+           "/vehiculo/3?cat=fluidos&q=aceite"]
+for p in paginas:
+    esperar(p, c.get(p), 200)
+esperar("404", c.get("/vehiculo/999"), 404)
+esperar("editar registro con error", c.post("/registro/1/editar", data={"titulo": ""}), 200)
+
+# Ficha técnica, fluidos y plan de mantenimiento
+
+esperar("ficha completa", c.post("/vehiculo/3/editar", data={
+    "marca": "Ford", "modelo": "Focus", "km_inicial": "129.500", "motor": "1.6 Zetec", "combustible": "nafta",
+    "tanque": "55", "codigo_pintura": "3CSE", "vin": "8af-za12 3456789012", "aceite": "5W-30",
+    "aceite_litros": "4,3", "bujias": "NGK", "refrigerante": "G12", "frenos": "DOT 4",
+    "neumaticos": "205/55 R16", "presion_del": "32 psi", "presion_tras": "30 psi",
+    "calcular_uso": "1", "uso": "mucho"}), 302)
+html = esperar("vehículo con plan", c.get("/vehiculo/3"), 200).get_data(as_text=True)
+for texto in ("Ficha técnica", "8AFZA123456789012", "4,30 L con filtro", "estimado", "Bujías"):
+    if texto not in html:
+        fallas.append(f"falta en la ficha: {texto}")
+esperar("editar con promedio", c.get("/vehiculo/3/editar"), 200)
+esperar("sin plan", c.post("/vehiculo/2/editar", data={"uso": "poco"}), 302)
+
+# Documentación y vencimientos
+esperar("form documentos", c.get("/vehiculo/3/documentos"), 200)
+esperar("guardar documentos", c.post("/vehiculo/3/documentos", data={
+    "vence_vtv": "2020-01-01", "cada_vtv": "12", "vence_seguro_pago": "2099-05-10", "cada_seguro_pago": "1",
+    "detalle_seguro": "La Segunda", "vence_registro": "fecha mala"}), 302)
+html = c.get("/vehiculo/3").get_data(as_text=True)
+if "Venció hace" not in html or "La Segunda" not in html:
+    fallas.append("no se ven los vencimientos")
+if "avisos" not in c.get("/").get_data(as_text=True):
+    fallas.append("la tarjeta no muestra avisos")
+esperar("renovar vtv", c.post("/documento/1/renovar"), 302)
+
+# Bóveda y adjuntos
+def png(ancho=40, alto=30):
+    """PNG válido armado a mano (no hace falta Pillow para la prueba)."""
+    import struct
+    import zlib
+
+    def trozo(tipo, datos):
+        return struct.pack(">I", len(datos)) + tipo + datos + struct.pack(">I", zlib.crc32(tipo + datos))
+    filas = b"".join(b"\x00" + b"\xc0\x26\x2d" * ancho for _ in range(alto))
+    return (b"\x89PNG\r\n\x1a\n" + trozo(b"IHDR", struct.pack(">IIBBBBB", ancho, alto, 8, 2, 0, 0, 0))
+            + trozo(b"IDAT", zlib.compress(filas)) + trozo(b"IEND", b""))
+
+
+PNG = png()
+PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF"
+esperar("subir a bóveda", c.post("/vehiculo/3/boveda", content_type="multipart/form-data", data={
+    "categoria": "cedula", "archivos": [(io.BytesIO(PNG), "cedula.png"), (io.BytesIO(PDF), "seguro.pdf"),
+                                        (io.BytesIO(b"MZ hola"), "virus.exe")]}), 302)
+esperar("ver archivo", c.get("/archivo/1"), 200)
+esperar("ver pdf", c.get("/archivo/2"), 200)
+esperar("archivo inexistente", c.get("/archivo/3"), 404)
+esperar("registro con adjunto", c.post("/vehiculo/3/registro/nuevo", content_type="multipart/form-data", data={
+    "titulo": "Bujías", "categoria": "piezas", "fecha": "2026-02-01", "km": "131.000", "hecho_por": "otro",
+    "taller": "Mi cuñado", "archivos": [(io.BytesIO(PNG), "factura.png")]}), 302)
+html = c.get("/vehiculo/3").get_data(as_text=True)
+if "Mi cuñado" not in html or "/archivo/3" not in html:
+    fallas.append("el registro no muestra quién lo hizo o su foto")
+esperar("registro hecho por mí", c.post("/vehiculo/3/registro/nuevo", data={
+    "titulo": "Lavado", "hecho_por": "yo", "taller": "no se guarda"}), 302)
+if "no se guarda" in c.get("/vehiculo/3").get_data(as_text=True):
+    fallas.append("hecho por mí guardó un nombre")
+esperar("editar registro con adjunto", c.get("/registro/2/editar"), 200)
+
+# Libro de servicio y compartir
+esperar("libro", c.get("/vehiculo/3/libro"), 200)
+esperar("compartir form", c.get("/vehiculo/3/compartir"), 200)
+esperar("activar link", c.post("/vehiculo/3/compartir", data={"accion": "activar"}), 302)
+html = c.get("/vehiculo/3/compartir").get_data(as_text=True)
+token = re.search(r'id="link">[^<]*/c/([\w-]+)<', html).group(1)
+esperar("service worker", c.get("/sw.js"), 200)
+
+# Otra cuenta no ve ni toca nada de la primera
+esperar("salir", c.get("/logout"), 302)
+esperar("usuario repetido", c.post("/registro", data={"usuario": "JUAN", "clave": "123456", "clave2": "123456"}), 200)
+esperar("registro ana", c.post("/registro", data={"usuario": "ana", "clave": "abcdef", "clave2": "abcdef"}), 302)
+if "Focus" in c.get("/").get_data(as_text=True):
+    fallas.append("ana ve los vehículos de juan")
+for p in ("/vehiculo/1", "/vehiculo/3", "/vehiculo/3/editar", "/vehiculo/3/exportar",
+          "/vehiculo/3/registro/nuevo", "/registro/1/editar"):
+    esperar(f"ajeno {p}", c.get(p), 404)
+esperar("borrar registro ajeno", c.post("/registro/1/eliminar"), 404)
+esperar("borrar vehículo ajeno", c.post("/vehiculo/3/eliminar"), 404)
+esperar("editar vehículo ajeno", c.post("/vehiculo/3/editar", data={"marca": "x"}), 404)
+for p in ("/archivo/1", "/vehiculo/3/libro", "/vehiculo/3/compartir", "/vehiculo/3/documentos"):
+    esperar(f"ajeno {p}", c.get(p), 404)
+esperar("borrar archivo ajeno", c.post("/archivo/1/eliminar"), 404)
+esperar("renovar ajeno", c.post("/documento/1/renovar"), 404)
+esperar("subir a bóveda ajena", c.post("/vehiculo/3/boveda", data={}), 404)
+
+# Link compartido: modo vista sin cuenta, sin documentación ni bóveda
+c.get("/logout")
+html = esperar("ver compartido", c.get(f"/c/{token}"), 200).get_data(as_text=True)
+if "Modo vista" not in html or "Editar" in html:
+    fallas.append("el compartido no está en modo vista")
+for privado in ("La Segunda", "cedula.png", "Bóveda", "/registro/"):
+    if privado in html:
+        fallas.append(f"el compartido muestra algo privado: {privado}")
+esperar("foto de registro compartida", c.get(f"/c/{token}/archivo/3"), 200)
+esperar("bóveda no compartida", c.get(f"/c/{token}/archivo/1"), 404)
+esperar("link inventado", c.get("/c/inventado"), 404)
+
+# Ingreso: clave mala, buena y redirección segura
+c.get("/logout")
+esperar("clave mala", c.post("/login", data={"usuario": "juan", "clave": "mal"}), 200)
+r = esperar("login ok", c.post("/login?next=//malo.com", data={"usuario": "Juan", "clave": "123456"}), 302)
+if r.headers.get("Location") != "/":
+    fallas.append(f"redirección insegura: {r.headers.get('Location')}")
+esperar("ocultar adjuntos", c.post("/vehiculo/3/compartir", data={"accion": "opciones", "costos": "1"}), 302)
+c2 = app.test_client()
+esperar("foto oculta", c2.get(f"/c/{token}/archivo/3"), 404)
+esperar("dejar de compartir", c.post("/vehiculo/3/compartir", data={"accion": "desactivar"}), 302)
+esperar("link anulado", c2.get(f"/c/{token}"), 404)
+esperar("quitar adjunto", c.post("/registro/2/editar", data={"titulo": "Bujías", "quitar": "3"}), 302)
+esperar("adjunto quitado", c.get("/archivo/3"), 404)
+esperar("borrar de bóveda", c.post("/archivo/2/eliminar"), 302)
+esperar("eliminar registro", c.post("/registro/1/eliminar"), 302)
+esperar("eliminar vehículo", c.post("/vehiculo/2/eliminar"), 302)
+
+# Código de recuperación: se ve una sola vez, sirve una vez y cambia la contraseña
+
+c.get("/logout")
+c.post("/registro", data={"usuario": "pepe", "clave": "123456", "clave2": "123456"})
+html = esperar("ver código", c.get("/cuenta/codigo"), 200).get_data(as_text=True)
+codigo = re.search(r'id="codigo">([A-Z0-9-]+)<', html).group(1)
+esperar("código ya mostrado", c.get("/cuenta/codigo"), 302)
+esperar("mi cuenta", c.get("/cuenta"), 200)
+c.get("/logout")
+esperar("recuperar form", c.get("/recuperar"), 200)
+esperar("código malo", c.post("/recuperar", data={"usuario": "pepe", "codigo": "AAAA-BBBB-CCCC-DDDD",
+                                                  "clave": "nueva1", "clave2": "nueva1"}), 200)
+esperar("recuperar ok", c.post("/recuperar", data={"usuario": "PEPE", "codigo": codigo.lower().replace("-", " "),
+                                                   "clave": "nueva1", "clave2": "nueva1"}), 302)
+c.get("/logout")
+esperar("código usado no sirve", c.post("/recuperar", data={"usuario": "pepe", "codigo": codigo,
+                                                            "clave": "otra12", "clave2": "otra12"}), 200)
+esperar("clave vieja no entra", c.post("/login", data={"usuario": "pepe", "clave": "123456"}), 200)
+esperar("clave nueva entra", c.post("/login", data={"usuario": "pepe", "clave": "nueva1"}), 302)
+esperar("cambiar clave mal", c.post("/cuenta", data={"accion": "clave", "actual": "x", "clave": "abcdef",
+                                                     "clave2": "abcdef"}), 200)
+esperar("cambiar clave", c.post("/cuenta", data={"accion": "clave", "actual": "nueva1", "clave": "abcdef",
+                                                 "clave2": "abcdef"}), 302)
+esperar("generar código", c.post("/cuenta", data={"accion": "codigo", "actual": "abcdef"}), 302)
+
+# Bloqueo tras muchos intentos
+c.get("/logout")
+for _ in range(5):
+    c.post("/login", data={"usuario": "ana", "clave": "mal"})
+esperar("bloqueo", c.post("/login", data={"usuario": "ana", "clave": "abcdef"}), 429)
+
+print("\n".join(fallas) if fallas else "TODO OK")
+sys.exit(1 if fallas else 0)

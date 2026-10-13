@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Ingresar{% endblock %}
+{% block content %}
+<section class="card form-card narrow">
+  <div class="eyebrow">Tu garaje</div>
+  <h1>Ingresar</h1>
+  <form method="post" class="form auth-form">
+    <label class="field">
+      <span>Usuario</span>
+      <input name="usuario" value="{{ nombre }}" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30">
+    </label>
+    <label class="field">
+      <span>Contraseña</span>
+      <input type="password" name="clave" required autocomplete="current-password" maxlength="200">
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Entrar</button>
+    </div>
+  </form>
+  <p class="muted auth-alt"><a href="{{ url_for('recuperar') }}">¿Te olvidaste la contraseña?</a></p>
+  <p class="muted auth-alt auth-alt-2">¿No tenés cuenta? <a href="{{ url_for('registrarse') }}">Creá una gratis</a></p>
+</section>
+{% endblock %}

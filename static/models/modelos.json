@@ -1,0 +1,72 @@
+{
+  "hatchback": {
+    "archivo": "tipos/hatchback.glb",
+    "pintura": [
+      "Body_1"
+    ],
+    "mascara": true,
+    "credito": "\"Generic passenger car pack\" de Comrade1280 (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5",
+    "nodo_pack": "Hatchback Body"
+  },
+  "sedan": {
+    "archivo": "tipos/sedan.glb",
+    "pintura": [
+      "Body_5"
+    ],
+    "mascara": true,
+    "credito": "\"Generic passenger car pack\" de Comrade1280 (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5",
+    "nodo_pack": "Sedan Body"
+  },
+  "rural": {
+    "archivo": "tipos/rural.glb",
+    "pintura": [
+      "Body_8"
+    ],
+    "mascara": true,
+    "credito": "\"Generic passenger car pack\" de Comrade1280 (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5",
+    "nodo_pack": "Wagon Body"
+  },
+  "coupe": {
+    "archivo": "tipos/coupe.glb",
+    "pintura": [
+      "Body_0"
+    ],
+    "mascara": true,
+    "credito": "\"Generic passenger car pack\" de Comrade1280 (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5",
+    "nodo_pack": "Coupe Body"
+  },
+  "suv": {
+    "archivo": "tipos/suv.glb",
+    "pintura": [
+      "Body_7"
+    ],
+    "mascara": true,
+    "credito": "\"Generic passenger car pack\" de Comrade1280 (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5",
+    "nodo_pack": "SUV Body"
+  },
+  "pickup": {
+    "archivo": "tipos/pickup.glb",
+    "pintura": [
+      "Body_4"
+    ],
+    "mascara": true,
+    "credito": "\"Generic passenger car pack\" de Comrade1280 (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5",
+    "nodo_pack": "Pickup Body"
+  },
+  "utilitario": {
+    "archivo": "tipos/utilitario.glb",
+    "pintura": [
+      "Body_2"
+    ],
+    "mascara": true,
+    "credito": "\"Generic passenger car pack\" de Comrade1280 (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5",
+    "nodo_pack": "minivan body"
+  }
+}

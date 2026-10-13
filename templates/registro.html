@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Crear cuenta{% endblock %}
+{% block content %}
+<section class="card form-card narrow">
+  <div class="eyebrow">Nuevo piloto</div>
+  <h1>Crear cuenta</h1>
+  <p class="muted">Tus vehículos y registros quedan guardados en tu cuenta y solo vos los ves. No pedimos email ni datos personales.</p>
+  <form method="post" class="form auth-form">
+    <label class="field">
+      <span>Usuario</span>
+      <input name="usuario" value="{{ nombre }}" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false"
+             minlength="3" maxlength="30" pattern="[A-Za-z0-9._\-]{3,30}" title="De 3 a 30 caracteres: letras, números, punto, guion o guion bajo">
+      <small class="hint">Letras, números, punto o guion. Sin espacios.</small>
+    </label>
+    <label class="field">
+      <span>Contraseña</span>
+      <input type="password" name="clave" required minlength="6" maxlength="200" autocomplete="new-password">
+      <small class="hint">Mínimo 6 caracteres.</small>
+    </label>
+    <label class="field">
+      <span>Repetí la contraseña</span>
+      <input type="password" name="clave2" required minlength="6" maxlength="200" autocomplete="new-password">
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Crear cuenta</button>
+    </div>
+  </form>
+  <p class="muted auth-alt">¿Ya tenés cuenta? <a href="{{ url_for('login') }}">Ingresá</a></p>
+</section>
+{% endblock %}

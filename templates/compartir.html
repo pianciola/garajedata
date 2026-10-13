@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Compartir · {{ nombre_auto(v) }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('vehiculo', vid=v.id) }}">← {{ nombre_auto(v) }}</a>
+<section class="card form-card narrow wide-ish">
+  <div class="eyebrow">Compartir bitácora</div>
+  <h1>{{ nombre_auto(v) }}</h1>
+  <p class="muted">Quien tenga el link ve la historia del auto en <b>modo vista</b>: no puede editar nada y no necesita cuenta. Ideal para mostrarle a un mecánico o a un futuro comprador.</p>
+
+  {% if link %}
+  <div class="codigo-box share-box">
+    <code id="link">{{ link }}</code>
+    <button class="btn btn-ghost btn-sm" type="button" id="copiar">Copiar</button>
+  </div>
+  <div class="share-actions">
+    <a class="btn btn-ghost btn-sm" href="{{ link }}" target="_blank" rel="noopener">Ver como lo ven</a>
+    <button class="btn btn-primary btn-sm" type="button" id="compartir-nativo" hidden>Compartir…</button>
+    <a class="btn btn-ghost btn-sm" id="whatsapp" href="https://wa.me/?text={{ ('Mirá la bitácora de mi ' ~ nombre_auto(v) ~ ': ' ~ link)|urlencode }}" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+  </div>
+
+  <form method="post" class="form share-options">
+    <input type="hidden" name="accion" value="opciones">
+    <label class="check"><input type="checkbox" name="costos" value="1" {% if v.share_costos %}checked{% endif %}> <span>Mostrar cuánto costó cada trabajo</span></label>
+    <label class="check"><input type="checkbox" name="adjuntos" value="1" {% if v.share_adjuntos %}checked{% endif %}> <span>Mostrar fotos y facturas de los registros</span></label>
+    <p class="muted small">Nunca se comparten la documentación, los vencimientos ni la bóveda.</p>
+    <div class="form-actions"><button class="btn btn-primary btn-sm" type="submit">Guardar opciones</button></div>
+  </form>
+
+  <div class="danger-zone">
+    <div>
+      <strong>Dejar de compartir</strong>
+      <p class="muted">El link deja de funcionar. También podés crear uno nuevo y anular el anterior.</p>
+    </div>
+    <div class="share-actions">
+      <form method="post"><input type="hidden" name="accion" value="regenerar"><button class="btn btn-ghost btn-sm" type="submit">Link nuevo</button></form>
+      <form method="post" onsubmit="return confirm('¿Dejar de compartir? El link dejará de funcionar.');"><input type="hidden" name="accion" value="desactivar"><button class="btn btn-danger btn-sm" type="submit">Dejar de compartir</button></form>
+    </div>
+  </div>
+  {% else %}
+  <form method="post" class="form">
+    <input type="hidden" name="accion" value="activar">
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Crear link para compartir</button></div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  // En el celular, el menú para compartir del sistema (WhatsApp, Telegram, mail…).
+  const nativo = document.getElementById("compartir-nativo");
+  if (nativo && navigator.share) {
+    nativo.hidden = false;
+    nativo.addEventListener("click", () => navigator.share({
+      title: {{ ('Bitácora de ' ~ nombre_auto(v))|tojson }},
+      text: {{ ('Mirá la bitácora de mi ' ~ nombre_auto(v))|tojson }},
+      url: document.getElementById("link").textContent,
+    }).catch(() => {}));
+  }
+  const copiar = document.getElementById("copiar");
+  if (copiar) copiar.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById("link").textContent);
+      copiar.textContent = "¡Copiado!";
+    } catch { copiar.textContent = "Copialo a mano"; }
+  });
+</script>
+{% endblock %}

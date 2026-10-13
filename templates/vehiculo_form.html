@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar vehículo' if v and v.id else 'Nuevo vehículo' }}{% endblock %}
+{% block content %}
+{% set editando = v and v.id %}
+<a class="back" href="{{ url_for('vehiculo', vid=v.id) if editando else url_for('index') }}">← Volver</a>
+<section class="card form-card">
+  <h1>{{ 'Editar vehículo' if editando else 'Nuevo vehículo' }}</h1>
+  <form method="post" class="form">
+    {% set carr_actual = (v.carroceria if v else none) or 'sedan' %}
+    {% set color_actual = (v.color if v else none) or COLOR_DEFAULT %}
+    <div class="car-stage car-stage-form" data-car3d data-interactive data-type="{{ carr_actual }}" data-color="{{ color_actual }}"
+         data-type-from="input[name=carroceria]" data-color-from="input[name=color]" title="Arrastrá para girar"></div>
+
+    <fieldset>
+      <legend>Tipo de carrocería</legend>
+      <div class="body-picker">
+        {% for key, label in CARROCERIAS.items() %}
+        <label class="body-option">
+          <input type="radio" name="carroceria" value="{{ key }}" {% if carr_actual == key %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Color</legend>
+      <div class="color-picker">
+        {% for hex, nombre in COLORES.items() %}
+          <button type="button" class="swatch {% if hex == color_actual %}active{% endif %}" style="--sw: {{ hex }}" data-color="{{ hex }}" title="{{ nombre }}" aria-label="{{ nombre }}"></button>
+        {% endfor %}
+        <label class="swatch-custom" title="Otro color">
+          <input type="color" name="color" id="color" value="{{ color_actual }}">
+          <span>Otro…</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="row">
+      <div class="field">
+        <label for="marca"><span>Marca</span></label>
+        <div class="combo" id="combo-marca">
+          <img class="combo-logo" alt="" hidden>
+          <input id="marca" name="marca" maxlength="40" autocomplete="off" value="{{ (v.marca or '') if v else '' }}"
+                 placeholder="Elegí o escribí la marca" role="combobox" aria-expanded="false" aria-controls="lista-marca">
+          <button type="button" class="combo-toggle" tabindex="-1" aria-label="Ver marcas">▾</button>
+          <ul class="combo-list" id="lista-marca" role="listbox" hidden></ul>
+        </div>
+      </div>
+      <div class="field">
+        <label for="modelo"><span>Modelo</span></label>
+        <div class="combo" id="combo-modelo">
+          <input id="modelo" name="modelo" maxlength="60" autocomplete="off" value="{{ (v.modelo or '') if v else '' }}"
+                 placeholder="Elegí o escribí el modelo" role="combobox" aria-expanded="false" aria-controls="lista-modelo">
+          <button type="button" class="combo-toggle" tabindex="-1" aria-label="Ver modelos">▾</button>
+          <ul class="combo-list" id="lista-modelo" role="listbox" hidden></ul>
+        </div>
+      </div>
+      <div class="field">
+        <label for="version"><span>Versión / fase</span></label>
+        <div class="combo" id="combo-version">
+          <input id="version" name="version" maxlength="60" autocomplete="off" value="{{ (v.version or '') if v else '' }}"
+                 placeholder="Ej: MK1, restyling…" role="combobox" aria-expanded="false" aria-controls="lista-version">
+          <button type="button" class="combo-toggle" tabindex="-1" aria-label="Ver versiones">▾</button>
+          <ul class="combo-list" id="lista-version" role="listbox" hidden></ul>
+        </div>
+      </div>
+    </div>
+    <label class="field">
+      <span>Apodo <small class="optional">(opcional)</small></span>
+      <input name="nombre" maxlength="60" value="{{ (v.nombre or '') if v else '' }}" placeholder="Ej: El Gol, el auto de papá… (si no, se usa marca y modelo)">
+    </label>
+    <div class="row">
+      <label class="field"><span>Año</span><input type="number" name="anio" min="1900" max="2100" value="{{ (v.anio or '') if v else '' }}"></label>
+      <label class="field"><span>Patente</span><input name="patente" maxlength="12" value="{{ (v.patente or '') if v else '' }}" placeholder="AB 123 CD"></label>
+      <label class="field"><span>Km al comenzar</span><input name="km_inicial" class="num-miles" inputmode="numeric" autocomplete="off" value="{{ (v.km_inicial|num) if v else '' }}" placeholder="Ej: 120.000"></label>
+    </div>
+    <fieldset>
+      <legend>Transmisión</legend>
+      <div class="trans-picker">
+        {% for key, label in TRANSMISIONES.items() %}
+        <label class="body-option">
+          <input type="radio" name="transmision" value="{{ key }}" {% if v and v.transmision == key %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% macro campo(nombre, etiqueta, placeholder='', largo=60, clase='', extra='') -%}
+      <label class="field"><span>{{ etiqueta }}</span>
+        <input name="{{ nombre }}" maxlength="{{ largo }}" value="{{ (v[nombre] or '') if v else '' }}" placeholder="{{ placeholder }}" {% if clase %}class="{{ clase }}"{% endif %} {{ extra|safe }}>
+      </label>
+    {%- endmacro %}
+
+    <details class="section-box" {% if v and (v.motor or v.combustible or v.tanque or v.codigo_pintura or v.vin) %}open{% endif %}>
+      <summary><span>Ficha técnica</span><small class="optional">opcional</small></summary>
+      <div class="section-body">
+        <div class="row">
+          {{ campo('motor', 'Motor', 'Ej: 1.6 16v Zetec, 2.0 TDI…') }}
+          <label class="field"><span>Combustible</span>
+            <select name="combustible">
+              <option value="">—</option>
+              {% for key, label in COMBUSTIBLES.items() %}<option value="{{ key }}" {% if v and v.combustible == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="field"><span>Tanque (litros)</span>
+            <input name="tanque" class="num-miles" data-decimales inputmode="decimal" autocomplete="off" value="{{ (v.tanque|num) if v else '' }}" placeholder="Ej: 55">
+          </label>
+        </div>
+        <div class="row">
+          {{ campo('codigo_pintura', 'Código de pintura', 'Ej: 3CSE, LY9B…', 30) }}
+          {{ campo('vin', 'N.º de chasis (VIN)', '17 caracteres', 20, 'input-codigo', 'autocapitalize="characters" spellcheck="false"') }}
+        </div>
+      </div>
+    </details>
+
+    <details class="section-box" {% if v and (v.aceite or v.bujias or v.refrigerante or v.frenos or v.neumaticos) %}open{% endif %}>
+      <summary><span>Fluidos y repuestos</span><small class="optional">opcional</small></summary>
+      <div class="section-body">
+        <div class="row">
+          {{ campo('aceite', 'Aceite recomendado', 'Ej: 5W-30 sintético') }}
+          <label class="field"><span>Litros con filtro</span>
+            <input name="aceite_litros" class="num-miles" data-decimales inputmode="decimal" autocomplete="off" value="{{ (v.aceite_litros|num) if v else '' }}" placeholder="Ej: 4,3">
+          </label>
+          {{ campo('bujias', 'Bujías (código)', 'Ej: NGK BKR6E') }}
+        </div>
+        <div class="row">
+          {{ campo('refrigerante', 'Refrigerante', 'Ej: orgánico rosa G12') }}
+          <label class="field"><span>Líquido de frenos</span>
+            <select name="frenos">
+              <option value="">—</option>
+              {% for f in FRENOS %}<option {% if v and v.frenos == f %}selected{% endif %}>{{ f }}</option>{% endfor %}
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          {{ campo('neumaticos', 'Medida de neumáticos', 'Ej: 205/55 R16') }}
+          {{ campo('presion_del', 'Presión delantera', 'Ej: 32 psi', 20) }}
+          {{ campo('presion_tras', 'Presión trasera', 'Ej: 30 psi', 20) }}
+        </div>
+      </div>
+    </details>
+
+    {% set uso_actual = v.uso if v else none %}
+    <details class="section-box" {% if uso_actual %}open{% endif %}>
+      <summary><span>Plan de mantenimiento</span><small class="optional">opcional</small></summary>
+      <div class="section-body">
+        <label class="check">
+          <input type="checkbox" name="calcular_uso" value="1" id="calcular-uso" {% if uso_actual %}checked{% endif %}>
+          <span>Estimar cuánto uso el auto y avisarme cuándo tocan los services más importantes</span>
+        </label>
+        <p class="muted small">Con tu perfil, la app calcula los km que hacés por mes y te avisa del aceite, filtros, bujías, distribución, frenos y más, aunque no cargues el kilometraje seguido.</p>
+        <div class="uso-picker" id="uso-picker">
+          {% for key, (label, kpm, desc) in USOS.items() %}
+          <label class="uso-option">
+            <input type="radio" name="uso" value="{{ key }}" {% if (uso_actual or 'promedio') == key %}checked{% endif %}>
+            <span class="uso-card">
+              <strong>{{ label }}</strong>
+              <b>≈ {{ kpm|miles }} km/mes</b>
+              <small>{{ desc }}</small>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+        {% if medido %}<p class="muted small">Según tus registros venís haciendo <b>≈ {{ medido|miles }} km por mes</b>.</p>{% endif %}
+      </div>
+    </details>
+
+    <label class="field">
+      <span>Notas</span>
+      <textarea name="notas" rows="3" placeholder="Cualquier otro dato que quieras tener a mano…">{{ (v.notas or '') if v else '' }}</textarea>
+    </label>
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="{{ url_for('vehiculo', vid=v.id) if editando else url_for('index') }}">Cancelar</a>
+      <button class="btn btn-primary" type="submit">Guardar</button>
+    </div>
+  </form>
+
+  {% if editando %}
+  <form class="danger-zone" method="post" action="{{ url_for('vehiculo_eliminar', vid=v.id) }}"
+        onsubmit="return confirm('Se borrará el vehículo y TODOS sus registros. ¿Continuar?');">
+    <div>
+      <strong>Eliminar vehículo</strong>
+      <p class="muted">Borra el vehículo y toda su bitácora. No se puede deshacer.</p>
+    </div>
+    <button class="btn btn-danger" type="submit">Eliminar</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script id="catalogo" type="application/json">{{ catalogo_js()|tojson }}</script>
+<script src="{{ url_for('static', filename='form-vehiculo.js') }}"></script>
+{% endblock %}

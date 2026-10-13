@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Documentación · {{ nombre_auto(v) }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('vehiculo', vid=v.id) }}#documentacion">← {{ nombre_auto(v) }}</a>
+<section class="card form-card">
+  <div class="eyebrow">Documentación</div>
+  <h1>Vencimientos</h1>
+  <p class="muted">Todo es opcional: completá solo lo que quieras que te avisemos. Los pagos mensuales avisan una semana antes; el resto, un mes antes.</p>
+  <form method="post" class="form">
+    {% for tipo, nombre in DOCUMENTOS.items() %}
+    {% set d = docs.get(tipo) %}
+    <fieldset class="doc-edit">
+      <legend>{{ nombre }}</legend>
+      <div class="row">
+        <label class="field">
+          <span>{{ 'Próximo pago' if tipo in ('seguro_pago', 'patente') else 'Vence el' }}</span>
+          <input type="date" name="vence_{{ tipo }}" value="{{ d.vence if d and d.vence else '' }}">
+        </label>
+        <label class="field">
+          <span>Se repite</span>
+          {% set cada = d.cada_meses if d else sugerida.get(tipo) %}
+          <select name="cada_{{ tipo }}">
+            <option value="">No se repite</option>
+            {% for meses, label in REPETICIONES.items() %}<option value="{{ meses }}" {% if cada == meses %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="field">
+          <span>Detalle <small class="optional">(opcional)</small></span>
+          <input name="detalle_{{ tipo }}" maxlength="120" value="{{ d.detalle if d and d.detalle else '' }}"
+                 placeholder="{{ {'vtv': 'Planta, oblea…', 'seguro': 'Compañía, n.º de póliza', 'seguro_pago': 'Monto, medio de pago', 'matafuego': 'Kg, empresa', 'patente': 'Provincia, cuota', 'registro': 'Clase, titular'}[tipo] }}">
+        </label>
+      </div>
+    </fieldset>
+    {% endfor %}
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="{{ url_for('vehiculo', vid=v.id) }}#documentacion">Cancelar</a>
+      <button class="btn btn-primary" type="submit">Guardar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

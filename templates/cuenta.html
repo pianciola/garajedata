@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Mi cuenta{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}">← Mis vehículos</a>
+<section class="card form-card narrow">
+  <div class="eyebrow">Mi cuenta</div>
+  <h1>{{ usuario.usuario }}</h1>
+
+  <h3 class="cuenta-sub">Cambiar contraseña</h3>
+  <form method="post" class="form auth-form">
+    <input type="hidden" name="accion" value="clave">
+    <label class="field">
+      <span>Contraseña actual</span>
+      <input type="password" name="actual" required autocomplete="current-password" maxlength="200">
+    </label>
+    <label class="field">
+      <span>Contraseña nueva</span>
+      <input type="password" name="clave" required minlength="6" maxlength="200" autocomplete="new-password">
+    </label>
+    <label class="field">
+      <span>Repetí la contraseña nueva</span>
+      <input type="password" name="clave2" required minlength="6" maxlength="200" autocomplete="new-password">
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Cambiar contraseña</button>
+    </div>
+  </form>
+
+  <h3 class="cuenta-sub">Código de recuperación</h3>
+  <p class="muted">¿Lo perdiste? Generá uno nuevo; el anterior deja de servir.</p>
+  <form method="post" class="form auth-form">
+    <input type="hidden" name="accion" value="codigo">
+    <label class="field">
+      <span>Contraseña actual</span>
+      <input type="password" name="actual" required autocomplete="current-password" maxlength="200">
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-ghost" type="submit">Generar código nuevo</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

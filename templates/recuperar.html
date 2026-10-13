@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Recuperar cuenta{% endblock %}
+{% block content %}
+<section class="card form-card narrow">
+  <div class="eyebrow">Recuperar cuenta</div>
+  <h1>Nueva contraseña</h1>
+  <p class="muted">Usá el código de recuperación que te dimos al crear la cuenta.</p>
+  <form method="post" class="form auth-form">
+    <label class="field">
+      <span>Usuario</span>
+      <input name="usuario" value="{{ nombre }}" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30">
+    </label>
+    <label class="field">
+      <span>Código de recuperación</span>
+      <input name="codigo" required autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40" placeholder="XXXX-XXXX-XXXX-XXXX" class="input-codigo">
+    </label>
+    <label class="field">
+      <span>Contraseña nueva</span>
+      <input type="password" name="clave" required minlength="6" maxlength="200" autocomplete="new-password">
+    </label>
+    <label class="field">
+      <span>Repetí la contraseña nueva</span>
+      <input type="password" name="clave2" required minlength="6" maxlength="200" autocomplete="new-password">
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Cambiar contraseña</button>
+    </div>
+  </form>
+  <p class="muted auth-alt">¿Perdiste también el código? No hay forma de recuperar la cuenta: como no guardamos datos personales, nadie puede comprobar que es tuya.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo or 'No encontrado' }}{% endblock %}
+{% block content %}
+<div class="empty card">
+  <div class="big-404">{{ codigo or '404' }}</div>
+  <h2>{{ titulo or 'Te fuiste de pista' }}</h2>
+  <p class="muted">{{ mensaje or 'No encontramos esa página.' }}</p>
+  <a class="btn btn-primary" href="{{ url_for('index') }}" style="margin-top:18px">Volver a boxes</a>
+</div>
+{% endblock %}

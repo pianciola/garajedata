@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}{{ nombre_auto(v) }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}">← Mis vehículos</a>
+
+<section class="hero hero-car">
+  <div class="hero-info">
+    <div class="eyebrow">Ficha del vehículo</div>
+    <div class="title-row">
+      <div class="title-main">
+        {% if logo_marca(v.marca) %}<img class="brand-logo brand-logo-lg{{ " logo-oscuro" if logo_oscuro(v.marca) }}" src="{{ logo_marca(v.marca) }}" alt="{{ v.marca }}">{% endif %}
+        <h1>{{ nombre_auto(v) }}</h1>
+      </div>
+      {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
+    </div>
+    <p class="muted">{{ [v.marca, v.modelo, v.version, v.anio, CARROCERIAS.get(v.carroceria), TRANSMISIONES.get(v.transmision)]|select|join(' · ') }}</p>
+    {% if v.notas %}<p class="notes">{{ v.notas }}</p>{% endif %}
+  <div class="hero-actions">
+    {% if can_edit %}
+      <a class="btn btn-primary" href="{{ url_for('registro_nuevo', vid=v.id) }}">+ Nuevo registro</a>
+      <a class="btn btn-ghost" href="{{ url_for('vehiculo_editar', vid=v.id) }}">Editar vehículo</a>
+    {% endif %}
+    <a class="btn btn-ghost" href="{{ url_for('libro', vid=v.id) }}">Libro de servicio · PDF</a>
+    <a class="btn btn-ghost" href="{{ url_for('compartir', vid=v.id) }}">{{ 'Compartida ✓' if v.share_token else 'Compartir' }}</a>
+  </div>
+  </div>
+  <div class="car-stage car-stage-hero" data-car3d data-interactive data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}" title="Arrastrá para girar"></div>
+</section>
+
+<div class="stats">
+  <div class="stat stat-odo"><span>Odómetro</span>
+    <strong class="odo" aria-label="{{ km_real|miles }} km">
+      {%- set digitos = '%06d'|format(km_real) %}{% set ns = namespace(cero=true) %}
+      {%- for d in digitos %}{% if d != '0' or loop.last %}{% set ns.cero = false %}{% endif %}<i class="{{ 'dim' if ns.cero }}">{{ d }}</i>{% endfor %}
+      <small>km</small>
+    </strong>
+    {% if v.uso and km_hoy > km_real %}<em class="odo-est" title="Calculado con tu perfil: {{ USOS[v.uso][0]|lower }}">≈ {{ km_hoy|miles }} km estimados hoy</em>{% endif %}
+  </div>
+  <div class="stat"><span>Registros</span><strong>{{ stats.n }}</strong></div>
+  <div class="stat"><span>Gastado en {{ anio }}</span><strong>{{ stats.anio|plata }}</strong></div>
+  <div class="stat"><span>Gastado en total</span><strong>{{ stats.total|plata }}</strong></div>
+</div>
+
+{% if recordatorios or plan %}
+<section class="card reminders">
+  <h2>Próximos controles</h2>
+  <ul>
+    {% for rec in recordatorios %}
+    {% set r = rec.registro %}
+    <li class="reminder reminder-{{ rec.estado }}">
+      <div class="reminder-main">
+        <strong>{{ r.titulo }}</strong>
+        <span class="muted">
+          {% if r.prox_km %}a los {{ r.prox_km|miles }} km{% endif %}
+          {% if r.prox_km and r.prox_fecha %} · {% endif %}
+          {% if r.prox_fecha %}el {{ r.prox_fecha|fecha }}{% endif %}
+        </span>
+      </div>
+      <span class="reminder-tag">
+        {% if rec.estado == 'vencido' %}Vencido
+        {% else %}Faltan
+          {%- if rec.faltan_km is not none %} {{ rec.faltan_km|miles }} km{% endif %}
+          {%- if rec.faltan_km is not none and rec.faltan_dias is not none %} /{% endif %}
+          {%- if rec.faltan_dias is not none %} {{ rec.faltan_dias }} días{% endif %}
+        {% endif %}
+      </span>
+      <div class="revbar" aria-hidden="true">{% for n in range(20) %}<span class="{{ 'on' if n < (rec.progreso * 20)|round(0, 'ceil') }}"></span>{% endfor %}</div>
+    </li>
+    {% endfor %}
+    {% for p in plan if p.estado != 'sin_dato' %}
+    <li class="reminder reminder-{{ p.estado }}">
+      <div class="reminder-main">
+        <strong>{{ p.nombre }} <span class="tag-est" title="Estimado con tu perfil de uso">estimado</span></strong>
+        <span class="muted">
+          Último: {{ p.ultimo.fecha|fecha }}{% if p.ultimo.km %} a los {{ p.ultimo.km|miles }} km{% endif %}
+          · cada {{ p.cada_km|miles }} km o {{ p.cada_meses }} meses
+        </span>
+      </div>
+      <span class="reminder-tag">
+        {% if p.estado == 'vencido' %}Ya toca
+        {% else %}≈ {{ p.fecha|fecha }}{% if p.faltan_km is not none %} · {{ p.faltan_km|miles }} km{% endif %}{% endif %}
+      </span>
+      <div class="revbar" aria-hidden="true">{% for n in range(20) %}<span class="{{ 'on' if n < (p.progreso * 20)|round(0, 'ceil') }}"></span>{% endfor %}</div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% set faltan = plan|selectattr('estado', 'equalto', 'sin_dato')|list %}
+  {% if faltan %}
+  <div class="sin-dato">
+    <p class="muted small">Para estimar estos services, cargá cuándo se hicieron por última vez:</p>
+    <div class="sin-dato-chips">
+      {% for p in faltan %}<a class="chip" href="{{ url_for('registro_nuevo', vid=v.id, titulo=p.nombre, cat='fluidos' if p.clave in ('aceite', 'liquido_frenos', 'refrigerante') else ('control' if p.clave in ('alineacion', 'frenos') else 'piezas')) }}">+ {{ p.nombre }}</a>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<div class="panel-grid">
+  <section class="card panel" id="documentacion">
+    <div class="panel-head">
+      <h2>Documentación</h2>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('documentos', vid=v.id) }}">{{ 'Editar' if documentos else 'Cargar vencimientos' }}</a>
+    </div>
+    {% if documentos %}
+    <ul class="docs">
+      {% for d in documentos %}
+      <li class="doc doc-{{ d.estado }}">
+        <div class="doc-main">
+          <strong>{{ d.nombre }}</strong>
+          <span class="muted">{{ [d.doc.vence|fecha if d.doc.vence else none, d.doc.detalle]|select|join(' · ') }}</span>
+        </div>
+        <span class="doc-tag">
+          {% if d.dias is none %}Sin fecha
+          {% elif d.dias < 0 %}Venció hace {{ -d.dias }} {{ 'día' if d.dias == -1 else 'días' }}
+          {% elif d.dias == 0 %}Vence hoy
+          {% else %}Faltan {{ d.dias }} {{ 'día' if d.dias == 1 else 'días' }}{% endif %}
+        </span>
+        {% if d.doc.cada_meses and d.estado != 'ok' %}
+        <form method="post" action="{{ url_for('documento_renovar', did=d.doc.id) }}">
+          <button class="btn btn-ghost btn-xs" type="submit" title="Corre el vencimiento: {{ REPETICIONES[d.doc.cada_meses]|lower }}">{{ 'Ya lo pagué' if d.doc.tipo in ('seguro_pago', 'patente') else 'Ya lo renové' }}</button>
+        </form>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted small">VTV, seguro, matafuegos, patente y registro: cargá las fechas y te avisamos antes de que venzan.</p>
+    {% endif %}
+  </section>
+
+  <section class="card panel" id="boveda">
+    <div class="panel-head">
+      <h2>Bóveda digital</h2>
+      <span class="muted small" title="Espacio usado por tu cuenta">{{ '%.1f'|format(espacio / 1048576) }} / 100 MB</span>
+    </div>
+    {% if boveda %}
+    <ul class="vault">
+      {% for a in boveda %}
+      <li>
+        <a class="vault-file" href="{{ url_for('archivo', aid=a.id) }}" target="_blank" rel="noopener">
+          {% if a.mime.startswith('image/') %}<img src="{{ url_for('archivo', aid=a.id) }}" alt="" loading="lazy">{% else %}<span class="pdf-icon">PDF</span>{% endif %}
+          <span><strong>{{ BOVEDA.get(a.categoria, 'Documento') }}</strong><small class="muted">{{ a.nombre }}</small></span>
+        </a>
+        <form method="post" action="{{ url_for('archivo_eliminar', aid=a.id) }}" onsubmit="return confirm('¿Eliminar este archivo?');">
+          <button class="link-danger" type="submit" aria-label="Eliminar {{ a.nombre }}">✕</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted small">Guardá fotos o PDF de la cédula, el seguro y la VTV para tenerlos a mano, incluso sin conexión.</p>
+    {% endif %}
+    <form class="vault-upload" method="post" action="{{ url_for('boveda_subir', vid=v.id) }}" enctype="multipart/form-data">
+      <select name="categoria" aria-label="Tipo de documento">
+        {% for key, label in BOVEDA.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+      </select>
+      <label class="file-drop file-drop-sm">
+        <input type="file" name="archivos" multiple required accept="image/jpeg,image/png,image/webp,application/pdf">
+        <span>📎 Elegir foto o PDF</span>
+      </label>
+      <button class="btn btn-primary btn-sm" type="submit">Subir</button>
+    </form>
+  </section>
+</div>
+
+{% set ficha = ficha_tecnica(v) %}
+<details class="card ficha" {% if ficha %}open{% endif %}>
+  <summary><h2>Ficha técnica</h2><a class="btn btn-ghost btn-sm" href="{{ url_for('vehiculo_editar', vid=v.id) }}">{{ 'Editar' if ficha else 'Completar' }}</a></summary>
+  {% if ficha %}
+  <dl class="ficha-grid">
+    {% for etiqueta, valor in ficha %}<div{% if valor|length > 16 %} class="ancho"{% endif %}><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}
+  </dl>
+  {% else %}
+  <p class="muted small">Motor, VIN, aceite recomendado, bujías, neumáticos y presiones: todo en un lugar.</p>
+  {% endif %}
+</details>
+
+<section class="toolbar">
+  <div class="chips">
+    <a class="chip {% if not cat %}active{% endif %}" href="{{ url_for('vehiculo', vid=v.id, q=q or None) }}">Todos</a>
+    {% for key, label in CATEGORIAS.items() %}
+      <a class="chip chip-{{ key }} {% if cat == key %}active{% endif %}" href="{{ url_for('vehiculo', vid=v.id, cat=key, q=q or None) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  <form class="search" method="get">
+    {% if cat %}<input type="hidden" name="cat" value="{{ cat }}">{% endif %}
+    <input type="search" name="q" value="{{ q }}" placeholder="Buscar trabajo, detalle o taller…">
+  </form>
+</section>
+
+{% if registros %}
+<ol class="timeline">
+  {% for r in registros %}
+  <li class="entry cat-{{ r.categoria }}">
+    <div class="entry-date">
+      <strong>{{ r.fecha|fecha }}</strong>
+      {% if r.km %}<span>{{ r.km|miles }} km</span>{% endif %}
+    </div>
+    <article class="card entry-card">
+      <header>
+        <span class="badge badge-{{ r.categoria }}">{{ CATEGORIAS.get(r.categoria, r.categoria) }}</span>
+        {% if r.costo is not none %}<span class="cost">{{ r.costo|plata }}</span>{% endif %}
+      </header>
+      <h3>{{ r.titulo }}</h3>
+      {% if r.detalle %}<p class="detail">{{ r.detalle }}</p>{% endif %}
+      {% if adjuntos.get(r.id) %}
+      <div class="adjuntos">
+        {% for a in adjuntos[r.id] %}
+        <a href="{{ url_for('archivo', aid=a.id) }}" target="_blank" rel="noopener" title="{{ a.nombre }}">
+          {% if a.mime.startswith('image/') %}<img src="{{ url_for('archivo', aid=a.id) }}" alt="{{ a.nombre }}" loading="lazy">{% else %}<span class="pdf-icon">PDF</span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <footer>
+        <div class="meta">
+          {% set q_ = quien(r) %}{% if q_ %}<span>{{ '🙋' if r.hecho_por == 'yo' else ('👤' if r.hecho_por == 'otro' else '🔧') }} {{ q_ }}</span>{% endif %}
+          {% if r.prox_km or r.prox_fecha %}
+            <span>⏭ Próximo:
+              {% if r.prox_km %}{{ r.prox_km|miles }} km{% endif %}{% if r.prox_km and r.prox_fecha %} / {% endif %}{% if r.prox_fecha %}{{ r.prox_fecha|fecha }}{% endif %}
+            </span>
+          {% endif %}
+        </div>
+        {% if can_edit %}
+        <div class="entry-actions">
+          <a href="{{ url_for('registro_editar', rid=r.id) }}">Editar</a>
+          <form method="post" action="{{ url_for('registro_eliminar', rid=r.id) }}" onsubmit="return confirm('¿Eliminar este registro?');">
+            <button type="submit" class="link-danger">Eliminar</button>
+          </form>
+        </div>
+        {% endif %}
+      </footer>
+    </article>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<div class="empty card">
+  <div class="empty-icon">📋</div>
+  {% if cat or q %}
+    <h2>No hay registros que coincidan</h2>
+    <p class="muted"><a href="{{ url_for('vehiculo', vid=v.id) }}">Ver todos los registros</a></p>
+  {% else %}
+    <h2>La bitácora está vacía</h2>
+    <p class="muted">Cargá el primer service, cambio o arreglo con <b>+ Nuevo registro</b>.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

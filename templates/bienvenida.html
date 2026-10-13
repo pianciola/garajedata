@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Bienvenido{% endblock %}
+{% block content %}
+<section class="hero hero-car">
+  <div class="hero-info">
+    <div class="eyebrow">Bitácora del automotor</div>
+    <h1>La historia completa de cada fierro</h1>
+    <p class="muted">Services, fluidos, piezas, accesorios, arreglos y modificaciones de tus vehículos, con recordatorios del próximo control. Gratis y desde cualquier dispositivo.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ url_for('registrarse') }}">Crear cuenta</a>
+      <a class="btn btn-ghost" href="{{ url_for('login') }}">Ya tengo cuenta</a>
+    </div>
+  </div>
+  <div class="car-stage car-stage-hero" data-car3d data-interactive data-type="coupe" data-color="#c0262d" title="Arrastrá para girar"></div>
+</section>
+
+<div class="features">
+  <div class="card feature"><h3>Tu garaje</h3><p class="muted">Cargá todos tus vehículos con marca, modelo, versión, patente y color.</p></div>
+  <div class="card feature"><h3>Cada trabajo</h3><p class="muted">Fecha, kilometraje, costo y taller de cada service o arreglo.</p></div>
+  <div class="card feature"><h3>Próximo control</h3><p class="muted">Avisos cuando se acerca el cambio de aceite, la VTV o lo que programes.</p></div>
+</div>
+{% endblock %}

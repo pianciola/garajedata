@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar registro' if r.id else 'Nuevo registro' }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('vehiculo', vid=v.id) }}">← {{ nombre_auto(v) }}</a>
+<section class="card form-card">
+  <h1>{{ 'Editar registro' if r.id else 'Nuevo registro' }}</h1>
+  <form method="post" class="form" enctype="multipart/form-data">
+    <fieldset>
+      <legend>Tipo de trabajo</legend>
+      <div class="cat-picker">
+        {% for key, label in CATEGORIAS.items() %}
+        <label class="cat-option cat-{{ key }}">
+          <input type="radio" name="categoria" value="{{ key }}" {% if r.categoria == key %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <label class="field">
+      <span>¿Qué se hizo? *</span>
+      <input id="titulo" name="titulo" required maxlength="120" value="{{ r.titulo or '' }}" placeholder="Ej: Cambio de aceite y filtro" list="sugerencias" autofocus>
+      <datalist id="sugerencias">
+        <option value="Cambio de aceite y filtro"><option value="Filtro de aire"><option value="Filtro de combustible">
+        <option value="Filtro de habitáculo"><option value="Líquido refrigerante"><option value="Líquido de frenos">
+        <option value="Pastillas de freno"><option value="Discos de freno"><option value="Correa de distribución">
+        <option value="Bujías"><option value="Batería"><option value="Neumáticos"><option value="Alineación y balanceo">
+        <option value="Amortiguadores"><option value="Embrague"><option value="VTV / ITV"><option value="Service oficial">
+        <option value="Alarma"><option value="Stereo / multimedia"><option value="Cámara de retroceso">
+        <option value="Cubre alfombras"><option value="Portaequipajes"><option value="Polarizado">
+        <option value="Reprogramación"><option value="Lavado y pulido">
+      </datalist>
+      <small id="aviso-categoria" class="auto-cat" hidden></small>
+    </label>
+
+    <div class="row">
+      <label class="field">
+        <span>Fecha</span>
+        <input type="date" name="fecha" value="{{ r.fecha or '' }}" required>
+      </label>
+      <label class="field">
+        <span>Kilometraje</span>
+        <input name="km" class="num-miles" inputmode="numeric" autocomplete="off" value="{{ r.km|num }}" placeholder="Ej: 85.000">
+      </label>
+      <label class="field">
+        <span>Costo ($)</span>
+        <input name="costo" class="num-miles" data-decimales inputmode="decimal" autocomplete="off" value="{{ r.costo|num }}" placeholder="Opcional">
+      </label>
+    </div>
+
+    <div class="row quien-row">
+      <label class="field">
+        <span>¿Quién lo hizo?</span>
+        <select name="hecho_por" id="hecho-por">
+          <option value="">Sin especificar</option>
+          {% for key, label in HECHO_POR.items() %}<option value="{{ key }}" {% if r.hecho_por == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field" id="campo-quien" {% if r.hecho_por not in ('taller', 'otro') %}hidden{% endif %}>
+        <span id="etiqueta-quien">{{ 'Nombre' if r.hecho_por == 'otro' else 'Nombre del taller' }} <small class="optional" id="opcional-quien">{{ '' if r.hecho_por == 'otro' else '(opcional)' }}</small></span>
+        <input name="taller" id="taller" maxlength="120" value="{{ r.taller or '' }}" placeholder="{{ 'Ej: mi cuñado, el gomero de la esquina…' if r.hecho_por == 'otro' else 'Ej: Lubricentro Juan, concesionario…' }}">
+      </label>
+    </div>
+
+    <label class="field">
+      <span>Detalle</span>
+      <textarea name="detalle" rows="4" placeholder="Marcas, especificaciones, observaciones… (Ej: Aceite 5W-30 sintético, 4 L)">{{ r.detalle or '' }}</textarea>
+    </label>
+
+    <fieldset class="next-box">
+      <legend>Fotos y facturas (opcional)</legend>
+      {% if adjuntos %}
+      <ul class="adjuntos-edit">
+        {% for a in adjuntos %}
+        <li>
+          {% if a.mime.startswith('image/') %}<img src="{{ url_for('archivo', aid=a.id) }}" alt="" loading="lazy">{% else %}<span class="pdf-icon">PDF</span>{% endif %}
+          <a href="{{ url_for('archivo', aid=a.id) }}" target="_blank" rel="noopener">{{ a.nombre }}</a>
+          <label class="quitar"><input type="checkbox" name="quitar" value="{{ a.id }}"> Quitar</label>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <label class="file-drop">
+        <input type="file" name="archivos" multiple accept="image/jpeg,image/png,image/webp,application/pdf">
+        <span>📎 Agregar fotos del trabajo, facturas o comprobantes</span>
+        <small class="muted">JPG, PNG, WEBP o PDF · hasta 10 MB cada uno. Las fotos se achican solas.</small>
+      </label>
+    </fieldset>
+
+    <fieldset class="next-box">
+      <legend>Próximo control (opcional)</legend>
+      <div class="row">
+        <label class="field">
+          <span>A los km</span>
+          <input name="prox_km" class="num-miles" inputmode="numeric" autocomplete="off" value="{{ r.prox_km|num }}" placeholder="Ej: 95.000">
+        </label>
+        <label class="field">
+          <span>O en la fecha</span>
+          <input type="date" name="prox_fecha" value="{{ r.prox_fecha or '' }}">
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="{{ url_for('vehiculo', vid=v.id) }}">Cancelar</a>
+      <button class="btn btn-primary" type="submit">Guardar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='form-registro.js') }}"></script>
+{% endblock %}
