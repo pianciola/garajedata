@@ -40,6 +40,6 @@ python app.py                  # local en http://127.0.0.1:5000
 ## Detalles que conviene recordar
 - Chrome: el comando tipeado en la consola de PythonAnywhere a veces no corre (pantalla vieja); repetirlo y revisar la hora.
 - Capturas locales: Edge headless; no baja de ~500 px de ancho (usar iframe).
-- Logo: `static/img/logo-icono.png`, macro `templates/_logo.html`.
+- Logo propio: `static/img/logo-icono.png`, macro `templates/_logo.html`. Logos de marcas: `static/img/marcas/` (locales, sin CDN).
 - Textos legales en `legal.py` (adaptados de MacroCenter, fecha en `ACTUALIZACION`): si cambia qué datos
   guarda o a quién se los muestra la app, **actualizar ese texto**. Crear cuenta exige aceptarlos.
