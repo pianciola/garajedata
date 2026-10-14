@@ -15,7 +15,7 @@ CATEGORIAS = {
     "seguridad": "Seguridad del auto",
     "mantenimiento": "Mantenimiento",
     "ahorro": "Ahorro",
-    "datos": "Dato curioso",
+    "datos": "Curiosidad",
     "documentos": "Papeles",
 }
 

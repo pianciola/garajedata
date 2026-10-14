@@ -41,6 +41,6 @@ python app.py                  # local en http://127.0.0.1:5000
 - Chrome: el comando tipeado en la consola de PythonAnywhere a veces no corre (pantalla vieja); repetirlo y revisar la hora.
 - Capturas locales: Edge headless; no baja de ~500 px de ancho (usar iframe).
 - Logo propio: `static/img/logo-icono.png`, macro `templates/_logo.html`. Logos de marcas: `static/img/marcas/` (locales, sin CDN).
-- Consejo del día: lista en `consejos.py` (119 consejos). **Cada consejo es una responsabilidad**: verificar que sea cierto, que no dependa de una norma que pueda cambiar y que no invite a nada riesgoso.
+- «Dato de garaje» del día (debajo de los autos): lista en `consejos.py` (119 entradas: consejos, datos curiosos y papeles). **Cada consejo es una responsabilidad**: verificar que sea cierto, que no dependa de una norma que pueda cambiar y que no invite a nada riesgoso.
 - Textos legales en `legal.py` (adaptados de MacroCenter, fecha en `ACTUALIZACION`): si cambia qué datos
   guarda o a quién se los muestra la app, **actualizar ese texto**. Crear cuenta exige aceptarlos.

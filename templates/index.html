@@ -15,20 +15,6 @@
 </section>
 
 {% if vehiculos %}
-<aside class="consejo consejo-{{ consejo.clave }}" id="consejo" data-i="{{ consejo.i }}" data-salto="0" aria-label="Consejo del día">
-  <span class="consejo-icono" aria-hidden="true">💡</span>
-  <div class="consejo-cuerpo">
-    <span class="consejo-tag">Consejo del día · <b id="consejo-cat">{{ consejo.categoria }}</b></span>
-    <p id="consejo-texto">{{ consejo.texto }}</p>
-    <small class="consejo-aviso">Consejo general y orientativo: ante la duda, consultá el manual de tu auto o a un profesional.</small>
-  </div>
-  <div class="consejo-botones">
-    <button type="button" class="consejo-btn" id="consejo-otro" title="Ver otro consejo" aria-label="Ver otro consejo">↻</button>
-    <button type="button" class="consejo-btn" id="consejo-cerrar" title="Ocultar hasta mañana" aria-label="Ocultar el consejo hasta mañana">✕</button>
-  </div>
-</aside>
-<button type="button" class="consejo-chip" id="consejo-abrir" hidden>💡 Consejo del día</button>
-
 {% if vehiculos|length > 1 %}
 <div class="orden-barra no-print">
   <button class="btn btn-ghost" type="button" id="orden-btn" data-url="{{ url_for('vehiculos_orden') }}">⇅ Ordenar</button>
@@ -70,6 +56,21 @@
   </a>
   </div>
   {% endfor %}
+</div>
+<div class="consejo-zona">
+<aside class="consejo consejo-{{ consejo.clave }}" id="consejo" data-i="{{ consejo.i }}" data-salto="0" aria-label="Dato de garaje del día">
+  <span class="consejo-icono" aria-hidden="true">💡</span>
+  <div class="consejo-cuerpo">
+    <span class="consejo-tag">Dato de garaje · <b id="consejo-cat">{{ consejo.categoria }}</b></span>
+    <p id="consejo-texto">{{ consejo.texto }}</p>
+    <small class="consejo-aviso">Información general y orientativa: ante la duda, consultá el manual de tu auto o a un profesional.</small>
+  </div>
+  <div class="consejo-botones">
+    <button type="button" class="consejo-btn" id="consejo-otro" title="Ver otro dato" aria-label="Ver otro dato">↻</button>
+    <button type="button" class="consejo-btn" id="consejo-cerrar" title="Ocultar hasta mañana" aria-label="Ocultar el dato hasta mañana">✕</button>
+  </div>
+</aside>
+<button type="button" class="consejo-chip" id="consejo-abrir" hidden><span aria-hidden="true">💡</span> Mostrar dato de garaje</button>
 </div>
 <script src="{{ url_for('static', filename='orden-autos.js') }}"></script>
 <script src="{{ url_for('static', filename='consejo.js') }}"></script>

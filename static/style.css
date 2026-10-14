@@ -1154,3 +1154,18 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (max-width: 520px) { .consejo { gap: 10px; padding: 11px 8px 11px 12px; } .consejo-icono { font-size: 1.25rem; } .consejo p { font-size: .9rem; } }
 @media print { .consejo, .consejo-chip { display: none !important; } }
 .consejo-aviso { display: block; margin-top: 4px; color: var(--muted); font-size: .74rem; opacity: .8; }
+
+/* ---------- dato de garaje: debajo de los autos, letra más cómoda, chip discreto ---------- */
+.consejo-zona { margin-top: 44px; }
+.consejo { margin: 0; padding: 16px 16px 16px 18px; gap: 16px; }
+.consejo-icono { font-size: 1.8rem; }
+.consejo-tag { font-size: .86rem; }
+.consejo p { margin-top: 5px; font-size: 1.12rem; line-height: 1.5; }
+.consejo-aviso { margin-top: 8px; font-size: .8rem; }
+.consejo-btn { width: 38px; height: 38px; font-size: 1.15rem; }
+.consejo-chip { display: inline-flex; align-items: center; gap: 7px; margin: 0; padding: 6px 4px; background: none; border: 0; border-radius: 6px;
+  color: var(--muted); font-size: .88rem; opacity: .75; cursor: pointer; transition: opacity .15s, color .15s; }
+.consejo-chip:hover, .consejo-chip:focus-visible { opacity: 1; color: var(--text); }
+.consejo-chip span { filter: grayscale(.6); }
+.consejo-chip:hover span { filter: none; }
+@media (max-width: 520px) { .consejo-zona { margin-top: 34px; } .consejo p { font-size: 1.02rem; } .consejo-icono { font-size: 1.5rem; } }

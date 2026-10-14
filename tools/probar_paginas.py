@@ -294,8 +294,8 @@ with sqlite3.connect(DB) as db:
     db.execute("DELETE FROM registros WHERE titulo = 'prueba fechas'")
 # Consejo del día
 html = c.get("/").get_data(as_text=True)
-if 'id="consejo"' not in html or "Consejo del día" not in html:
-    fallas.append("no aparece el consejo del día")
+if 'id="consejo"' not in html or "Dato de garaje" not in html:
+    fallas.append("no aparece el dato de garaje")
 r = esperar("otro consejo", c.get("/consejo/3"), 200)
 if not r.get_json().get("texto"):
     fallas.append("el consejo de /consejo/N viene vacío")
