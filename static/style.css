@@ -1094,3 +1094,8 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 .odo-form { display: flex; gap: 6px; margin-top: 10px; max-width: 260px; }
 .odo-form input { flex: 1; min-width: 0; padding: 7px 10px; font-size: .9rem; }
+
+.fecha-wrap { display: grid; gap: 4px; }
+.fecha-borrar { justify-self: start; background: none; border: 0; padding: 2px 0; color: var(--muted); font-size: .8rem; text-decoration: underline; cursor: pointer; }
+.fecha-borrar:hover { color: var(--accent); }
+.fecha-borrar[hidden] { display: none; }

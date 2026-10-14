@@ -14,7 +14,7 @@
       <div class="row">
         <label class="field">
           <span>{{ 'Próximo pago' if tipo in ('seguro_pago', 'patente') else 'Vence el' }}</span>
-          <input type="date" name="vence_{{ tipo }}" value="{{ d.vence if d and d.vence else '' }}">
+          <input type="date" name="vence_{{ tipo }}" value="{{ d.vence if d and d.vence else '' }}" min="{{ lim.hace_un_anio }}" max="{{ lim.en_30_anios }}">
         </label>
         <label class="field">
           <span>Se repite</span>

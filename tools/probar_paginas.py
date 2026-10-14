@@ -5,6 +5,7 @@ No toca bitacora.db. Termina con "TODO OK" o lista lo que falló.
 """
 import io
 import os
+from datetime import date, timedelta
 import re
 import sqlite3
 import sys
@@ -105,7 +106,7 @@ esperar("sin plan", c.post("/vehiculo/2/editar", data={"uso": "poco"}), 302)
 # Documentación y vencimientos
 esperar("form documentos", c.get("/vehiculo/3/documentos"), 200)
 esperar("guardar documentos", c.post("/vehiculo/3/documentos", data={
-    "vence_vtv": "2020-01-01", "cada_vtv": "12", "vence_seguro_pago": "2099-05-10", "cada_seguro_pago": "1",
+    "vence_vtv": (date.today() - timedelta(days=40)).isoformat(), "cada_vtv": "1", "vence_seguro_pago": (date.today() + timedelta(days=200)).isoformat(), "cada_seguro_pago": "1",
     "detalle_seguro": "La Segunda", "vence_registro": "fecha mala"}), 302)
 html = c.get("/vehiculo/3").get_data(as_text=True)
 if "Venció hace" not in html or "La Segunda" not in html:
@@ -277,6 +278,20 @@ esperar("km que baja", c.post("/vehiculo/3/km", data={"km": "1.000"}), 302)
 with sqlite3.connect(DB) as db:
     if db.execute("SELECT km_manual FROM vehiculos WHERE id = 3").fetchone()[0] != 987654:
         fallas.append("el odómetro bajó o no se guardó")
+# Fechas: nada de año 0001, ni próximos controles en el pasado, ni trabajos en el futuro
+with sqlite3.connect(DB) as db:
+    antes = db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id = 3").fetchone()[0]
+for campos, esperado in (({"prox_fecha": "0001-01-01"}, None), ({"prox_fecha": "2020-05-01"}, None),
+                         ({"prox_fecha": (date.today() + timedelta(days=30)).isoformat()}, "futuro"),
+                         ({"fecha": "0001-01-01"}, "hoy"), ({"fecha": "2099-01-01"}, "hoy")):
+    c.post("/vehiculo/3/registro/nuevo", data={"titulo": "prueba fechas", **campos})
+with sqlite3.connect(DB) as db:
+    filas = db.execute("SELECT fecha, prox_fecha FROM registros WHERE vehiculo_id = 3 AND titulo = 'prueba fechas' ORDER BY id").fetchall()
+hoy = date.today().isoformat()
+if [f[1] for f in filas][:2] != [None, None] or filas[2][1] is None or filas[3][0] != hoy or filas[4][0] != hoy:
+    fallas.append(f"los límites de fecha no se aplican: {filas}")
+with sqlite3.connect(DB) as db:
+    db.execute("DELETE FROM registros WHERE titulo = 'prueba fechas'")
 html = esperar("estadísticas", c.get("/vehiculo/3/estadisticas"), 200).get_data(as_text=True)
 if "Gasto por mes" not in html or "Costo por km" not in html:
     fallas.append("faltan datos en estadísticas")

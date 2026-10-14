@@ -330,7 +330,7 @@ def requiere_login(view):
 
 @app.context_processor
 def inject_globals():
-    return {"csrf_token": csrf_token, "csp_nonce": g.get("csp_nonce", ""),
+    return {"csrf_token": csrf_token, "lim": limites_fecha(), "csp_nonce": g.get("csp_nonce", ""),
             "can_edit": g.get("usuario") is not None, "usuario": g.get("usuario"),
             "CATEGORIAS": CATEGORIAS,
             "CARROCERIAS": CARROCERIAS, "COLORES": COLORES, "TRANSMISIONES": TRANSMISIONES,
@@ -592,12 +592,25 @@ def datos_vehiculo_form():
     }
 
 
-def to_fecha(value):
-    """Fecha ISO válida (AAAA-MM-DD) o None."""
+def to_fecha(value, minimo=None, maximo=None):
+    """Fecha ISO válida (AAAA-MM-DD) dentro del rango permitido, o None.
+    Por defecto: desde 1980 hasta dentro de 30 años (un año 0001 no tiene sentido)."""
     try:
-        return date.fromisoformat((value or "").strip()).isoformat()
+        d = date.fromisoformat((value or "").strip())
     except ValueError:
         return None
+    minimo = minimo or date(1980, 1, 1)
+    maximo = maximo or date.today() + timedelta(days=365 * 30)
+    return d.isoformat() if minimo <= d <= maximo else None
+
+
+def limites_fecha():
+    """Rangos de fecha para los formularios (también se usan como min/max de los campos)."""
+    hoy = date.today()
+    return {"hoy": hoy.isoformat(), "inicio_anio": date(hoy.year, 1, 1).isoformat(),
+            "hace_un_anio": (hoy - timedelta(days=365)).isoformat(),
+            "en_30_anios": (hoy + timedelta(days=365 * 30)).isoformat(),
+            "desde": "1980-01-01"}
 
 
 def texto(campo, largo):
@@ -608,7 +621,8 @@ def datos_registro_form():
     f = request.form
     hecho_por = f.get("hecho_por") if f.get("hecho_por") in HECHO_POR else None
     return {
-        "fecha": to_fecha(f.get("fecha")) or date.today().isoformat(),
+        # el trabajo ya se hizo: no puede ser de una fecha futura
+        "fecha": to_fecha(f.get("fecha"), maximo=date.today()) or date.today().isoformat(),
         "km": to_int(f.get("km")),
         "categoria": f.get("categoria") if f.get("categoria") in CATEGORIAS else "otro",
         "titulo": texto("titulo", 120),
@@ -618,7 +632,8 @@ def datos_registro_form():
         # Nombre del taller o de quien lo hizo; "hecho por mí" no lleva nombre.
         "taller": texto("taller", 120) if hecho_por in ("taller", "otro") else "",
         "prox_km": to_int(f.get("prox_km")),
-        "prox_fecha": to_fecha(f.get("prox_fecha")),
+        # el próximo control no puede ser de un año anterior al actual
+        "prox_fecha": to_fecha(f.get("prox_fecha"), minimo=date(date.today().year, 1, 1)),
     }
 
 

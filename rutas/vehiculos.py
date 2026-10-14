@@ -188,7 +188,8 @@ def documentos(vid):
     db = get_db()
     if request.method == "POST":
         for tipo in DOCUMENTOS:
-            vence = to_fecha(request.form.get(f"vence_{tipo}"))
+            # un vencimiento puede estar ya vencido, pero no de hace años
+            vence = to_fecha(request.form.get(f"vence_{tipo}"), minimo=date.today() - timedelta(days=365))
             detalle = texto(f"detalle_{tipo}", 120)
             cada = to_int(request.form.get(f"cada_{tipo}"))
             cada = cada if cada in REPETICIONES else None
