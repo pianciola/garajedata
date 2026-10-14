@@ -39,7 +39,7 @@
     <div class="car-card-head">
       <div>
         <h2 class="name-logo">{% if logo_marca(v.marca) %}<img class="brand-logo{{ " logo-oscuro" if logo_oscuro(v.marca) }}" src="{{ logo_marca(v.marca) }}" alt="{{ v.marca }}" loading="lazy">{% endif %}{{ nombre_auto(v) }}</h2>
-        <p class="muted">{{ [v.marca, v.modelo, v.version, v.anio, CARROCERIAS.get(v.carroceria), TRANSMISIONES.get(v.transmision)]|select|join(' · ') or 'Sin datos de modelo' }}</p>
+        {% set det = detalle_auto(v) %}{% if det %}<p class="muted">{{ det }}</p>{% endif %}
       </div>
       {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
     </div>

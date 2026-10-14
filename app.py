@@ -236,7 +236,7 @@ def inject_globals():
             "DOCUMENTOS": DOCUMENTOS, "REPETICIONES": REPETICIONES, "BOVEDA": archivos.BOVEDA,
             "COLOR_DEFAULT": COLOR_DEFAULT,
             "catalogo_js": catalogo_js, "logo_marca": logo_marca,
-            "logo_oscuro": logo_oscuro, "nombre_auto": nombre_auto, "ficha_tecnica": ficha_tecnica,
+            "logo_oscuro": logo_oscuro, "nombre_auto": nombre_auto, "detalle_auto": detalle_auto, "ficha_tecnica": ficha_tecnica,
             "patente_info": patente_info,
             "creditos_modelos": creditos_modelos}
 
@@ -285,6 +285,18 @@ def nombre_auto(v):
     """Nombre a mostrar: el apodo, o marca + modelo si no tiene."""
     return (v["nombre"] or " ".join(x for x in (v["marca"], v["modelo"], v["version"]) if x)
             or "Mi vehículo")
+
+
+def detalle_auto(v):
+    """Línea corta bajo el nombre: solo lo que el título no dice ya (año, carrocería, caja)."""
+    titulo = nombre_auto(v).lower()
+    partes = [x for x in (v["marca"], v["modelo"], v["version"]) if x and x.lower() not in titulo]
+    partes.append(str(v["anio"]) if v["anio"] else None)
+    carroceria = CARROCERIAS.get(v["carroceria"])
+    if carroceria and carroceria.lower() not in titulo:
+        partes.append(carroceria)
+    partes.append(TRANSMISIONES.get(v["transmision"]))
+    return " · ".join(p for p in partes if p)
 
 
 def to_int(value):

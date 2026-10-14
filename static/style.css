@@ -974,3 +974,26 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .orden-ctl .btn { flex: 1; justify-content: center; }
 .orden-ctl .btn:disabled { opacity: .35; cursor: default; }
 .ordenando .car-card { pointer-events: none; outline: 2px dashed var(--border, #3a3f48); }
+
+/* ---------- acciones de la ficha: principal arriba, el resto siempre en el mismo lugar ---------- */
+.acciones-auto { display: grid; gap: 10px; margin-top: 20px; max-width: 460px; }
+.accion-principal { width: 100%; padding: 13px 22px; font-size: 1.12rem; }
+.acciones-grilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; }
+.accion {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 12px 6px 10px; min-height: 74px;
+  background: var(--surface-3); color: var(--text); border: 1px solid var(--border); border-radius: 10px;
+  font-family: var(--display); font-weight: 700; font-size: .92rem; letter-spacing: .06em; text-transform: uppercase;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.accion:hover { background: #2c3139; border-color: #3a3f48; text-decoration: none; }
+.accion:active { transform: translateY(1px); }
+.accion:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.accion svg { color: var(--muted); transition: color .15s; }
+.accion:hover svg { color: var(--text); }
+.accion-activa svg { color: var(--ok); }
+.accion-activa::after {
+  content: ""; position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ok); box-shadow: 0 0 0 3px rgba(0, 0, 0, .25);
+}
+@media (max-width: 760px) { .acciones-auto { max-width: none; } }
