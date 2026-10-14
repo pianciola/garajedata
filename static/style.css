@@ -1074,3 +1074,13 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 }
 .form-card > .btn, .form-card > form:not(.form), .form-card > .codigo-box, .form-card > .share-actions { margin-top: 10px; }
 @media (max-width: 720px) { .barra:nth-child(even) .barra-mes { visibility: hidden; } }
+
+/* ---------- legales ---------- */
+.legal-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 18px; }
+.legal-tabs a { padding: 7px 14px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: .88rem; }
+.legal-tabs a:hover { text-decoration: none; color: var(--text); border-color: var(--border-strong); }
+.legal-tabs a.activo { background: var(--accent); border-color: var(--accent); color: #fff; }
+.legal p { margin: 8px 0; line-height: 1.6; color: var(--text); }
+.legal h3 { margin-top: 24px; }
+.acepto { align-items: flex-start; margin: 4px 0 12px; }
+.acepto a { text-decoration: underline; }

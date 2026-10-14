@@ -49,9 +49,9 @@ esperar("vehículo sin cuenta", c.get("/vehiculo/1"), 302)
 esperar("alta sin cuenta", c.post("/vehiculo/nuevo", data={}), 302)
 
 # Registro: errores y alta. La primera cuenta se queda con el vehículo viejo.
-esperar("usuario corto", c.post("/registro", data={"usuario": "ab", "clave": "123456", "clave2": "123456"}), 200)
-esperar("claves distintas", c.post("/registro", data={"usuario": "juan", "clave": "123456", "clave2": "x"}), 200)
-esperar("registro ok", c.post("/registro", data={"usuario": "juan", "clave": "123456", "clave2": "123456"}), 302)
+esperar("usuario corto", c.post("/registro", data={"acepto": "1", "usuario": "ab", "clave": "123456", "clave2": "123456"}), 200)
+esperar("claves distintas", c.post("/registro", data={"acepto": "1", "usuario": "juan", "clave": "123456", "clave2": "x"}), 200)
+esperar("registro ok", c.post("/registro", data={"acepto": "1", "usuario": "juan", "clave": "123456", "clave2": "123456"}), 302)
 esperar("vehículo heredado", c.get("/vehiculo/1"), 200)
 
 # Vehículo vacío y vehículo completo
@@ -214,8 +214,8 @@ if 'id="cartel"' not in c.get("/").get_data(as_text=True) or 'id="cartel"' not i
 
 # Otra cuenta no ve ni toca nada de la primera
 esperar("salir", c.get("/logout"), 302)
-esperar("usuario repetido", c.post("/registro", data={"usuario": "JUAN", "clave": "123456", "clave2": "123456"}), 200)
-esperar("registro ana", c.post("/registro", data={"usuario": "ana", "clave": "abcdef", "clave2": "abcdef"}), 302)
+esperar("usuario repetido", c.post("/registro", data={"acepto": "1", "usuario": "JUAN", "clave": "123456", "clave2": "123456"}), 200)
+esperar("registro ana", c.post("/registro", data={"acepto": "1", "usuario": "ana", "clave": "abcdef", "clave2": "abcdef"}), 302)
 if "Focus" in c.get("/").get_data(as_text=True):
     fallas.append("ana ve los vehículos de juan")
 for p in ("/vehiculo/1", "/vehiculo/3", "/vehiculo/3/editar", "/vehiculo/3/exportar",
@@ -272,7 +272,15 @@ esperar("eliminar vehículo", c.post("/vehiculo/2/eliminar"), 302)
 html = esperar("estadísticas", c.get("/vehiculo/3/estadisticas"), 200).get_data(as_text=True)
 if "Gasto por mes" not in html or "Costo por km" not in html:
     fallas.append("faltan datos en estadísticas")
-esperar("privacidad", c.get("/privacidad"), 200)
+html = esperar("privacidad", c.get("/privacidad"), 200).get_data(as_text=True)
+if "Política de Privacidad" not in html or "<b>" not in html or "jsDelivr" not in html:
+    fallas.append("la política de privacidad no se muestra completa")
+if "Términos y Condiciones de Uso" not in esperar("términos", c.get("/terminos"), 200).get_data(as_text=True):
+    fallas.append("faltan los términos")
+esperar("alta sin aceptar", app.test_client().post("/registro", data={"usuario": "sinacepto", "clave": "123456", "clave2": "123456"}), 200)
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT COUNT(*) FROM usuarios WHERE usuario = 'sinacepto'").fetchone()[0]:
+        fallas.append("se creó una cuenta sin aceptar los términos")
 esperar("manifest", c.get("/static/manifest.webmanifest"), 200)
 
 # Descargar todos mis datos
@@ -305,7 +313,7 @@ cod_transfer = re.search(r'id="codigo-transfer">([A-Z0-9-]+)<', html).group(1)
 # Código de recuperación: se ve una sola vez, sirve una vez y cambia la contraseña
 
 c.get("/logout")
-c.post("/registro", data={"usuario": "pepe", "clave": "123456", "clave2": "123456"})
+c.post("/registro", data={"acepto": "1", "usuario": "pepe", "clave": "123456", "clave2": "123456"})
 html = esperar("ver código", c.get("/cuenta/codigo"), 200).get_data(as_text=True)
 codigo = re.search(r'id="codigo">([A-Z0-9-]+)<', html).group(1)
 esperar("código ya mostrado", c.get("/cuenta/codigo"), 302)
@@ -351,9 +359,9 @@ esperar("bloqueo", c.post("/login", data={"usuario": "ana", "clave": "abcdef"}),
 # CSRF: sin el token el formulario se rechaza; con el token de la página, pasa.
 app.config["CSRF_APAGADO"] = False
 c3 = app.test_client()
-esperar("registro sin token", c3.post("/registro", data={"usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 400)
+esperar("registro sin token", c3.post("/registro", data={"acepto": "1", "usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 400)
 tok = re.search(r'name="csrf" value="([^"]+)"', c3.get("/registro").get_data(as_text=True)).group(1)
-esperar("registro con token", c3.post("/registro", data={"csrf": tok, "usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 302)
+esperar("registro con token", c3.post("/registro", data={"acepto": "1", "csrf": tok, "usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 302)
 tok = re.search(r'<meta name="csrf" content="([^"]+)"', c3.get("/").get_data(as_text=True)).group(1)
 esperar("orden con encabezado", c3.post("/vehiculos/orden", data={"ids": ""}, headers={"X-CSRF-Token": tok}), 204)
 app.config["CSRF_APAGADO"] = True
@@ -362,9 +370,9 @@ app.config["CSRF_APAGADO"] = True
 nucleo.ALTAS_IP.clear()
 nucleo.MAX_ALTAS_IP = 1
 c4 = app.test_client()
-esperar("alta 1 de la IP", c4.post("/registro", data={"usuario": "ip_uno", "clave": "123456", "clave2": "123456"}), 302)
+esperar("alta 1 de la IP", c4.post("/registro", data={"acepto": "1", "usuario": "ip_uno", "clave": "123456", "clave2": "123456"}), 302)
 c4.get("/logout")
-esperar("alta 2 de la IP bloqueada", c4.post("/registro", data={"usuario": "ip_dos", "clave": "123456", "clave2": "123456"}), 429)
+esperar("alta 2 de la IP bloqueada", c4.post("/registro", data={"acepto": "1", "usuario": "ip_dos", "clave": "123456", "clave2": "123456"}), 429)
 nucleo.MAX_ALTAS_IP = 100
 
 print("\n".join(fallas) if fallas else "TODO OK")

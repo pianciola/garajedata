@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ doc.titulo }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}"><svg class="back-flecha" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Inicio</span></a>
+<article class="card form-card narrow wide-ish legal">
+  <div class="eyebrow">Legales</div>
+  <h1>{{ doc.titulo }}</h1>
+  <p class="muted small">Última actualización: {{ actualizacion }}</p>
+  <nav class="legal-tabs no-print" aria-label="Documentos legales">
+    <a href="{{ url_for('terminos') }}" {% if clave == 'terminos' %}class="activo" aria-current="page"{% endif %}>Términos y condiciones</a>
+    <a href="{{ url_for('privacidad') }}" {% if clave == 'privacidad' %}class="activo" aria-current="page"{% endif %}>Política de privacidad</a>
+  </nav>
+  <p>{{ doc.intro|negritas }}</p>
+  {% for titulo, parrafos in doc.secciones %}
+  <h3>{{ titulo }}</h3>
+  {% for p in parrafos %}<p>{{ p|negritas }}</p>{% endfor %}
+  {% endfor %}
+</article>
+{% endblock %}

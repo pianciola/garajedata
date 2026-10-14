@@ -14,7 +14,9 @@ def registrarse():
         if error:
             flash(error, "error")
             return render_template("registro.html", nombre=nombre), 429
-        if not re.fullmatch(r"[A-Za-z0-9._-]{3,30}", nombre):
+        if not request.form.get("acepto"):
+            error = "Para crear la cuenta tenés que aceptar los Términos y la Política de privacidad."
+        elif not re.fullmatch(r"[A-Za-z0-9._-]{3,30}", nombre):
             error = "El usuario debe tener de 3 a 30 caracteres: letras, números, punto, guion o guion bajo."
         else:
             error = validar_clave(clave, request.form.get("clave2", ""))

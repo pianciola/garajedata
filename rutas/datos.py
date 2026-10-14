@@ -1,4 +1,4 @@
-"""Tus datos: descargarlos todos, el calendario de avisos y la página de privacidad."""
+"""Tus datos: descargarlos todos, el calendario de avisos."""
 import zipfile
 from tempfile import SpooledTemporaryFile
 
@@ -131,8 +131,3 @@ def calendario_link():
     flash("Link del calendario creado. Agregalo a tu app de calendario." if nuevo
           else "Link del calendario desactivado.", "ok")
     return redirect(url_for("cuenta") + "#calendario")
-
-
-@app.route("/privacidad")
-def privacidad():
-    return render_template("privacidad.html")
