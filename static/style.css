@@ -956,14 +956,15 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 @media print { .foto-editar, .dialogo { display: none !important; } }
 
 /* ---------- tarjeta del auto: próximo control ---------- */
-.mini-stats .prox { min-width: 0; border-left: 3px solid transparent; }
-.mini-stats .prox dd { display: grid; line-height: 1.15; }
-.prox-titulo { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mini-stats .prox small { font-family: "Inter", sans-serif; font-size: .78rem; font-weight: 600; letter-spacing: 0; }
-.prox-ok { border-left-color: var(--ok); } .prox-ok small { color: var(--ok); }
-.prox-pronto { border-left-color: var(--warn); } .prox-pronto small { color: var(--warn); }
-.prox-vencido { border-left-color: var(--danger); } .prox-vencido small { color: var(--danger); }
-.prox-vacio { color: var(--muted); }
+.mini-stats .prox { grid-column: 1 / -1; min-width: 0; }
+.mini-stats .prox dd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+.prox-titulo { font-size: 1.05rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-stats .prox small { flex: none; font-family: "Inter", sans-serif; font-size: .8rem; font-weight: 600; letter-spacing: 0; }
+.mini-stats .prox small::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: currentColor; vertical-align: 1px; }
+.prox-ok small { color: var(--ok); }
+.prox-pronto small { color: var(--warn); }
+.prox-vencido small { color: var(--danger); }
+.mini-stats .prox-vacio { color: var(--muted); font-family: "Inter", sans-serif; font-size: .88rem; font-weight: 500; }
 
 /* ---------- ordenar vehículos ---------- */
 .orden-barra { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; flex-wrap: wrap; }
@@ -997,3 +998,13 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
   background: var(--ok); box-shadow: 0 0 0 3px rgba(0, 0, 0, .25);
 }
 @media (max-width: 760px) { .acciones-auto { max-width: none; } }
+.vault-vacio { margin: 12px 0 0; }
+.vault { margin-top: 12px; }
+.vault li[hidden] { display: none; }
+/* Tarjeta: tres datos en fila y el próximo control a lo ancho debajo. */
+.mini-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mini-stats > div { min-width: 0; padding: 8px 10px; }
+.mini-stats dt { font-size: .62rem; letter-spacing: .1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-stats dd { font-size: 1.08rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.1fr); }
+.mini-stats dd { font-size: 1.02rem; }

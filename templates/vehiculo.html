@@ -74,6 +74,18 @@
   <div class="stat"><span>Gastado en total</span><strong>{{ stats.total|plata }}</strong></div>
 </div>
 
+{% set ficha = ficha_tecnica(v) %}
+<details class="card ficha" {% if ficha %}open{% endif %}>
+  <summary><h2>Ficha técnica</h2><a class="btn btn-ghost btn-sm" href="{{ url_for('vehiculo_editar', vid=v.id) }}">{{ 'Editar' if ficha else 'Completar' }}</a></summary>
+  {% if ficha %}
+  <dl class="ficha-grid">
+    {% for etiqueta, valor in ficha %}<div{% if valor|length > 16 %} class="ancho"{% endif %}><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}
+  </dl>
+  {% else %}
+  <p class="muted small">Motor, VIN, aceite recomendado, bujías, neumáticos y presiones: todo en un lugar.</p>
+  {% endif %}
+</details>
+
 {% if recordatorios or plan %}
 <section class="card reminders">
   <h2>Próximos controles</h2>
@@ -167,26 +179,11 @@
       <h2>Bóveda digital</h2>
       <span class="muted small" title="Espacio usado por tu cuenta">{{ '%.1f'|format(espacio / 1048576) }} / 100 MB</span>
     </div>
-    {% if boveda %}
-    <ul class="vault">
-      {% for a in boveda %}
-      <li>
-        <a class="vault-file" href="{{ url_for('archivo', aid=a.id) }}" target="_blank" rel="noopener">
-          {% if a.mime.startswith('image/') %}<img src="{{ url_for('archivo', aid=a.id) }}" alt="" loading="lazy">{% else %}<span class="pdf-icon">PDF</span>{% endif %}
-          <span><strong>{{ BOVEDA.get(a.categoria, 'Documento') }}</strong><small class="muted">{{ a.nombre }}</small></span>
-        </a>
-        <form method="post" action="{{ url_for('archivo_eliminar', aid=a.id) }}" onsubmit="return confirm('¿Eliminar este archivo?');">
-          <button class="link-danger" type="submit" aria-label="Eliminar {{ a.nombre }}">✕</button>
-        </form>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="muted small">Guardá fotos o PDF de la cédula, el seguro y la VTV para tenerlos a mano, incluso sin conexión.</p>
-    {% endif %}
+    {% set por_cat = {} %}{% for a in boveda %}{% set _ = por_cat.update({a.categoria: (por_cat.get(a.categoria) or 0) + 1}) %}{% endfor %}
+    {% set elegida = boveda_cat if boveda_cat in BOVEDA else ((boveda|first).categoria if boveda and (boveda|first).categoria in BOVEDA else 'cedula') %}
     <form class="vault-upload" method="post" action="{{ url_for('boveda_subir', vid=v.id) }}" enctype="multipart/form-data">
-      <select name="categoria" aria-label="Tipo de documento">
-        {% for key, label in BOVEDA.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+      <select name="categoria" id="boveda-cat" aria-label="Tipo de documento">
+        {% for key, label in BOVEDA.items() %}<option value="{{ key }}" {% if key == elegida %}selected{% endif %}>{{ label }}{% if por_cat.get(key) %} ({{ por_cat[key] }}){% endif %}</option>{% endfor %}
       </select>
       <label class="file-drop file-drop-sm">
         <input type="file" name="archivos" multiple required accept="image/jpeg,image/png,image/webp,application/pdf">
@@ -194,20 +191,35 @@
       </label>
       <button class="btn btn-primary btn-sm" type="submit">Subir</button>
     </form>
+    <ul class="vault" id="boveda-lista">
+      {% for a in boveda %}
+      <li data-cat="{{ a.categoria }}" {% if a.categoria != elegida %}hidden{% endif %}>
+        <a class="vault-file" href="{{ url_for('archivo', aid=a.id) }}" target="_blank" rel="noopener">
+          {% if a.mime.startswith('image/') %}<img src="{{ url_for('archivo', aid=a.id) }}" alt="" loading="lazy">{% else %}<span class="pdf-icon">PDF</span>{% endif %}
+          <span><strong>{{ a.nombre }}</strong><small class="muted">{{ ("Subido el " ~ (a.creado[:10]|fecha)) if a.creado else "" }}</small></span>
+        </a>
+        <form method="post" action="{{ url_for('archivo_eliminar', aid=a.id) }}" onsubmit="return confirm('¿Eliminar este archivo?');">
+          <button class="link-danger" type="submit" aria-label="Eliminar {{ a.nombre }}">✕</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="muted small vault-vacio" id="boveda-vacio" {% if por_cat.get(elegida) %}hidden{% endif %}>Todavía no guardaste nada en <b id="boveda-vacio-cat">{{ BOVEDA[elegida] }}</b>. Subí una foto o un PDF para tenerlo a mano, incluso sin conexión.</p>
+    <script>
+      (() => {
+        const sel = document.getElementById("boveda-cat"), lista = document.getElementById("boveda-lista");
+        const vacio = document.getElementById("boveda-vacio"), nombre = document.getElementById("boveda-vacio-cat");
+        sel.addEventListener("change", () => {
+          let n = 0;
+          lista.querySelectorAll("li").forEach((li) => { li.hidden = li.dataset.cat !== sel.value; if (!li.hidden) n++; });
+          vacio.hidden = n > 0;
+          nombre.textContent = sel.options[sel.selectedIndex].text.replace(/ \(\d+\)$/, "");
+        });
+      })();
+    </script>
   </section>
 </div>
 
-{% set ficha = ficha_tecnica(v) %}
-<details class="card ficha" {% if ficha %}open{% endif %}>
-  <summary><h2>Ficha técnica</h2><a class="btn btn-ghost btn-sm" href="{{ url_for('vehiculo_editar', vid=v.id) }}">{{ 'Editar' if ficha else 'Completar' }}</a></summary>
-  {% if ficha %}
-  <dl class="ficha-grid">
-    {% for etiqueta, valor in ficha %}<div{% if valor|length > 16 %} class="ancho"{% endif %}><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}
-  </dl>
-  {% else %}
-  <p class="muted small">Motor, VIN, aceite recomendado, bujías, neumáticos y presiones: todo en un lugar.</p>
-  {% endif %}
-</details>
 
 <section class="toolbar">
   <div class="chips">

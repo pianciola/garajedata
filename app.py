@@ -951,7 +951,8 @@ def vehiculo(vid):
         "vehiculo.html", v=v, registros=registros, stats=stats, km_real=km_actual(v),
         km_hoy=a["km_hoy"], recordatorios=a["recordatorios"], plan=a["plan"],
         documentos=a["documentos"], boveda=boveda, adjuntos=adjuntos_por_registro(vid),
-        cat=cat, q=q, anio=anio, espacio=espacio_usado(), cartel=lista_avisos(v, a))
+        cat=cat, q=q, anio=anio, espacio=espacio_usado(), cartel=lista_avisos(v, a),
+        boveda_cat=request.args.get("boveda"))
 
 
 @app.route("/vehiculo/<int:vid>/editar", methods=["GET", "POST"])
@@ -1138,12 +1139,13 @@ def get_archivo(aid):
 def boveda_subir(vid):
     get_vehiculo(vid)
     categoria = request.form.get("categoria")
-    n = subir_archivos(vid, categoria=categoria if categoria in archivos.BOVEDA else "otro")
+    categoria = categoria if categoria in archivos.BOVEDA else "otro"
+    n = subir_archivos(vid, categoria=categoria)
     if n:
         flash("Documento guardado en la bóveda." if n == 1 else f"{n} documentos guardados en la bóveda.", "ok")
     elif not request.files.getlist("archivos"):
         flash("Elegí un archivo para subir.", "error")
-    return redirect(url_for("vehiculo", vid=vid) + "#boveda")
+    return redirect(url_for("vehiculo", vid=vid, boveda=categoria) + "#boveda")
 
 
 @app.route("/archivo/<int:aid>")
@@ -1161,7 +1163,7 @@ def archivo_eliminar(aid):
     archivos.borrar([a["archivo"]])
     flash("Archivo eliminado.", "ok")
     destino = url_for("registro_editar", rid=a["registro_id"]) if a["registro_id"] else \
-        url_for("vehiculo", vid=a["vehiculo_id"]) + "#boveda"
+        url_for("vehiculo", vid=a["vehiculo_id"], boveda=a["categoria"]) + "#boveda"
     return redirect(destino)
 
 
