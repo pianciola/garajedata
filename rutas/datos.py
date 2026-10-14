@@ -65,8 +65,8 @@ def exportar_todo():
 # ---------------------------------------------------------------- calendario (.ics)
 
 def ics_texto(t):
-    return (str(t).replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
-            .replace("\n", "\\n"))
+    t = str(t).replace("\r\n", "\n").replace("\r", "\n")
+    return (t.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n"))
 
 
 def eventos_de(uid):

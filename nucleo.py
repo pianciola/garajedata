@@ -5,6 +5,7 @@ Las páginas están en rutas/ (una por tema) y se registran desde app.py.
 import csv
 import io
 import json
+import math
 import os
 import re
 import secrets
@@ -27,9 +28,34 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("DB_PATH", os.path.join(BASE_DIR, "bitacora.db"))
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "cambiame-por-una-clave-secreta")
+
+
+def clave_secreta():
+    """SECRET_KEY del entorno o, si no hay, una clave al azar que se guarda en .secret_key (nunca una fija)."""
+    if os.environ.get("SECRET_KEY"):
+        return os.environ["SECRET_KEY"]
+    ruta = os.path.join(BASE_DIR, ".secret_key")
+    try:
+        with open(ruta, encoding="utf-8") as f:
+            guardada = f.read().strip()
+        if guardada:
+            return guardada
+    except OSError:
+        pass
+    nueva = secrets.token_hex(32)
+    try:
+        with open(ruta, "w", encoding="utf-8") as f:
+            f.write(nueva)
+    except OSError:
+        pass  # carpeta de solo lectura: clave temporal (las sesiones no sobreviven a un reinicio)
+    return nueva
+
+
+app.secret_key = clave_secreta()
+# En el sitio publicado (HTTPS) la cookie viaja solo cifrada y el navegador obliga a usar HTTPS.
+HTTPS = os.environ.get("GARAJEDATA_HTTPS") == "1"
 # Lax: el navegador no manda la sesión en formularios enviados desde otros sitios.
-app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
+app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", SESSION_COOKIE_SECURE=HTTPS,
                   PERMANENT_SESSION_LIFETIME=timedelta(days=60),
                   MAX_CONTENT_LENGTH=45 * 1024 * 1024)
 
@@ -209,6 +235,41 @@ def version_estaticos(endpoint, values):
         except OSError:
             pass
 
+@app.before_request
+def nonce_csp():
+    g.csp_nonce = secrets.token_urlsafe(16)
+
+
+def politica_csp(nonce):
+    return "; ".join([
+        "default-src 'self'",
+        f"script-src 'self' 'nonce-{nonce}' 'wasm-unsafe-eval'",  # wasm: decodificador Draco del visor 3D
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: https://cdn.jsdelivr.net",  # logos de marcas
+        "font-src 'self'", "connect-src 'self' blob: data:", "worker-src 'self' blob:", "manifest-src 'self'",
+        "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'"])
+
+
+@app.after_request
+def encabezados_de_seguridad(resp):
+    h = resp.headers
+    h.setdefault("X-Content-Type-Options", "nosniff")
+    h.setdefault("Referrer-Policy", "same-origin")
+    h.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()")
+    h.setdefault("X-Frame-Options", "DENY")
+    h.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    if HTTPS:
+        h.setdefault("Strict-Transport-Security", "max-age=31536000")
+    # Los archivos subidos se sirven con su tipo real y nosniff; la CSP de página rompería el visor de PDF.
+    if request.endpoint not in ("archivo", "archivo_compartido", "static"):
+        h.setdefault("Content-Security-Policy", politica_csp(g.get("csp_nonce", "")))
+    # Páginas con datos de la cuenta: que el navegador no las guarde (el botón Atrás tras salir no las muestra).
+    if g.get("usuario") is not None and request.endpoint not in ("static", "archivo", "service_worker") \
+            and "Cache-Control" not in h:
+        h["Cache-Control"] = "no-store"
+    return resp
+
+
 RESPALDO_HECHO = {"dia": None}
 
 
@@ -268,7 +329,7 @@ def requiere_login(view):
 
 @app.context_processor
 def inject_globals():
-    return {"csrf_token": csrf_token,
+    return {"csrf_token": csrf_token, "csp_nonce": g.get("csp_nonce", ""),
             "can_edit": g.get("usuario") is not None, "usuario": g.get("usuario"),
             "CATEGORIAS": CATEGORIAS,
             "CARROCERIAS": CARROCERIAS, "COLORES": COLORES, "TRANSMISIONES": TRANSMISIONES,
@@ -341,7 +402,10 @@ def detalle_auto(v):
 
 def to_int(value):
     value = (value or "").strip().replace(".", "").replace(",", "")
-    return int(value) if value.isdigit() else None
+    # isdigit() acepta cosas como «²» o «١٢٣» que int() no entiende; y un número enorme no entra en SQLite.
+    if not (value.isascii() and value.isdigit()) or len(value) > 12:
+        return None
+    return int(value)
 
 
 def to_float(value):
@@ -351,9 +415,11 @@ def to_float(value):
     # Formato argentino: el punto separa miles y la coma los decimales (1.234,56).
     value = value.replace(".", "").replace(",", ".")
     try:
-        return float(value)
+        n = float(value)
     except ValueError:
         return None
+    # nan, inf o cifras absurdas romperían los totales y los gráficos
+    return n if math.isfinite(n) and abs(n) < 1e12 else None
 
 
 @app.template_filter("num")
@@ -561,12 +627,38 @@ def datos_registro_form():
 # prueba contraseñas al azar (5 intentos cada 10 minutos).
 INTENTOS = {}
 MAX_INTENTOS, VENTANA = 5, 600
+# Límites del ingreso: por usuario desde la misma conexión (5), por usuario desde cualquier lado (25, frena
+# la prueba de contraseñas repartida entre muchas IP) y por conexión (40, frena el barrido de usuarios).
+# Así un tercero no puede dejar fuera a un usuario real con solo equivocarse 5 veces desde otra conexión.
+LIMITES_INGRESO = ((5, "{n}|{ip}"), (25, "{n}|*"), (40, "*|{ip}"))
 
 
-def bloqueado(nombre):
+def bloqueado(nombre, maximo=MAX_INTENTOS):
     ahora = time.time()
+    if len(INTENTOS) > 20_000:  # nadie puede llenar la memoria con claves inventadas
+        for k in [k for k, v in INTENTOS.items() if not v or ahora - v[-1] >= VENTANA]:
+            del INTENTOS[k]
     INTENTOS[nombre] = [t for t in INTENTOS.get(nombre, []) if ahora - t < VENTANA]
-    return len(INTENTOS[nombre]) >= MAX_INTENTOS
+    return len(INTENTOS[nombre]) >= maximo
+
+
+def ingreso_bloqueado(nombre):
+    n, ip = nombre.lower(), ip_cliente()
+    return any(bloqueado(plantilla.format(n=n, ip=ip), maximo) for maximo, plantilla in LIMITES_INGRESO)
+
+
+def ingreso_fallido(nombre):
+    n, ip = nombre.lower(), ip_cliente()
+    for _, plantilla in LIMITES_INGRESO:
+        INTENTOS.setdefault(plantilla.format(n=n, ip=ip), []).append(time.time())
+
+
+def ingreso_ok(nombre):
+    INTENTOS.pop(f"{nombre.lower()}|{ip_cliente()}", None)
+
+
+# Para que probar un usuario que no existe tarde lo mismo que probar uno real.
+CLAVE_FALSA = generate_password_hash("clave-que-nadie-usa")
 
 
 # Límite de cuentas nuevas: por IP (contra robots) y en total (el plan gratis tiene 512 MB).
@@ -577,8 +669,7 @@ MAX_USUARIOS = int(os.environ.get("MAX_USUARIOS", "300"))
 
 def ip_cliente():
     # En PythonAnywhere la app está detrás de un proxy que pasa la IP real en X-Real-IP.
-    return (request.headers.get("X-Real-IP") or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-            or request.remote_addr or "?")
+    return (request.headers.get("X-Real-IP") or request.remote_addr or "?")[:64]
 
 
 def motivo_sin_altas():
@@ -919,6 +1010,19 @@ def guardar_registro(v, rid=None):
 @app.errorhandler(404)
 def no_encontrado(e):
     return render_template("404.html"), 404
+
+
+@app.errorhandler(OverflowError)
+def numero_enorme(e):
+    # /vehiculo/99999999999999999999: no es un id posible, es lo mismo que uno que no existe
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(500)
+def error_interno(e):
+    return render_template("404.html", codigo="Ups", titulo="Algo salió mal",
+                           mensaje="Tuvimos un problema con esta página. Probá de nuevo en un momento; "
+                                   "si sigue pasando, avisá al contacto de la página de Privacidad."), 500
 
 
 @app.errorhandler(400)

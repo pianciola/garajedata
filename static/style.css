@@ -1084,3 +1084,5 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .legal h3 { margin-top: 24px; }
 .acepto { align-items: flex-start; margin: 4px 0 12px; }
 .acepto a { text-decoration: underline; }
+
+.salir-form { display: contents; }

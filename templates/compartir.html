@@ -33,7 +33,7 @@
     </div>
     <div class="share-actions">
       <form method="post"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="regenerar"><button class="btn btn-ghost btn-sm" type="submit">Link nuevo</button></form>
-      <form method="post" onsubmit="return confirm('¿Dejar de compartir? El link dejará de funcionar.');"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="desactivar"><button class="btn btn-danger btn-sm" type="submit">Dejar de compartir</button></form>
+      <form method="post" data-confirmar="¿Dejar de compartir? El link dejará de funcionar."><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="desactivar"><button class="btn btn-danger btn-sm" type="submit">Dejar de compartir</button></form>
     </div>
   </div>
   {% else %}
@@ -45,7 +45,7 @@
 </section>
 {% endblock %}
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
   // En el celular, el menú para compartir del sistema (WhatsApp, Telegram, mail…).
   const nativo = document.getElementById("compartir-nativo");
   if (nativo && navigator.share) {

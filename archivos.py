@@ -6,6 +6,7 @@ por su contenido (no por la extensión). Las fotos se achican para no llenar
 el disco: una foto de celular de 4 MB queda en ~300 KB.
 """
 import io
+import warnings
 import os
 import secrets
 
@@ -40,6 +41,13 @@ def tipo_de(datos):
     if datos[:4] == b"RIFF" and datos[8:12] == b"WEBP":
         return "image/webp", ".webp"
     return None
+
+
+# Una foto de celular rara vez pasa de 50 MP; más que eso es una «bomba» (un PNG chico que al abrirse
+# ocupa gigas). Pillow avisa al superar el límite y falla al doblarlo: acá fallan las dos cosas.
+if Image is not None:
+    Image.MAX_IMAGE_PIXELS = 50_000_000
+    warnings.simplefilter("error", Image.DecompressionBombWarning)
 
 
 def achicar(datos, mime):

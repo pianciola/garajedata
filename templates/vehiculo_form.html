@@ -195,7 +195,7 @@
     <a class="btn btn-ghost" href="{{ url_for('transferir', vid=v.id) }}">Transferir</a>
   </div>
   <form class="danger-zone" method="post" action="{{ url_for('vehiculo_eliminar', vid=v.id) }}"
-        onsubmit="return confirm('Se borrará el vehículo y TODOS sus registros. ¿Continuar?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        data-confirmar="Se borrará el vehículo y TODOS sus registros. ¿Continuar?"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <div>
       <strong>Eliminar vehículo</strong>
       <p class="muted">Borra el vehículo y toda su bitácora. No se puede deshacer.</p>

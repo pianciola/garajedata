@@ -44,6 +44,7 @@ if not clave:
     with open(os.path.join(proyecto, ".secret_key"), "w", encoding="utf-8") as f:
         f.write(clave)
 os.environ["SECRET_KEY"] = clave
+os.environ["GARAJEDATA_HTTPS"] = "1"  # cookie Secure y HSTS: el sitio publicado siempre va por HTTPS
 
 from app import app as application  # noqa: E402
 '''

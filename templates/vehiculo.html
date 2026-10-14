@@ -202,14 +202,14 @@
           {% if a.mime.startswith('image/') %}<img src="{{ url_for('archivo', aid=a.id) }}" alt="" loading="lazy">{% else %}<span class="pdf-icon">PDF</span>{% endif %}
           <span><strong>{{ a.nombre }}</strong><small class="muted">{{ ("Subido el " ~ (a.creado[:10]|fecha)) if a.creado else "" }}</small></span>
         </a>
-        <form method="post" action="{{ url_for('archivo_eliminar', aid=a.id) }}" onsubmit="return confirm('¿Eliminar este archivo?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <form method="post" action="{{ url_for('archivo_eliminar', aid=a.id) }}" data-confirmar="¿Eliminar este archivo?"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
           <button class="link-danger" type="submit" aria-label="Eliminar {{ a.nombre }}">✕</button>
         </form>
       </li>
       {% endfor %}
     </ul>
     <p class="muted small vault-vacio" id="boveda-vacio" {% if por_cat.get(elegida) %}hidden{% endif %}>Todavía no guardaste nada en <b id="boveda-vacio-cat">{{ BOVEDA[elegida] }}</b>. Subí una foto o un PDF para tenerlo a mano, incluso sin conexión.</p>
-    <script>
+    <script nonce="{{ csp_nonce }}">
       (() => {
         const sel = document.getElementById("boveda-cat"), lista = document.getElementById("boveda-lista");
         const vacio = document.getElementById("boveda-vacio"), nombre = document.getElementById("boveda-vacio-cat");
@@ -274,7 +274,7 @@
         {% if can_edit %}
         <div class="entry-actions">
           <a href="{{ url_for('registro_editar', rid=r.id) }}">Editar</a>
-          <form method="post" action="{{ url_for('registro_eliminar', rid=r.id) }}" onsubmit="return confirm('¿Eliminar este registro?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <form method="post" action="{{ url_for('registro_eliminar', rid=r.id) }}" data-confirmar="¿Eliminar este registro?"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
             <button type="submit" class="link-danger">Eliminar</button>
           </form>
         </div>
@@ -299,7 +299,7 @@
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='foto-editor.js') }}"></script>
-<script>
+<script nonce="{{ csp_nonce }}">
   const dialogo = document.getElementById("dialogo-foto");
   document.getElementById("abrir-foto").addEventListener("click", () => dialogo.showModal());
   document.getElementById("cerrar-foto").addEventListener("click", () => dialogo.close());

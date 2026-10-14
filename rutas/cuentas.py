@@ -51,17 +51,20 @@ def login():
         return redirect(url_for("index"))
     nombre = ""
     if request.method == "POST":
-        nombre = request.form.get("usuario", "").strip()
-        llave = nombre.lower()
-        if bloqueado(llave):
+        nombre = request.form.get("usuario", "").strip()[:60]
+        if ingreso_bloqueado(nombre):
             flash("Demasiados intentos. Esperá unos minutos y probá de nuevo.", "error")
             return render_template("login.html", nombre=nombre), 429
         u = get_db().execute("SELECT * FROM usuarios WHERE usuario = ?", (nombre,)).fetchone()
-        if u and check_password_hash(u["clave"], request.form.get("clave", "")):
-            INTENTOS.pop(llave, None)
+        clave = request.form.get("clave", "")
+        # Siempre se calcula un hash (aunque el usuario no exista o la clave sea absurda): ni el tiempo
+        # de respuesta delata qué usuarios existen, ni una clave de megas gasta CPU.
+        correcta = check_password_hash(u["clave"] if u else CLAVE_FALSA, clave[:200])
+        if u and correcta and len(clave) <= 200:
+            ingreso_ok(nombre)
             iniciar_sesion(u["id"])
             return redirect(destino_seguro())
-        INTENTOS[llave].append(time.time())
+        ingreso_fallido(nombre)
         flash("Usuario o contraseña incorrectos.", "error")
     return render_template("login.html", nombre=nombre)
 
@@ -74,15 +77,15 @@ def recuperar():
         return redirect(url_for("cuenta"))
     nombre = ""
     if request.method == "POST":
-        nombre = request.form.get("usuario", "").strip()
-        llave = nombre.lower()
-        if bloqueado(llave):
+        nombre = request.form.get("usuario", "").strip()[:60]
+        if ingreso_bloqueado(nombre):
             flash("Demasiados intentos. Esperá unos minutos y probá de nuevo.", "error")
             return render_template("recuperar.html", nombre=nombre), 429
         u = get_db().execute("SELECT * FROM usuarios WHERE usuario = ?", (nombre,)).fetchone()
-        codigo = normalizar_codigo(request.form.get("codigo"))
-        if not (u and u["codigo"] and check_password_hash(u["codigo"], codigo)):
-            INTENTOS[llave].append(time.time())
+        codigo = normalizar_codigo(request.form.get("codigo"))[:64]
+        valido = check_password_hash(u["codigo"] if u and u["codigo"] else CLAVE_FALSA, codigo)
+        if not (u and u["codigo"] and valido):
+            ingreso_fallido(nombre)
             flash("Usuario o código incorrectos.", "error")
             return render_template("recuperar.html", nombre=nombre)
         error = validar_clave(request.form.get("clave", ""), request.form.get("clave2", ""))
@@ -91,7 +94,7 @@ def recuperar():
             return render_template("recuperar.html", nombre=nombre)
         get_db().execute("UPDATE usuarios SET clave = ? WHERE id = ?",
                          (generate_password_hash(request.form["clave"]), u["id"]))
-        INTENTOS.pop(llave, None)
+        ingreso_ok(nombre)
         iniciar_sesion(u["id"])
         # El código usado ya no sirve: se entrega uno nuevo.
         nuevo_codigo(u["id"])
@@ -152,7 +155,7 @@ def codigo():
     return resp
 
 
-@app.route("/logout")
+@app.post("/logout")
 def logout():
     session.clear()
     return redirect(url_for("index"))

@@ -213,7 +213,7 @@ if 'id="cartel"' not in c.get("/").get_data(as_text=True) or 'id="cartel"' not i
     fallas.append("no aparece el cartel de recordatorios")
 
 # Otra cuenta no ve ni toca nada de la primera
-esperar("salir", c.get("/logout"), 302)
+esperar("salir", c.post("/logout"), 302)
 esperar("usuario repetido", c.post("/registro", data={"acepto": "1", "usuario": "JUAN", "clave": "123456", "clave2": "123456"}), 200)
 esperar("registro ana", c.post("/registro", data={"acepto": "1", "usuario": "ana", "clave": "abcdef", "clave2": "abcdef"}), 302)
 if "Focus" in c.get("/").get_data(as_text=True):
@@ -238,7 +238,7 @@ esperar("renovar ajeno", c.post("/documento/1/renovar"), 404)
 esperar("subir a bóveda ajena", c.post("/vehiculo/3/boveda", data={}), 404)
 
 # Link compartido: modo vista sin cuenta, sin documentación ni bóveda
-c.get("/logout")
+c.post("/logout")
 html = esperar("ver compartido", c.get(f"/c/{token}"), 200).get_data(as_text=True)
 if "Modo vista" not in html or "Editar" in html:
     fallas.append("el compartido no está en modo vista")
@@ -251,7 +251,7 @@ esperar("bóveda no compartida", c.get(f"/c/{token}/archivo/1"), 404)
 esperar("link inventado", c.get("/c/inventado"), 404)
 
 # Ingreso: clave mala, buena y redirección segura
-c.get("/logout")
+c.post("/logout")
 esperar("clave mala", c.post("/login", data={"usuario": "juan", "clave": "mal"}), 200)
 r = esperar("login ok", c.post("/login?next=//malo.com", data={"usuario": "Juan", "clave": "123456"}), 302)
 if r.headers.get("Location") != "/":
@@ -312,19 +312,19 @@ cod_transfer = re.search(r'id="codigo-transfer">([A-Z0-9-]+)<', html).group(1)
 
 # Código de recuperación: se ve una sola vez, sirve una vez y cambia la contraseña
 
-c.get("/logout")
+c.post("/logout")
 c.post("/registro", data={"acepto": "1", "usuario": "pepe", "clave": "123456", "clave2": "123456"})
 html = esperar("ver código", c.get("/cuenta/codigo"), 200).get_data(as_text=True)
 codigo = re.search(r'id="codigo">([A-Z0-9-]+)<', html).group(1)
 esperar("código ya mostrado", c.get("/cuenta/codigo"), 302)
 esperar("mi cuenta", c.get("/cuenta"), 200)
-c.get("/logout")
+c.post("/logout")
 esperar("recuperar form", c.get("/recuperar"), 200)
 esperar("código malo", c.post("/recuperar", data={"usuario": "pepe", "codigo": "AAAA-BBBB-CCCC-DDDD",
                                                   "clave": "nueva1", "clave2": "nueva1"}), 200)
 esperar("recuperar ok", c.post("/recuperar", data={"usuario": "PEPE", "codigo": codigo.lower().replace("-", " "),
                                                    "clave": "nueva1", "clave2": "nueva1"}), 302)
-c.get("/logout")
+c.post("/logout")
 esperar("código usado no sirve", c.post("/recuperar", data={"usuario": "pepe", "codigo": codigo,
                                                             "clave": "otra12", "clave2": "otra12"}), 200)
 esperar("clave vieja no entra", c.post("/login", data={"usuario": "pepe", "clave": "123456"}), 200)
@@ -351,7 +351,7 @@ with sqlite3.connect(DB) as db:
         fallas.append("borrar la cuenta no borró sus vehículos")
 
 # Bloqueo tras muchos intentos
-c.get("/logout")
+c.post("/logout")
 for _ in range(5):
     c.post("/login", data={"usuario": "ana", "clave": "mal"})
 esperar("bloqueo", c.post("/login", data={"usuario": "ana", "clave": "abcdef"}), 429)
@@ -371,7 +371,7 @@ nucleo.ALTAS_IP.clear()
 nucleo.MAX_ALTAS_IP = 1
 c4 = app.test_client()
 esperar("alta 1 de la IP", c4.post("/registro", data={"acepto": "1", "usuario": "ip_uno", "clave": "123456", "clave2": "123456"}), 302)
-c4.get("/logout")
+c4.post("/logout")
 esperar("alta 2 de la IP bloqueada", c4.post("/registro", data={"acepto": "1", "usuario": "ip_dos", "clave": "123456", "clave2": "123456"}), 429)
 nucleo.MAX_ALTAS_IP = 100
 

@@ -26,7 +26,7 @@
       <nav>
         {% if usuario %}
           <a class="user-chip" href="{{ url_for('cuenta') }}" title="Mi cuenta">{{ usuario.usuario }}</a>
-          <a class="btn btn-ghost btn-sm" href="{{ url_for('logout') }}">Salir</a>
+          <form class="salir-form" method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn btn-ghost btn-sm" type="submit">Salir</button></form>
         {% elif request.endpoint != 'login' %}
           <a class="btn btn-ghost btn-sm" href="{{ url_for('login') }}">Ingresar</a>
         {% endif %}
@@ -75,7 +75,7 @@
     {% endif %}
   </footer>
 
-  <script type="importmap">
+  <script nonce="{{ csp_nonce }}" type="importmap">
     {"imports": {
       "three": "{{ url_for('static', filename='vendor/three/build/three.module.min.js') }}",
       "three/addons/": "/static/vendor/three/examples/jsm/"
@@ -83,8 +83,9 @@
   </script>
   <script src="{{ url_for('static', filename='numeros.js') }}"></script>
   <script src="{{ url_for('static', filename='archivos.js') }}"></script>
+  <script src="{{ url_for('static', filename='acciones.js') }}"></script>
   {% if cartel %}<script src="{{ url_for('static', filename='avisos.js') }}"></script>{% endif %}
-  <script>
+  <script nonce="{{ csp_nonce }}">
     // Copia offline de la bitácora y la bóveda: solo con la sesión abierta.
     // Sin sesión (o al salir) se borra, así no queda nada en el dispositivo.
     {% if usuario %}
@@ -93,7 +94,7 @@
     if ("caches" in window) caches.delete("garajedata-v1").catch(() => {});
     {% endif %}
   </script>
-  <script type="module">
+  <script nonce="{{ csp_nonce }}" type="module">
     // El visor 3D (three.js, ~700 KB) se baja solo en las páginas que muestran un auto.
     if (document.querySelector("[data-car3d]")) import("{{ url_for('static', filename='car3d.js') }}");
   </script>

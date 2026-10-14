@@ -16,11 +16,14 @@ Código: https://github.com/pianciola/garajedata (público, rama `main`).
 - Las migraciones de columnas van en `COLUMNAS_NUEVAS` / `init_db()` de `nucleo.py` (ALTER TABLE; nunca borrar datos).
 - Todo formulario POST lleva `<input type="hidden" name="csrf" value="{{ csrf_token() }}">`;
   los `fetch` mandan el header `X-CSRF-Token` (meta `csrf` en `base.html`).
+- CSP con nonce: todo `<script>` inline lleva `nonce="{{ csp_nonce }}"`; no usar `onclick=`/`onsubmit=` (usar `data-confirmar`, `data-imprimir` en `static/acciones.js`).
+  Si se suma un recurso externo (imágenes, fuentes, scripts), agregarlo a `politica_csp()` en `nucleo.py`.
+- En el sitio publicado el WSGI define `GARAJEDATA_HTTPS=1` (cookie Secure + HSTS); lo genera `tools/armar_paquete.py`.
 - Los archivos subidos solo se sirven por rutas con chequeo de dueño; no exponer `uploads/`.
 
 ## Probar
 ```bash
-python -m pytest -q            # corre tools/probar_paginas.py; debe imprimir "TODO OK"
+python -m pytest -q            # probar_paginas.py ("TODO OK") + tools/auditoria.py (seguridad y robustez: 0 hallazgos)
 python app.py                  # local en http://127.0.0.1:5000
 ```
 

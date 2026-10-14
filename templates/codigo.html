@@ -16,7 +16,7 @@
 </section>
 {% endblock %}
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
   document.getElementById("copiar").addEventListener("click", async (e) => {
     try {
       await navigator.clipboard.writeText(document.getElementById("codigo").textContent);
