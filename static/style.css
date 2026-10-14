@@ -97,11 +97,8 @@ h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
 }
 .brand:hover { text-decoration: none; }
 .brand b { color: var(--accent); }
-.brand-mark {
-  display: grid; place-items: center; width: 40px; height: 32px;
-  background: var(--accent); color: #fff;
-  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-}
+.brand-mark { flex: none; display: block; filter: drop-shadow(0 2px 6px rgba(227, 38, 43, .35)); transition: transform .3s; }
+.brand:hover .brand-mark { transform: rotate(60deg); }
 
 main.wrap { padding-top: 30px; padding-bottom: 48px; min-height: calc(100vh - 150px); }
 
@@ -716,7 +713,7 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .libro { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; }
 .libro-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;
   padding-bottom: 12px; border-bottom: 2px solid var(--accent); }
-.libro-marca { font-family: var(--display); font-weight: 800; font-style: italic; text-transform: uppercase; letter-spacing: .06em; font-size: 1.1rem; }
+.libro-marca { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-style: italic; text-transform: uppercase; letter-spacing: .06em; font-size: 1.1rem; }
 .libro-marca b { color: var(--accent); }
 .libro-auto { display: grid; grid-template-columns: 1fr minmax(220px, 340px); gap: 16px; align-items: center; margin: 18px 0; }
 .libro-auto-info { display: grid; gap: 10px; justify-items: start; }
@@ -744,7 +741,16 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .pdf-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border: 1px solid var(--border);
   border-radius: 5px; color: var(--text); font-size: .85rem; }
 .pdf-chip .pdf-icon { width: 30px; height: 30px; border-radius: 3px; font-size: .65rem; }
-.libro-pie { margin-top: 26px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: .8rem; text-align: center; }
+.certificado { display: flex; align-items: center; gap: 22px; margin-top: 30px; padding: 18px 20px;
+  border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 6px; break-inside: avoid; }
+.sello { flex: none; color: var(--accent); transform: rotate(-8deg); }
+.sello text { font-family: var(--display); }
+.certificado-texto { min-width: 0; }
+.certificado-titulo { font-family: var(--display); font-weight: 800; font-style: italic; text-transform: uppercase; letter-spacing: .08em; font-size: 1.3rem; }
+.certificado-auto { margin: 4px 0 0; }
+.libro-pie { margin: 6px 0 0; color: var(--muted); font-size: .85rem; }
+.certificado-num { margin: 8px 0 0; color: var(--muted); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .certificado { flex-direction: column; text-align: center; } }
 
 @media (max-width: 720px) {
   .panel-grid { grid-template-columns: 1fr; }
@@ -774,7 +780,7 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
   .plate { box-shadow: none; }
   /* Sin esto el navegador no imprime los fondos (casilla «Gráficos de fondo» apagada, que es
      lo normal): la patente vieja quedaba con letras claras sobre papel blanco, invisibles. */
-  .plate, .plate *, .plate::before, .plate::after, .brand-logo, .badge, .libro-resumen, .ficha-grid {
+  .plate, .plate *, .plate::before, .plate::after, .brand-logo, .badge, .libro-resumen, .ficha-grid, .gd-logo, .gd-logo *, .sello, .certificado {
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .libro-item { break-inside: avoid; }
