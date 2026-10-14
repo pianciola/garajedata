@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas · {{ nombre_auto(v) }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('vehiculo', vid=v.id) }}">← {{ nombre_auto(v) }}</a>
+<section class="hero">
+  <div>
+    <div class="eyebrow">Estadísticas</div>
+    <h1>{{ nombre_auto(v) }}</h1>
+  </div>
+</section>
+
+{% if not n %}
+<div class="empty card">
+  <h2>Todavía no hay datos</h2>
+  <p class="muted">Cargá registros con su costo y kilometraje para ver cuánto gastás y cuánto te cuesta cada km.</p>
+</div>
+{% else %}
+<div class="stats stats-4">
+  <div class="stat"><span>Gastado en total</span><strong>{{ total|plata }}</strong></div>
+  <div class="stat"><span>Últimos 12 meses</span><strong>{{ anio_total|plata }}</strong></div>
+  <div class="stat"><span>Promedio por mes</span><strong>{{ por_mes_prom|plata if por_mes_prom else '—' }}</strong></div>
+  <div class="stat"><span>Costo por km</span><strong>{{ ('$ ' ~ ('%.0f'|format(costo_km) if costo_km >= 10 else '%.1f'|format(costo_km)|replace('.', ','))) if costo_km else '—' }}</strong></div>
+</div>
+
+<section class="card panel est-panel">
+  <h2>Gasto por mes</h2>
+  <p class="muted small">Últimos 12 meses.</p>
+  <div class="barras" role="img" aria-label="Gasto de los últimos 12 meses">
+    {% for m in meses %}
+    <div class="barra" title="{{ m.etiqueta }}: {{ m.total|plata }}">
+      <span class="barra-valor">{{ (m.total / 1000)|round|int ~ 'k' if m.total >= 1000 else (m.total|int if m.total else '') }}</span>
+      <i style="height: {{ (m.total / max_mes * 100)|round(1) }}%"></i>
+      <span class="barra-mes">{{ m.etiqueta }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="panel-grid">
+  <section class="card panel est-panel">
+    <h2>Por categoría</h2>
+    {% if cats %}
+    <ul class="barras-h">
+      {% for label, key, t in cats %}
+      <li>
+        <div class="barras-h-fila"><span>{{ label }}</span><b>{{ t|plata }}</b></div>
+        <div class="barras-h-pista"><i class="badge-{{ key }}" style="width: {{ (t / max_cat * 100)|round(1) }}%"></i></div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">Ningún registro tiene costo cargado.</p>{% endif %}
+  </section>
+  <section class="card panel est-panel">
+    <h2>Uso</h2>
+    <dl class="ficha-grid est-uso">
+      <div><dt>Registros</dt><dd>{{ n }}</dd></div>
+      <div><dt>Km registrados</dt><dd>{{ (recorridos|miles ~ ' km') if recorridos else '—' }}</dd></div>
+      <div><dt>Km por mes (medido)</dt><dd>{{ ('≈ ' ~ medido|miles ~ ' km') if medido else '—' }}</dd></div>
+      <div><dt>Perfil de uso</dt><dd>{{ USOS[v.uso][0] if v.uso in USOS else 'Sin elegir' }}</dd></div>
+    </dl>
+    <p class="muted small">El costo por km divide todo lo gastado por los km entre el primer registro y el kilometraje actual.</p>
+  </section>
+</div>
+{% endif %}
+{% endblock %}

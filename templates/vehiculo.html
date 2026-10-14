@@ -34,6 +34,10 @@
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8.5 12.5h7M8.5 16h7"/></svg>
         <span>Libro PDF</span>
       </a>
+      <a class="accion" href="{{ url_for('estadisticas', vid=v.id) }}">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        <span>Gastos</span>
+      </a>
       <a class="accion{{ ' accion-activa' if v.share_token }}" href="{{ url_for('compartir', vid=v.id) }}" title="{{ 'Ya tiene un link para compartir' if v.share_token else 'Crear un link de solo lectura' }}">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/></svg>
         <span>{{ 'Compartida' if v.share_token else 'Compartir' }}</span>
@@ -50,7 +54,7 @@
 </section>
 
 <dialog class="dialogo" id="dialogo-foto" aria-labelledby="dialogo-foto-titulo">
-  <form method="post" action="{{ url_for('vehiculo_foto', vid=v.id) }}" enctype="multipart/form-data" class="form">
+  <form method="post" action="{{ url_for('vehiculo_foto', vid=v.id) }}" enctype="multipart/form-data" class="form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <h2 id="dialogo-foto-titulo">Foto del auto</h2>
     {% include "_foto_editor.html" %}
     <div class="form-actions">
@@ -162,7 +166,7 @@
           {% else %}Faltan {{ d.dias }} {{ 'día' if d.dias == 1 else 'días' }}{% endif %}
         </span>
         {% if d.doc.cada_meses and d.estado != 'ok' %}
-        <form method="post" action="{{ url_for('documento_renovar', did=d.doc.id) }}">
+        <form method="post" action="{{ url_for('documento_renovar', did=d.doc.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
           <button class="btn btn-ghost btn-xs" type="submit" title="Corre el vencimiento: {{ REPETICIONES[d.doc.cada_meses]|lower }}">{{ 'Ya lo pagué' if d.doc.tipo in ('seguro_pago', 'patente') else 'Ya lo renové' }}</button>
         </form>
         {% endif %}
@@ -181,7 +185,7 @@
     </div>
     {% set por_cat = {} %}{% for a in boveda %}{% set _ = por_cat.update({a.categoria: (por_cat.get(a.categoria) or 0) + 1}) %}{% endfor %}
     {% set elegida = boveda_cat if boveda_cat in BOVEDA else ((boveda|first).categoria if boveda and (boveda|first).categoria in BOVEDA else 'cedula') %}
-    <form class="vault-upload" method="post" action="{{ url_for('boveda_subir', vid=v.id) }}" enctype="multipart/form-data">
+    <form class="vault-upload" method="post" action="{{ url_for('boveda_subir', vid=v.id) }}" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
       <select name="categoria" id="boveda-cat" aria-label="Tipo de documento">
         {% for key, label in BOVEDA.items() %}<option value="{{ key }}" {% if key == elegida %}selected{% endif %}>{{ label }}{% if por_cat.get(key) %} ({{ por_cat[key] }}){% endif %}</option>{% endfor %}
       </select>
@@ -198,7 +202,7 @@
           {% if a.mime.startswith('image/') %}<img src="{{ url_for('archivo', aid=a.id) }}" alt="" loading="lazy">{% else %}<span class="pdf-icon">PDF</span>{% endif %}
           <span><strong>{{ a.nombre }}</strong><small class="muted">{{ ("Subido el " ~ (a.creado[:10]|fecha)) if a.creado else "" }}</small></span>
         </a>
-        <form method="post" action="{{ url_for('archivo_eliminar', aid=a.id) }}" onsubmit="return confirm('¿Eliminar este archivo?');">
+        <form method="post" action="{{ url_for('archivo_eliminar', aid=a.id) }}" onsubmit="return confirm('¿Eliminar este archivo?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
           <button class="link-danger" type="submit" aria-label="Eliminar {{ a.nombre }}">✕</button>
         </form>
       </li>
@@ -270,7 +274,7 @@
         {% if can_edit %}
         <div class="entry-actions">
           <a href="{{ url_for('registro_editar', rid=r.id) }}">Editar</a>
-          <form method="post" action="{{ url_for('registro_eliminar', rid=r.id) }}" onsubmit="return confirm('¿Eliminar este registro?');">
+          <form method="post" action="{{ url_for('registro_eliminar', rid=r.id) }}" onsubmit="return confirm('¿Eliminar este registro?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
             <button type="submit" class="link-danger">Eliminar</button>
           </form>
         </div>

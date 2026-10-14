@@ -28,7 +28,7 @@ const NOT_PAINT_RE = /glass|window|windshield|tire|tyre|rubber|chrome|light|lamp
 
 const loader = new GLTFLoader();
 loader.setDRACOLoader(new DRACOLoader().setDecoderPath(
-  "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/"));
+  "/static/vendor/three/examples/jsm/libs/draco/gltf/"));
 
 let configPromise;
 const getConfig = () => (configPromise ??= fetch(new URL("modelos.json", BASE))

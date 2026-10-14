@@ -5,7 +5,7 @@
 <a class="back" href="{{ url_for('vehiculo', vid=v.id) if editando else url_for('index') }}">← Volver</a>
 <section class="card form-card">
   <h1>{{ 'Editar vehículo' if editando else 'Nuevo vehículo' }}</h1>
-  <form method="post" class="form" enctype="multipart/form-data">
+  <form method="post" class="form" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     {% set carr_actual = (v.carroceria if v else none) or 'sedan' %}
     {% set color_actual = (v.color if v else none) or COLOR_DEFAULT %}
     {% set modo = (v.imagen_modo if v and v.foto_id else none) or '3d' %}
@@ -187,8 +187,15 @@
   </form>
 
   {% if editando %}
+  <div class="danger-zone transfer-zone">
+    <div>
+      <strong>Transferir a otra cuenta</strong>
+      <p class="muted">¿Lo vendiste? Pasale la bitácora completa al nuevo dueño.</p>
+    </div>
+    <a class="btn btn-ghost" href="{{ url_for('transferir', vid=v.id) }}">Transferir</a>
+  </div>
   <form class="danger-zone" method="post" action="{{ url_for('vehiculo_eliminar', vid=v.id) }}"
-        onsubmit="return confirm('Se borrará el vehículo y TODOS sus registros. ¿Continuar?');">
+        onsubmit="return confirm('Se borrará el vehículo y TODOS sus registros. ¿Continuar?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <div>
       <strong>Eliminar vehículo</strong>
       <p class="muted">Borra el vehículo y toda su bitácora. No se puede deshacer.</p>

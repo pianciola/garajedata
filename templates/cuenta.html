@@ -7,7 +7,7 @@
   <h1>{{ usuario.usuario }}</h1>
 
   <h3 class="cuenta-sub">Cambiar contraseña</h3>
-  <form method="post" class="form auth-form">
+  <form method="post" class="form auth-form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <input type="hidden" name="accion" value="clave">
     <label class="field">
       <span>Contraseña actual</span>
@@ -28,7 +28,7 @@
 
   <h3 class="cuenta-sub">Código de recuperación</h3>
   <p class="muted">¿Lo perdiste? Generá uno nuevo; el anterior deja de servir.</p>
-  <form method="post" class="form auth-form">
+  <form method="post" class="form auth-form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <input type="hidden" name="accion" value="codigo">
     <label class="field">
       <span>Contraseña actual</span>
@@ -38,5 +38,44 @@
       <button class="btn btn-ghost" type="submit">Generar código nuevo</button>
     </div>
   </form>
+
+  <h3 class="cuenta-sub" id="calendario">Avisos en tu calendario</h3>
+  <p class="muted">Suscribite desde Google Calendar, el calendario del iPhone u Outlook y te llegan los próximos services y vencimientos como eventos, con aviso el día anterior. Se actualiza solo.</p>
+  {% if cal_link %}
+  <div class="codigo-box share-box">
+    <code id="cal-link">{{ cal_link }}</code>
+    <button class="btn btn-ghost btn-sm" type="button" data-copiar="#cal-link">Copiar</button>
+  </div>
+  <p class="muted small"><b>Google Calendar:</b> en la compu, «Otros calendarios» → «+» → «Desde URL» y pegá el link. <b>iPhone:</b> Ajustes → Calendario → Cuentas → Añadir cuenta → Otra → «Añadir calendario suscrito». Quien tenga el link ve tus fechas: no lo publiques.</p>
+  <div class="share-actions">
+    <a class="btn btn-ghost btn-sm" href="{{ cal_link|replace('https://', 'webcal://')|replace('http://', 'webcal://') }}">Abrir en mi calendario</a>
+    <form method="post" action="{{ url_for('calendario_link') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="quitar"><button class="btn btn-ghost btn-sm" type="submit">Desactivar link</button></form>
+  </div>
+  {% else %}
+  <form method="post" action="{{ url_for('calendario_link') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <button class="btn btn-primary btn-sm" type="submit">Crear link del calendario</button>
+  </form>
+  {% endif %}
+
+  <h3 class="cuenta-sub">Recibir un vehículo</h3>
+  <p class="muted">¿Compraste un auto que ya tenía su bitácora en GarajeData? Cargá el código que te dio el dueño anterior.</p>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('recibir') }}">Cargar código de transferencia</a>
+
+  <h3 class="cuenta-sub">Tus datos</h3>
+  <p class="muted">Descargá todo en un .zip: tus vehículos, registros (también en planilla para Excel), vencimientos y archivos. <a href="{{ url_for('privacidad') }}">Cómo se usan tus datos</a>.</p>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('exportar_todo') }}">Descargar mis datos</a>
+
+  <details class="danger-zone borrar-cuenta">
+    <summary><strong>Borrar mi cuenta</strong></summary>
+    <p class="muted">Se borran la cuenta, todos los vehículos, registros y archivos. No se puede deshacer: descargá tus datos antes.</p>
+    <form method="post" class="form auth-form" onsubmit="return confirm('¿Borrar la cuenta y TODOS sus datos para siempre?');"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="accion" value="borrar">
+      <label class="field"><span>Escribí tu usuario ({{ usuario.usuario }})</span>
+        <input type="text" name="confirmar" required autocomplete="off" maxlength="40"></label>
+      <label class="field"><span>Contraseña actual</span>
+        <input type="password" name="actual" required autocomplete="current-password" maxlength="200"></label>
+      <div class="form-actions"><button class="btn btn-danger" type="submit">Borrar cuenta</button></div>
+    </form>
+  </details>
 </section>
 {% endblock %}

@@ -15,7 +15,8 @@
   function guardar() {
     const ids = [...lista.children].map((it) => it.dataset.id).join(",");
     fetch(btn.dataset.url, { method: "POST", credentials: "same-origin",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      headers: { "Content-Type": "application/x-www-form-urlencoded",
+                 "X-CSRF-Token": document.querySelector("meta[name=csrf]")?.content || "" },
       body: "ids=" + encodeURIComponent(ids) }).catch(() => {});
   }
   btn.addEventListener("click", () => {

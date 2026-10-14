@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Privacidad{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}">← Inicio</a>
+<section class="card form-card narrow wide-ish legal">
+  <div class="eyebrow">Tus datos</div>
+  <h1>Cómo se usan tus datos</h1>
+
+  <h3>Qué guardamos</h3>
+  <ul>
+    <li><b>Tu cuenta:</b> un nombre de usuario y tu contraseña cifrada (nadie puede leerla, ni siquiera quien administra el sitio). No pedimos email, teléfono ni nombre real.</li>
+    <li><b>Lo que cargás:</b> vehículos, registros, vencimientos y los archivos que subís a la bóveda o a los registros.</li>
+    <li><b>Una cookie de sesión</b> para que no tengas que ingresar cada vez. No hay publicidad, ni cookies de seguimiento, ni estadísticas de terceros.</li>
+  </ul>
+
+  <h3>Quién lo ve</h3>
+  <ul>
+    <li>Solo vos, con tu cuenta.</li>
+    <li>Si creás un <b>link para compartir</b>, quien lo tenga ve la historia del auto en modo lectura (sin documentación ni bóveda). Lo podés desactivar cuando quieras.</li>
+    <li>Si creás el <b>link del calendario</b>, quien lo tenga ve las fechas de tus próximos controles y vencimientos. También se puede desactivar.</li>
+    <li>Las fotos se achican y se les borran los datos ocultos (como la ubicación GPS) al subirlas.</li>
+  </ul>
+
+  <h3>Dónde está</h3>
+  <p>En un servidor de PythonAnywhere. Hacemos copias de seguridad diarias de la base de datos.</p>
+
+  <h3>Tus derechos</h3>
+  <ul>
+    <li><b>Llevártelo:</b> desde <a href="{{ url_for('cuenta') }}">Mi cuenta</a> descargás todo en un .zip (datos, planillas para Excel y archivos).</li>
+    <li><b>Borrarlo:</b> al eliminar un vehículo se borran sus registros y archivos. También podés borrar la cuenta entera, con todos sus datos, desde Mi cuenta.</li>
+  </ul>
+  <p class="muted small">GarajeData es un proyecto personal sin fines comerciales. Los datos los carga cada dueño: el sitio no verifica que sean ciertos.</p>
+</section>
+{% endblock %}

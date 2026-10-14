@@ -24,6 +24,11 @@ with sqlite3.connect(DB) as db:
 
 from app import app  # noqa: E402
 
+# Las pruebas mandan formularios sin el token CSRF; más abajo se prueba aparte.
+app.config["CSRF_APAGADO"] = True
+import nucleo  # noqa: E402
+nucleo.MAX_ALTAS_IP = 100  # muchas cuentas de prueba desde la misma "IP"
+
 c = app.test_client()
 fallas = []
 
@@ -36,6 +41,8 @@ def esperar(nombre, respuesta, codigo):
 
 # Sin cuenta: bienvenida y redirección al ingreso
 esperar("bienvenida", c.get("/"), 200)
+if not os.path.exists(os.path.join(os.path.dirname(DB), "respaldos")):
+    fallas.append("no se hizo el respaldo diario")
 esperar("registro form", c.get("/registro"), 200)
 esperar("login form", c.get("/login"), 200)
 esperar("vehículo sin cuenta", c.get("/vehiculo/1"), 302)
@@ -261,6 +268,40 @@ esperar("borrar de bóveda", c.post("/archivo/2/eliminar"), 302)
 esperar("eliminar registro", c.post("/registro/1/eliminar"), 302)
 esperar("eliminar vehículo", c.post("/vehiculo/2/eliminar"), 302)
 
+# Estadísticas, privacidad, app instalable
+html = esperar("estadísticas", c.get("/vehiculo/3/estadisticas"), 200).get_data(as_text=True)
+if "Gasto por mes" not in html or "Costo por km" not in html:
+    fallas.append("faltan datos en estadísticas")
+esperar("privacidad", c.get("/privacidad"), 200)
+esperar("manifest", c.get("/static/manifest.webmanifest"), 200)
+
+# Descargar todos mis datos
+import json  # noqa: E402
+import zipfile  # noqa: E402
+r = esperar("exportar todo", c.get("/cuenta/exportar"), 200)
+with zipfile.ZipFile(io.BytesIO(r.data)) as z:
+    nombres = z.namelist()
+    datos = json.loads(z.read("garajedata.json"))
+if not any(n.endswith("registros.csv") for n in nombres) or not any("/archivos/" in n for n in nombres):
+    fallas.append(f"al zip le falta algo: {nombres}")
+if sorted(v["id"] for v in datos["vehiculos"]) != [1, 3] or "share_token" in datos["vehiculos"][0]:
+    fallas.append(f"el zip trae vehículos ajenos o datos internos: {[v['id'] for v in datos['vehiculos']]}")
+
+# Calendario de avisos
+esperar("crear calendario", c.post("/cuenta/calendario", data={}), 302)
+cal = re.search(r'id="cal-link">[^<]*/cal/([^<]+)\.ics<', c.get("/cuenta").get_data(as_text=True)).group(1)
+ics = esperar("ver calendario", app.test_client().get(f"/cal/{cal}.ics"), 200).get_data(as_text=True)
+if "BEGIN:VCALENDAR" not in ics or "BEGIN:VEVENT" not in ics:
+    fallas.append("el calendario no tiene eventos")
+esperar("calendario inventado", c.get("/cal/inventadoinventadoinventado.ics"), 404)
+esperar("quitar calendario", c.post("/cuenta/calendario", data={"accion": "quitar"}), 302)
+esperar("calendario anulado", c.get(f"/cal/{cal}.ics"), 404)
+
+# Transferencia: juan genera el código (más abajo lo recibe pepe)
+esperar("transferir form", c.get("/vehiculo/3/transferir"), 200)
+html = esperar("generar transferencia", c.post("/vehiculo/3/transferir", data={}), 200).get_data(as_text=True)
+cod_transfer = re.search(r'id="codigo-transfer">([A-Z0-9-]+)<', html).group(1)
+
 # Código de recuperación: se ve una sola vez, sirve una vez y cambia la contraseña
 
 c.get("/logout")
@@ -286,11 +327,45 @@ esperar("cambiar clave", c.post("/cuenta", data={"accion": "clave", "actual": "n
                                                  "clave2": "abcdef"}), 302)
 esperar("generar código", c.post("/cuenta", data={"accion": "codigo", "actual": "abcdef"}), 302)
 
+# pepe recibe el auto de juan con el código de transferencia
+esperar("recibir form", c.get("/recibir"), 200)
+esperar("código de transferencia malo", c.post("/recibir", data={"codigo": "AAAA-BBBB-CCCC"}), 200)
+esperar("recibir auto", c.post("/recibir", data={"codigo": cod_transfer.lower()}), 302)
+esperar("auto recibido", c.get("/vehiculo/3"), 200)
+esperar("código usado", c.post("/recibir", data={"codigo": cod_transfer}), 200)
+
+# Borrar la cuenta: pide el usuario escrito y la contraseña; se lleva todo
+esperar("borrar cuenta sin confirmar", c.post("/cuenta", data={"accion": "borrar", "confirmar": "x", "actual": "abcdef"}), 200)
+esperar("borrar cuenta", c.post("/cuenta", data={"accion": "borrar", "confirmar": "Pepe", "actual": "abcdef"}), 302)
+esperar("cuenta borrada", c.post("/login", data={"usuario": "pepe", "clave": "abcdef"}), 200)
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT COUNT(*) FROM vehiculos WHERE id = 3").fetchone()[0]:
+        fallas.append("borrar la cuenta no borró sus vehículos")
+
 # Bloqueo tras muchos intentos
 c.get("/logout")
 for _ in range(5):
     c.post("/login", data={"usuario": "ana", "clave": "mal"})
 esperar("bloqueo", c.post("/login", data={"usuario": "ana", "clave": "abcdef"}), 429)
+
+# CSRF: sin el token el formulario se rechaza; con el token de la página, pasa.
+app.config["CSRF_APAGADO"] = False
+c3 = app.test_client()
+esperar("registro sin token", c3.post("/registro", data={"usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 400)
+tok = re.search(r'name="csrf" value="([^"]+)"', c3.get("/registro").get_data(as_text=True)).group(1)
+esperar("registro con token", c3.post("/registro", data={"csrf": tok, "usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 302)
+tok = re.search(r'<meta name="csrf" content="([^"]+)"', c3.get("/").get_data(as_text=True)).group(1)
+esperar("orden con encabezado", c3.post("/vehiculos/orden", data={"ids": ""}, headers={"X-CSRF-Token": tok}), 204)
+app.config["CSRF_APAGADO"] = True
+
+# Límite de cuentas nuevas por IP
+nucleo.ALTAS_IP.clear()
+nucleo.MAX_ALTAS_IP = 1
+c4 = app.test_client()
+esperar("alta 1 de la IP", c4.post("/registro", data={"usuario": "ip_uno", "clave": "123456", "clave2": "123456"}), 302)
+c4.get("/logout")
+esperar("alta 2 de la IP bloqueada", c4.post("/registro", data={"usuario": "ip_dos", "clave": "123456", "clave2": "123456"}), 429)
+nucleo.MAX_ALTAS_IP = 100
 
 print("\n".join(fallas) if fallas else "TODO OK")
 sys.exit(1 if fallas else 0)

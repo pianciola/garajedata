@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Transferir · {{ nombre_auto(v) }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('vehiculo', vid=v.id) }}">← {{ nombre_auto(v) }}</a>
+<section class="card form-card narrow wide-ish">
+  <div class="eyebrow">Transferir a otra cuenta</div>
+  <h1>{{ nombre_auto(v) }}</h1>
+  <p class="muted">¿Vendiste el auto? Pasale la bitácora completa al nuevo dueño: registros, documentación, bóveda y fotos. Él necesita una cuenta en GarajeData y este código.</p>
+
+  {% if codigo %}
+  <p><b>Código de transferencia</b> (vale {{ horas }} horas y una sola vez):</p>
+  <div class="codigo-box">
+    <code id="codigo-transfer">{{ codigo[:4] }}-{{ codigo[4:8] }}-{{ codigo[8:] }}</code>
+    <button class="btn btn-ghost btn-sm" type="button" data-copiar="#codigo-transfer">Copiar</button>
+  </div>
+  <p class="muted small">Anotalo ahora: por seguridad no se vuelve a mostrar. El nuevo dueño lo carga en <b>Mi cuenta → Recibir un vehículo</b>. Cuando lo use, el auto desaparece de tu garaje y el link para compartir que tenías deja de andar.</p>
+  {% elif pendiente %}
+  <p class="muted">Hay un código de transferencia activo hasta el {{ v.transfer_vence[:10]|fecha }} a las {{ v.transfer_vence[11:16] }}.</p>
+  {% endif %}
+
+  <div class="share-actions">
+    <form method="post"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button class="btn btn-primary btn-sm" type="submit">{{ 'Generar otro código' if codigo or pendiente else 'Generar código' }}</button>
+    </form>
+    {% if codigo or pendiente %}
+    <form method="post"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="cancelar">
+      <button class="btn btn-ghost btn-sm" type="submit">Cancelar transferencia</button>
+    </form>
+    {% endif %}
+  </div>
+  <p class="muted small">Antes de transferir podés <a href="{{ url_for('exportar_todo') }}">descargar una copia de tus datos</a>.</p>
+</section>
+{% endblock %}

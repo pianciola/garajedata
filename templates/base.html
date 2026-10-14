@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0a0b0d">
   <title>{% block title %}GarajeData{% endblock %} · Bitácora del automotor</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Saira+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/fonts/saira-condensed-800.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fonts/fonts.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="csrf" content="{{ csrf_token() }}">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
-  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo-192.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-192.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <meta name="theme-color" content="#0a0b0d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   <header class="topbar">
@@ -63,7 +66,7 @@
   {% endif %}
 
   <footer class="wrap footer">
-    GarajeData · bitácora del automotor
+    GarajeData · bitácora del automotor · <a href="{{ url_for('privacidad') }}">Privacidad</a>
     {% set creditos = creditos_modelos() %}
     {% if creditos %}
     <div class="models-credit">Modelos 3D:
@@ -74,8 +77,8 @@
 
   <script type="importmap">
     {"imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      "three": "{{ url_for('static', filename='vendor/three/build/three.module.min.js') }}",
+      "three/addons/": "/static/vendor/three/examples/jsm/"
     }}
   </script>
   <script src="{{ url_for('static', filename='numeros.js') }}"></script>

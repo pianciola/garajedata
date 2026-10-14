@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Recibir un vehículo{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}">← Mis vehículos</a>
+<section class="card form-card narrow">
+  <div class="eyebrow">Recibir un vehículo</div>
+  <h1>Código de transferencia</h1>
+  <p class="muted">Si compraste un auto que ya tenía su bitácora en GarajeData, pedile al dueño anterior el código de transferencia y cargalo acá. El auto pasa a tu garaje con toda su historia.</p>
+  <form method="post" class="form auth-form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label class="field">
+      <span>Código</span>
+      <input type="text" name="codigo" required autocomplete="off" autocapitalize="characters" spellcheck="false"
+             placeholder="XXXX-XXXX-XXXX" maxlength="20">
+    </label>
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Recibir vehículo</button></div>
+  </form>
+</section>
+{% endblock %}

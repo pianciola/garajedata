@@ -59,10 +59,18 @@
 </div>
 <script src="{{ url_for('static', filename='orden-autos.js') }}"></script>
 {% else %}
-<div class="empty card">
-  <div class="empty-icon">🚗</div>
-  <h2>Todavía no hay vehículos</h2>
-  <p class="muted">Agregá tu auto con el botón de arriba para empezar a llevar la bitácora.</p>
+<div class="empty card bienvenida-pasos">
+  {% from "_logo.html" import logo %}{{ logo('empty-logo', 72) }}
+  <h2>Arranquemos</h2>
+  <ol class="pasos">
+    <li><b>Agregá tu vehículo.</b> Marca, modelo, patente y el kilometraje de hoy. Lo demás es opcional.</li>
+    <li><b>Cargá el último service.</b> Con la fecha y los km, GarajeData calcula cuándo toca el próximo.</li>
+    <li><b>Sumá los vencimientos.</b> VTV, seguro, patente y registro: te avisa antes de que venzan.</li>
+  </ol>
+  <div class="share-actions">
+    <a class="btn btn-primary" href="{{ url_for('vehiculo_nuevo') }}">+ Agregar mi primer vehículo</a>
+    <a class="btn btn-ghost" href="{{ url_for('recibir') }}">Tengo un código de transferencia</a>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

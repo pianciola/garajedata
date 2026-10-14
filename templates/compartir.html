@@ -18,7 +18,7 @@
     <a class="btn btn-ghost btn-sm" id="whatsapp" href="https://wa.me/?text={{ ('Mirá la bitácora de mi ' ~ nombre_auto(v) ~ ': ' ~ link)|urlencode }}" target="_blank" rel="noopener">Enviar por WhatsApp</a>
   </div>
 
-  <form method="post" class="form share-options">
+  <form method="post" class="form share-options"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <input type="hidden" name="accion" value="opciones">
     <label class="check"><input type="checkbox" name="costos" value="1" {% if v.share_costos %}checked{% endif %}> <span>Mostrar cuánto costó cada trabajo</span></label>
     <label class="check"><input type="checkbox" name="adjuntos" value="1" {% if v.share_adjuntos %}checked{% endif %}> <span>Mostrar fotos y facturas de los registros</span></label>
@@ -32,12 +32,12 @@
       <p class="muted">El link deja de funcionar. También podés crear uno nuevo y anular el anterior.</p>
     </div>
     <div class="share-actions">
-      <form method="post"><input type="hidden" name="accion" value="regenerar"><button class="btn btn-ghost btn-sm" type="submit">Link nuevo</button></form>
-      <form method="post" onsubmit="return confirm('¿Dejar de compartir? El link dejará de funcionar.');"><input type="hidden" name="accion" value="desactivar"><button class="btn btn-danger btn-sm" type="submit">Dejar de compartir</button></form>
+      <form method="post"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="regenerar"><button class="btn btn-ghost btn-sm" type="submit">Link nuevo</button></form>
+      <form method="post" onsubmit="return confirm('¿Dejar de compartir? El link dejará de funcionar.');"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="desactivar"><button class="btn btn-danger btn-sm" type="submit">Dejar de compartir</button></form>
     </div>
   </div>
   {% else %}
-  <form method="post" class="form">
+  <form method="post" class="form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <input type="hidden" name="accion" value="activar">
     <div class="form-actions"><button class="btn btn-primary" type="submit">Crear link para compartir</button></div>
   </form>
