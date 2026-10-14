@@ -1099,3 +1099,32 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .fecha-borrar { justify-self: start; background: none; border: 0; padding: 2px 0; color: var(--muted); font-size: .8rem; text-decoration: underline; cursor: pointer; }
 .fecha-borrar:hover { color: var(--accent); }
 .fecha-borrar[hidden] { display: none; }
+
+/* ---------- Mi cuenta con pestañas ---------- */
+.form-card.cuenta { max-width: 600px; margin-top: 30px; }
+.tabs { display: none; gap: 6px; margin: 18px 0 8px; padding-bottom: 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.cuenta.con-tabs .tabs { display: flex; }
+.cuenta.con-tabs .panel-tab[hidden] { display: none; }
+.tab { flex: 1 1 0; min-width: max-content; padding: 10px 14px; background: var(--surface-3); color: var(--muted); border: 1px solid var(--border);
+  border-radius: 10px; font-family: var(--display); font-size: .98rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s; }
+.tab:hover { color: var(--text); border-color: var(--border-strong); }
+.tab.activa { background: var(--accent); border-color: var(--accent); color: #fff; }
+.panel-tab { margin-top: 16px; display: grid; gap: 12px; }
+.panel-tab p { margin: 0; }
+.acordeon { border: 1px solid var(--border); border-radius: 10px; background: #0e1013; padding: 0 16px; }
+.acordeon > summary { cursor: pointer; padding: 14px 0; font-family: var(--display); font-weight: 700; font-size: 1.05rem; letter-spacing: .04em; text-transform: uppercase; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.acordeon > summary::-webkit-details-marker { display: none; }
+.acordeon > summary::after { content: "▾"; color: var(--muted); }
+.acordeon[open] > summary::after { content: "▴"; }
+.acordeon[open] { padding-bottom: 16px; }
+.acordeon[open] > summary { padding-bottom: 10px; }
+.acciones-cuenta { display: grid; gap: 10px; }
+.accion-cuenta { display: grid; gap: 4px; padding: 14px 16px; background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; color: var(--text); transition: background .15s, border-color .15s; }
+.accion-cuenta:hover { background: #2c3139; border-color: var(--border-strong); text-decoration: none; }
+.accion-cuenta strong { font-family: var(--display); font-size: 1.1rem; letter-spacing: .04em; text-transform: uppercase; }
+.accion-cuenta small { color: var(--muted); font-size: .86rem; }
+@media (max-width: 480px) {
+  .tabs { flex-wrap: nowrap; gap: 4px; }
+  .tab { min-width: 0; padding: 10px 4px; font-size: .78rem; letter-spacing: .02em; white-space: nowrap; }
+}

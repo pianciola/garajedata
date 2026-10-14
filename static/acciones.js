@@ -25,3 +25,19 @@ document.querySelectorAll('input[type="date"]:not([required])').forEach((campo) 
   campo.addEventListener("change", mostrar);
   mostrar();
 });
+
+// Pestañas de «Mi cuenta» (sin JavaScript se ven todas las secciones una debajo de otra).
+(() => {
+  const tabs = [...document.querySelectorAll("[data-tab]")];
+  if (!tabs.length) return;
+  const paneles = [...document.querySelectorAll("[data-panel]")];
+  document.querySelector(".cuenta").classList.add("con-tabs");
+  function mostrar(nombre, guardar) {
+    if (!paneles.some((p) => p.dataset.panel === nombre)) nombre = "seguridad";
+    tabs.forEach((t) => { const on = t.dataset.tab === nombre; t.classList.toggle("activa", on); t.setAttribute("aria-selected", on); });
+    paneles.forEach((p) => { p.hidden = p.dataset.panel !== nombre; });
+    if (guardar) history.replaceState(null, "", "#" + nombre);
+  }
+  tabs.forEach((t) => t.addEventListener("click", () => mostrar(t.dataset.tab, true)));
+  mostrar(location.hash.slice(1) || "seguridad", false);
+})();
