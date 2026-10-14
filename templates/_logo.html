@@ -1,4 +1,4 @@
-{# Logo de GarajeData: tuerca con una «G» que es un tacómetro (con zona roja). #}
-{% macro logo(clase='', tam=36) -%}
-<svg class="gd-logo {{ clase }}" viewBox="0 0 64 64" width="{{ tam }}" height="{{ tam }}" role="img" aria-label="GarajeData"><polygon points="32.0,5.0 55.4,18.5 55.4,45.5 32.0,59.0 8.6,45.5 8.6,18.5" fill="#16181d" stroke="#e3262b" stroke-width="5" stroke-linejoin="round"/><path d="M32 18.5A13.5 13.5 0 1 0 45.50 32.00" fill="none" stroke="#fff" stroke-width="5.2"/><path d="M45.50 32.00H32" fill="none" stroke="#fff" stroke-width="5.2" stroke-linecap="round"/><path d="M32 18.5A13.5 13.5 0 0 1 41.03 21.97" fill="none" stroke="#e3262b" stroke-width="5.2"/><circle cx="41.03" cy="21.97" r="2.6" fill="#e3262b"/><circle cx="32" cy="32" r="3.6" fill="#fff"/></svg>
+{# Logo de GarajeData (static/img). sello=True usa la versión con fondo oscuro, para papel blanco. #}
+{% macro logo(clase='', tam=36, sello=False) -%}
+<img class="gd-logo {{ clase }}" src="{{ url_for('static', filename='img/logo-sello.png' if sello else 'img/logo-icono.png') }}" width="{{ tam }}" height="{{ tam }}" alt="GarajeData">
 {%- endmacro %}

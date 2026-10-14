@@ -10,13 +10,14 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Saira+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo-192.png') }}">
 </head>
 <body>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <a class="brand" href="{{ url_for('index') }}">
-        {% from "_logo.html" import logo %}{{ logo('brand-mark', 38) }}
+        {% from "_logo.html" import logo %}{{ logo('brand-mark', 40) }}
         <span>Garaje<b>Data</b></span>
       </a>
       <nav>

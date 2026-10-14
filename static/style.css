@@ -1014,3 +1014,5 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .mini-stats dd { font-size: 1.08rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mini-stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.1fr); }
 .mini-stats dd { font-size: 1.02rem; }
+
+.brand-mark { object-fit: contain; }
