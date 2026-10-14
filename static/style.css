@@ -97,8 +97,8 @@ h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
 }
 .brand:hover { text-decoration: none; }
 .brand b { color: var(--accent); }
-.brand-mark { flex: none; display: block; filter: drop-shadow(0 2px 6px rgba(227, 38, 43, .35)); transition: transform .3s; }
-.brand:hover .brand-mark { transform: rotate(60deg); }
+.brand-mark { flex: none; display: block; filter: drop-shadow(0 2px 6px rgba(227, 38, 43, .35)); transition: transform .2s ease, filter .2s ease; }
+.brand:hover .brand-mark { transform: scale(1.08); filter: drop-shadow(0 3px 9px rgba(227, 38, 43, .55)); }
 
 main.wrap { padding-top: 30px; padding-bottom: 48px; min-height: calc(100vh - 150px); }
 
