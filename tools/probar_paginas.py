@@ -292,6 +292,21 @@ if [f[1] for f in filas][:2] != [None, None] or filas[2][1] is None or filas[3][
     fallas.append(f"los límites de fecha no se aplican: {filas}")
 with sqlite3.connect(DB) as db:
     db.execute("DELETE FROM registros WHERE titulo = 'prueba fechas'")
+# Consejo del día
+html = c.get("/").get_data(as_text=True)
+if 'id="consejo"' not in html or "Consejo del día" not in html:
+    fallas.append("no aparece el consejo del día")
+r = esperar("otro consejo", c.get("/consejo/3"), 200)
+if not r.get_json().get("texto"):
+    fallas.append("el consejo de /consejo/N viene vacío")
+esperar("consejo enorme", c.get("/consejo/99999999999999999999"), 200)
+import consejos  # noqa: E402
+textos = [x[1] for x in consejos.CONSEJOS]
+if len(set(textos)) != len(textos) or any(x[0] not in consejos.CATEGORIAS for x in consejos.CONSEJOS) or any(len(t) > 260 for t in textos):
+    fallas.append("la lista de consejos tiene repetidos, categorías inválidas o textos muy largos")
+vistos = {consejos.consejo_del_dia(date(2026, 1, 1) + timedelta(days=n))[0] for n in range(len(textos))}
+if len(vistos) != len(textos):
+    fallas.append("el consejo del día repite antes de recorrer todos")
 html = esperar("estadísticas", c.get("/vehiculo/3/estadisticas"), 200).get_data(as_text=True)
 if "Gasto por mes" not in html or "Costo por km" not in html:
     fallas.append("faltan datos en estadísticas")

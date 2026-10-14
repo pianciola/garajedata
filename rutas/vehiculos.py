@@ -1,5 +1,17 @@
 """Lista de vehículos, ficha, alta, edición, documentación."""
+from flask import jsonify
+
+from consejos import CATEGORIAS as CATEGORIAS_CONSEJO, consejo_del_dia
 from nucleo import *  # noqa: F401,F403
+
+
+@app.route("/consejo/<int:salto>")
+def consejo_json(salto):
+    """Otro consejo (el de hoy desplazado «salto» lugares), para el botón «Otro» del inicio."""
+    i, categoria, texto = consejo_del_dia(salto=min(salto, 10_000))
+    resp = jsonify({"i": i, "categoria": CATEGORIAS_CONSEJO[categoria], "clave": categoria, "texto": texto})
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
 
 
 @app.route("/")
@@ -22,7 +34,10 @@ def index():
         proximos[v["id"]] = proximo_control(v, a)
         cartel += lista_avisos(v, a, con_nombre=len(vehiculos) > 1)
     cartel.sort(key=lambda x: x["estado"] != "vencido")
-    return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=cartel, proximos=proximos)
+    i, categoria, texto = consejo_del_dia()
+    consejo = {"i": i, "clave": categoria, "categoria": CATEGORIAS_CONSEJO[categoria], "texto": texto}
+    return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=cartel, proximos=proximos,
+                           consejo=consejo)
 
 
 @app.post("/vehiculos/orden")

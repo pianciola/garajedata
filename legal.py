@@ -61,6 +61,12 @@ TERMINOS = {
           "El usuario es el único responsable de realizar los controles de su vehículo y de renovar sus documentos y "
           "habilitaciones a tiempo. El Responsable no responde por multas, infracciones, fallas mecánicas, accidentes ni "
           "perjuicios derivados de un aviso que no se mostró, llegó tarde o fue inexacto."]),
+        ("4 bis. Consejos automotor",
+         ["El «consejo del día» y los demás consejos del Sitio son **información general y orientativa**, pensada para "
+          "promover el cuidado del vehículo y la seguridad vial. No reemplazan el manual del fabricante, la indicación de un "
+          "mecánico o profesional matriculado, ni las normas de tránsito vigentes, que pueden cambiar. Cada persona es "
+          "responsable de las decisiones que tome sobre su vehículo. Se procura que sean correctos; si encontrás uno "
+          "dudoso o desactualizado, avisá al contacto de este documento."]),
         ("5. Contenido del usuario",
          ["El usuario conserva la titularidad de todo lo que carga (datos, textos, fotos y documentos) y es el único responsable de "
           "su contenido. Declara que tiene derecho a cargarlo y que no vulnera derechos de terceros ni la ley. Se recomienda no "
