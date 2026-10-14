@@ -180,6 +180,7 @@ COLUMNAS_NUEVAS = {
     "imagen_modo": "TEXT", "foto_id": "INTEGER", "km_mes": "INTEGER",
     "foto_x": "INTEGER", "foto_y": "INTEGER", "foto_zoom": "INTEGER", "foto_ajuste": "TEXT",
     "orden": "INTEGER", "transfer_codigo": "TEXT", "transfer_vence": "TEXT",
+    "km_manual": "INTEGER", "km_manual_fecha": "TEXT",
 }
 
 
@@ -245,7 +246,7 @@ def politica_csp(nonce):
         "default-src 'self'",
         f"script-src 'self' 'nonce-{nonce}' 'wasm-unsafe-eval'",  # wasm: decodificador Draco del visor 3D
         "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data: blob: https://cdn.jsdelivr.net",  # logos de marcas
+        "img-src 'self' data: blob:",
         "font-src 'self'", "connect-src 'self' blob: data:", "worker-src 'self' blob:", "manifest-src 'self'",
         "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'"])
 
@@ -470,7 +471,7 @@ def km_actual(v):
     row = get_db().execute(
         "SELECT MAX(km) FROM registros WHERE vehiculo_id = ?", (v["id"],)
     ).fetchone()
-    return max(v["km_inicial"] or 0, row[0] or 0)
+    return max(v["km_inicial"] or 0, row[0] or 0, v["km_manual"] or 0)
 
 
 def progreso(r, km_hoy, hoy):

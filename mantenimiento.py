@@ -102,6 +102,8 @@ def km_estimado(v, registros, hoy=None):
     conocidos = [(r["km"], a_fecha(r["fecha"])) for r in registros if r["km"]]
     if v["km_inicial"]:
         conocidos.append((v["km_inicial"], a_fecha((v["creado"] or "")[:10])))
+    if v["km_manual"]:  # kilometraje que el dueño anotó a mano, sin cargar un registro
+        conocidos.append((v["km_manual"], a_fecha(v["km_manual_fecha"] or "")))
     if not conocidos:
         return 0
     km, cuando = max(conocidos, key=lambda x: x[0])

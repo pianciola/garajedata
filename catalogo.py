@@ -1,8 +1,9 @@
 """Catálogo de marcas (con logo) y sus modelos más conocidos, con su carrocería."""
 import unicodedata
 
-# Logos: car-logos-dataset vía jsDelivr. Nombre de la marca -> slug del logo.
-LOGO_URL = "https://cdn.jsdelivr.net/gh/filippofilip95/car-logos-dataset@master/logos/thumb/{}.png"
+# Logos: car-logos-dataset (copiados a static/img/marcas). Nombre de la marca -> slug del logo.
+# (copias locales en static/img/marcas, para no depender de un servicio externo)
+LOGO_URL = "/static/img/marcas/{}.png"
 MARCAS = {
     "Alfa Romeo": "alfa-romeo", "Audi": "audi", "BMW": "bmw", "BYD": "byd",
     "Chery": "chery", "Chevrolet": "chevrolet", "Chrysler": "chrysler",

@@ -269,11 +269,19 @@ esperar("eliminar registro", c.post("/registro/1/eliminar"), 302)
 esperar("eliminar vehículo", c.post("/vehiculo/2/eliminar"), 302)
 
 # Estadísticas, privacidad, app instalable
+# Actualizar el odómetro a mano: sube, no baja
+esperar("km a mano", c.post("/vehiculo/3/km", data={"km": "987.654"}), 302)
+if "987.654" not in c.get("/vehiculo/3").get_data(as_text=True).replace("&#39;", ""):
+    fallas.append("el odómetro no muestra el km anotado a mano")
+esperar("km que baja", c.post("/vehiculo/3/km", data={"km": "1.000"}), 302)
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT km_manual FROM vehiculos WHERE id = 3").fetchone()[0] != 987654:
+        fallas.append("el odómetro bajó o no se guardó")
 html = esperar("estadísticas", c.get("/vehiculo/3/estadisticas"), 200).get_data(as_text=True)
 if "Gasto por mes" not in html or "Costo por km" not in html:
     fallas.append("faltan datos en estadísticas")
 html = esperar("privacidad", c.get("/privacidad"), 200).get_data(as_text=True)
-if "Política de Privacidad" not in html or "<b>" not in html or "jsDelivr" not in html:
+if "Política de Privacidad" not in html or "<b>" not in html or "Sin servicios externos" not in html:
     fallas.append("la política de privacidad no se muestra completa")
 if "Términos y Condiciones de Uso" not in esperar("términos", c.get("/terminos"), 200).get_data(as_text=True):
     fallas.append("faltan los términos")

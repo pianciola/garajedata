@@ -71,7 +71,7 @@
     </div>
     <label class="field">
       <span>Apodo <small class="optional">(opcional)</small></span>
-      <input name="nombre" maxlength="60" value="{{ (v.nombre or '') if v else '' }}" placeholder="Ej: El Gol, el auto de papá… (si no, se usa marca y modelo)">
+      <input name="nombre" maxlength="60" value="{{ (v.nombre or '') if v else '' }}" placeholder="Ej: El Gol, el auto de papá">
     </label>
     <div class="row">
       <label class="field"><span>Año</span><input type="number" name="anio" min="1900" max="2100" value="{{ (v.anio or '') if v else '' }}"></label>

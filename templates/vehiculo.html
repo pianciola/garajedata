@@ -72,6 +72,12 @@
       <small>km</small>
     </strong>
     {% if v.uso and km_hoy > km_real %}<em class="odo-est" title="Calculado con tu perfil: {{ USOS[v.uso][0]|lower }}">≈ {{ km_hoy|miles }} km estimados hoy</em>{% endif %}
+    {% if can_edit %}
+    <form class="odo-form" method="post" action="{{ url_for('vehiculo_km', vid=v.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input name="km" class="num-miles" inputmode="numeric" autocomplete="off" placeholder="Km hoy" aria-label="Kilometraje actual del auto" maxlength="10">
+      <button class="btn btn-ghost btn-xs" type="submit">Actualizar</button>
+    </form>
+    {% endif %}
   </div>
   <div class="stat"><span>Registros</span><strong>{{ stats.n }}</strong></div>
   <div class="stat"><span>Gastado en {{ anio }}</span><strong>{{ stats.anio|plata }}</strong></div>

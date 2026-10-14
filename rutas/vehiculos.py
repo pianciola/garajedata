@@ -95,6 +95,25 @@ def vehiculo(vid):
         boveda_cat=request.args.get("boveda"))
 
 
+@app.post("/vehiculo/<int:vid>/km")
+@requiere_login
+def vehiculo_km(vid):
+    """Actualiza el odómetro sin tener que cargar un registro de mantenimiento."""
+    v = get_vehiculo(vid)
+    km = to_int(request.form.get("km"))
+    if km is None:
+        flash("Escribí el kilometraje que marca hoy el auto.", "error")
+    elif km < km_actual(v):
+        flash(f"El auto ya tiene cargados {miles(km_actual(v))} km: el odómetro no puede bajar. "
+              "Si te equivocaste antes, corregí el registro o el km inicial.", "error")
+    else:
+        get_db().execute("UPDATE vehiculos SET km_manual = ?, km_manual_fecha = ? WHERE id = ?",
+                         (km, date.today().isoformat(), vid))
+        get_db().commit()
+        flash(f"Odómetro actualizado: {miles(km)} km.", "ok")
+    return redirect(url_for("vehiculo", vid=vid))
+
+
 @app.route("/vehiculo/<int:vid>/editar", methods=["GET", "POST"])
 @requiere_login
 def vehiculo_editar(vid):

@@ -99,7 +99,7 @@ TERMINOS = {
           "una copia de los datos desde «Mi cuenta»."]),
         ("10. Enlaces y servicios de terceros",
          ["El Sitio puede incluir enlaces o botones que llevan a servicios de terceros (por ejemplo, para enviar un link por "
-          "WhatsApp) y se apoya en proveedores como el servicio de alojamiento y la red de distribución de logos de marcas. "
+          "WhatsApp) y se apoya en un proveedor de alojamiento. "
           "El Responsable no controla ni responde por su contenido, disponibilidad ni prácticas de privacidad."]),
         ("11. Disponibilidad del servicio y copias de seguridad",
          ["El servicio se presta «tal como está», de forma gratuita y según disponibilidad. El Responsable no garantiza el "
@@ -176,10 +176,8 @@ PRIVACIDAD = {
          ["**Alojamiento:** el Sitio y la base de datos se alojan en los servidores de **PythonAnywhere** (PythonAnywhere LLP), "
           "que pueden estar ubicados fuera de la Argentina. Al crear una cuenta, el usuario presta su consentimiento expreso a ese "
           "alojamiento.",
-          "**Logos de marcas:** para mostrar el logo de la marca de un vehículo, el navegador lo descarga de la red de distribución "
-          "**jsDelivr** (cdn.jsdelivr.net), que puede recibir datos técnicos de la conexión, como la dirección IP, pero no "
-          "información de la cuenta ni de los vehículos más allá de la marca solicitada. Las tipografías y los modelos 3D se "
-          "sirven desde el propio Sitio.",
+          "**Sin servicios externos en el Sitio:** los logos de marcas, las tipografías y los modelos 3D se sirven desde "
+          "el propio Sitio, así que al navegar no se envía ningún dato a otros servidores.",
           "**WhatsApp:** el botón para enviar un link solo abre WhatsApp con el mensaje; la información se entrega a ese servicio "
           "únicamente si el usuario decide enviarla. El tratamiento posterior se rige por la política de privacidad del tercero."]),
         ("6. Seguridad",
