@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Editar registro' if r.id else 'Nuevo registro' }}{% endblock %}
 {% block content %}
-<a class="back" href="{{ url_for('vehiculo', vid=v.id) }}">← {{ nombre_auto(v) }}</a>
+<a class="back" href="{{ url_for('vehiculo', vid=v.id) }}"><svg class="back-flecha" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>{{ nombre_auto(v) }}</span></a>
 <section class="card form-card">
   <h1>{{ 'Editar registro' if r.id else 'Nuevo registro' }}</h1>
   <form method="post" class="form" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{ csrf_token() }}">

@@ -153,14 +153,20 @@ main.wrap { padding-top: 30px; padding-bottom: 48px; min-height: calc(100vh - 15
 .title-main h1 { min-width: 0; overflow-wrap: anywhere; }
 .notes { margin: .6rem 0 0; color: var(--muted); white-space: pre-line; max-width: 60ch; }
 .back {
-  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px;
-  padding: 7px 18px 7px 16px; background: var(--surface-3); color: var(--text);
-  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-  font-family: var(--display); font-size: .92rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .08em;
-  transition: background .15s, color .15s;
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; min-height: 40px;
+  padding: 8px 18px 8px 10px; background: var(--surface-3); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: var(--display); font-size: .95rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; max-width: 100%;
+  transition: background .15s, border-color .15s, transform .15s;
 }
-.back:hover { text-decoration: none; background: var(--accent); color: #fff; }
+.back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.back-flecha { flex: none; color: var(--accent); transition: transform .15s, color .15s; }
+.back:hover { text-decoration: none; background: #2c3139; border-color: #3a3f48; }
+.back:hover .back-flecha { transform: translateX(-3px); }
+.back:active { transform: translateY(1px); }
+.back:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: none; }
+@media print { .back { display: none; } }
 
 /* Patentes: <span class="plate plate-…"><b>AB 123 CD</b></span>. Todo en em,
    así escalan con el font-size del lugar donde se muestran. */
