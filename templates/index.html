@@ -74,6 +74,7 @@
     <summary aria-label="Opciones de {{ nombre_auto(v) }}" title="Opciones"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg></summary>
     <div class="car-menu-lista" role="menu">
       <a role="menuitem" href="{{ url_for('vehiculo_editar', vid=v.id) }}">✏️ Editar datos</a>
+      <a role="menuitem" href="{{ url_for('compartir', vid=v.id) }}">🔗 {{ 'Link para compartir (activo)' if v.share_token else 'Compartir (link de solo lectura)' }}</a>
       <a role="menuitem" href="{{ url_for('transferir', vid=v.id) }}">🔑 Transferir a otra cuenta</a>
       <form method="post" action="{{ url_for('vehiculo_eliminar', vid=v.id) }}" data-confirmar="Se borrará {{ nombre_auto(v) }} con TODOS sus registros y archivos. No se puede deshacer. ¿Continuar?"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <button role="menuitem" type="submit" class="car-menu-borrar">🗑️ Eliminar vehículo</button>
