@@ -427,9 +427,9 @@ input:focus, textarea:focus {
 textarea { resize: vertical; }
 input[type="date"] { color-scheme: dark; }
 
-/* Cada opción mide lo que su texto y estira hasta completar el renglón: nunca se parte en dos líneas. */
-.cat-picker { display: flex; flex-wrap: wrap; gap: 8px; }
-.cat-option { cursor: pointer; flex: 1 1 auto; white-space: nowrap; }
+/* Dos bloques de 8 botones iguales (4 por fila; 2 en el celular), con nombre corto y una ayuda abajo. */
+.cat-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.cat-option { cursor: pointer; min-width: 0; }
 .cat-option input { position: absolute; opacity: 0; pointer-events: none; }
 .cat-option span {
   display: block; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border);
@@ -1634,3 +1634,14 @@ body::after { opacity: .12; }
 .elegir-auto-btn:hover { border-color: var(--accent); background: var(--surface-3); text-decoration: none; }
 .elegir-auto-btn strong { flex: 1; font-family: var(--display); font-size: 1.15rem; letter-spacing: .03em; text-transform: uppercase; }
 .elegir-auto-btn small { color: var(--muted); font-family: var(--display); letter-spacing: .08em; }
+
+/* ---------- categorías del registro: botones parejos con ayuda ---------- */
+.cat-option span { display: flex; flex-direction: column; justify-content: center; gap: 2px; height: 100%; min-height: 58px; padding: 9px 12px; }
+.cat-option b { font-weight: 700; font-size: .98rem; line-height: 1.15; }
+.cat-option small {
+  font-family: "Inter", system-ui, sans-serif; font-weight: 400; font-size: .74rem; letter-spacing: 0; text-transform: none;
+  color: var(--muted); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cat-option input:checked + span small { color: var(--text); opacity: .8; }
+.categoria-grupo { font-family: var(--display); font-weight: 700; font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; }
+@media (max-width: 560px) { .cat-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

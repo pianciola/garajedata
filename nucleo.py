@@ -60,29 +60,44 @@ app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", S
                   MAX_CONTENT_LENGTH=45 * 1024 * 1024)
 
 CATEGORIAS = {
-    "combustible": "Combustible",
-    "control": "Control / Service",
-    "fluidos": "Cambio de fluidos",
-    "piezas": "Cambio de piezas",
-    "accesorios": "Accesorios y modificaciones",
+    # Mantenimiento
+    "control": "Service",
+    "fluidos": "Aceite y fluidos",
+    "piezas": "Repuestos",
     "neumaticos": "Neumáticos",
-    "chapa": "Chapa y pintura",
     "reparacion": "Reparación",
-    "lavado": "Lavado y estética",
+    "chapa": "Chapa y pintura",
+    "accesorios": "Accesorios",
+    "lavado": "Lavado",
+    # Gastos y papeles
+    "combustible": "Combustible",
     "seguro": "Seguro",
     "patente": "Patente",
     "vtv": "VTV / RTO",
-    "estacionamiento": "Estacionamiento y cochera",
-    "peajes": "Peajes",
+    "estacionamiento": "Cochera y peajes",
     "multas": "Multas",
-    "tramites": "Trámites y transferencias",
+    "tramites": "Trámites",
     "otro": "Otro",
 }
 
+# Ayuda corta debajo de cada botón del formulario.
+AYUDA_CATEGORIAS = {
+    "control": "Revisión, diagnóstico", "fluidos": "Aceite, refrigerante",
+    "piezas": "Filtros, pastillas, batería", "neumaticos": "Cubiertas, alineación",
+    "reparacion": "Algo que se rompió", "chapa": "Choques, rayones",
+    "accesorios": "Audio, alarma, mejoras", "lavado": "Lavado, pulido",
+    "combustible": "Nafta, diésel, GNC", "seguro": "Cuota o póliza",
+    "patente": "Impuesto automotor", "vtv": "Verificación técnica",
+    "estacionamiento": "Estacionamiento, peajes", "multas": "Infracciones",
+    "tramites": "Transferencia, gestoría", "otro": "Lo que no entra arriba",
+}
+
+# Categorías que ya no existen y en cuál quedaron (registros viejos y copias importadas).
+CATEGORIAS_VIEJAS = {"modificacion": "accesorios", "peajes": "estacionamiento"}
+
 GRUPOS_CATEGORIAS = (
-    ("Mantenimiento y cuidado", ("control", "fluidos", "piezas", "neumaticos", "reparacion", "chapa", "accesorios", "lavado")),
-    ("Gastos y papeles", ("combustible", "seguro", "patente", "vtv", "estacionamiento", "peajes", "multas", "tramites")),
-    ("Otro", ("otro",)),
+    ("Mantenimiento", ("control", "fluidos", "piezas", "neumaticos", "reparacion", "chapa", "accesorios", "lavado")),
+    ("Gastos y papeles", ("combustible", "seguro", "patente", "vtv", "estacionamiento", "multas", "tramites", "otro")),
 )
 
 TRANSMISIONES = {"manual": "Manual", "automatica": "Automática"}
@@ -231,7 +246,8 @@ def init_db():
             CREATE INDEX IF NOT EXISTS ix_archivos_vehiculo ON archivos(vehiculo_id, registro_id);
         """)
         # Unificar las categorías anteriores sin perder registros ni adjuntos.
-        db.execute("UPDATE registros SET categoria = 'accesorios' WHERE categoria = 'modificacion'")
+        for vieja, nueva in CATEGORIAS_VIEJAS.items():
+            db.execute("UPDATE registros SET categoria = ? WHERE categoria = ?", (nueva, vieja))
         # Marcas y modelos escritos a mano ("ford") pasan a su forma del catálogo ("Ford").
         for vid, marca, modelo in db.execute("SELECT id, marca, modelo FROM vehiculos").fetchall():
             m = canon_marca(marca)
@@ -366,7 +382,7 @@ def requiere_login(view):
 def inject_globals():
     return {"csrf_token": csrf_token, "lim": limites_fecha(), "csp_nonce": g.get("csp_nonce", ""),
             "can_edit": g.get("usuario") is not None, "usuario": g.get("usuario"),
-            "CATEGORIAS": CATEGORIAS, "GRUPOS_CATEGORIAS": GRUPOS_CATEGORIAS,
+            "CATEGORIAS": CATEGORIAS, "GRUPOS_CATEGORIAS": GRUPOS_CATEGORIAS, "AYUDA_CATEGORIAS": AYUDA_CATEGORIAS,
             "CARROCERIAS": CARROCERIAS, "COLORES": COLORES, "TRANSMISIONES": TRANSMISIONES,
             "COMBUSTIBLES": COMBUSTIBLES, "FRENOS": FRENOS, "USOS": USOS, "HECHO_POR": HECHO_POR,
             "DOCUMENTOS": DOCUMENTOS, "REPETICIONES": REPETICIONES, "BOVEDA": archivos.BOVEDA,
@@ -651,6 +667,12 @@ def texto(campo, largo):
     return request.form.get(campo, "").strip()[:largo]
 
 
+def categoria_valida(categoria):
+    """La categoría tal cual si existe, la nueva si es una de las que se fusionaron, y si no «otro»."""
+    categoria = CATEGORIAS_VIEJAS.get(categoria, categoria)
+    return categoria if categoria in CATEGORIAS else "otro"
+
+
 def datos_registro_form():
     f = request.form
     hecho_por = f.get("hecho_por") if f.get("hecho_por") in HECHO_POR else None
@@ -658,7 +680,7 @@ def datos_registro_form():
         # el trabajo ya se hizo: no puede ser de una fecha futura
         "fecha": to_fecha(f.get("fecha"), maximo=date.today()) or date.today().isoformat(),
         "km": to_int(f.get("km")),
-        "categoria": "accesorios" if f.get("categoria") == "modificacion" else (f.get("categoria") if f.get("categoria") in CATEGORIAS else "otro"),
+        "categoria": categoria_valida(f.get("categoria")),
         "titulo": texto("titulo", 120),
         "detalle": texto("detalle", 4000),
         "costo": to_float(f.get("costo")),

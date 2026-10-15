@@ -13,7 +13,7 @@
         {% for key in claves %}
         <label class="cat-option cat-{{ key }}">
           <input type="radio" name="categoria" value="{{ key }}" {% if r.categoria == key %}checked{% endif %}>
-          <span>{{ CATEGORIAS[key] }}</span>
+          <span><b>{{ CATEGORIAS[key] }}</b><small>{{ AYUDA_CATEGORIAS[key] }}</small></span>
         </label>
         {% endfor %}
       </div>

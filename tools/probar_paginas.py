@@ -465,11 +465,11 @@ esperar("selector rechaza auto ajeno", c.get("/registro/nuevo?vid=1"), 404)
 esperar("carga rápida retirada", c.post("/cargar", data={"vid":"3", "tipo":"combustible"}), 405)
 esperar("registro único", c.get("/vehiculo/3/registro/nuevo"), 200)
 html = c.get('/vehiculo/3/registro/nuevo').get_data(as_text=True)
-if 'Chapa y pintura' not in html or 'Neumáticos' not in html or 'Accesorios y modificaciones' not in html or 'value="modificacion"' in html:
+if 'Chapa y pintura' not in html or 'Neumáticos' not in html or 'Accesorios' not in html or 'value="modificacion"' in html:
     fallas.append('las categorías del formulario único no están reorganizadas')
 if not html.index('Gastos y papeles') < html.index('value="combustible"'):
     fallas.append('combustible debe pertenecer a gastos y papeles')
-for tipo in ('combustible','seguro','patente','vtv','estacionamiento','peajes','lavado','accesorios','multas','tramites','neumaticos','chapa'):
+for tipo in ('combustible','seguro','patente','vtv','estacionamiento','lavado','accesorios','multas','tramites','neumaticos','chapa'):
     esperar('registro '+tipo, c.post('/vehiculo/3/registro/nuevo', data={'titulo':'Prueba '+tipo,'categoria':tipo,'costo':'1.200,50','fecha':date.today().isoformat()}), 302)
     with sqlite3.connect(DB) as db:
         dato = db.execute('SELECT categoria,costo FROM registros WHERE vehiculo_id=3 ORDER BY id DESC LIMIT 1').fetchone()
@@ -480,13 +480,25 @@ for tipo in ('combustible','seguro','patente','vtv','estacionamiento','peajes','
 # Las categorías antiguas se fusionan sin borrar contenido, y la migración es repetible.
 with sqlite3.connect(DB) as db:
     antiguo = db.execute("INSERT INTO registros (vehiculo_id,fecha,categoria,titulo,costo) VALUES (3,?,'modificacion','Polarizado anterior',1234)", (date.today().isoformat(),)).lastrowid
+    peaje = db.execute("INSERT INTO registros (vehiculo_id,fecha,categoria,titulo,costo) VALUES (3,?,'peajes','Peaje ruta 2',900)", (date.today().isoformat(),)).lastrowid
 nucleo.init_db()
 nucleo.init_db()
 with sqlite3.connect(DB) as db:
     if db.execute('SELECT categoria,titulo,costo FROM registros WHERE id=?',(antiguo,)).fetchone() != ('accesorios','Polarizado anterior',1234):
         fallas.append('la fusión de categorías alteró el registro anterior')
+    if db.execute('SELECT categoria,titulo,costo FROM registros WHERE id=?',(peaje,)).fetchone() != ('estacionamiento','Peaje ruta 2',900):
+        fallas.append('los peajes viejos no pasaron a «Cochera y peajes»')
+# Una categoría vieja enviada por el formulario se guarda en la nueva; una inventada, en «Otro».
+for enviada, guardada in (('peajes', 'estacionamiento'), ('modificacion', 'accesorios'), ('<script>', 'otro')):
+    c.post('/vehiculo/3/registro/nuevo', data={'titulo': 'Cat ' + enviada, 'categoria': enviada, 'fecha': date.today().isoformat()})
+    with sqlite3.connect(DB) as db:
+        if db.execute('SELECT categoria FROM registros WHERE vehiculo_id=3 ORDER BY id DESC LIMIT 1').fetchone()[0] != guardada:
+            fallas.append(f'la categoría enviada {enviada} no se guardó como {guardada}')
+html = c.get('/vehiculo/3/registro/nuevo').get_data(as_text=True)
+if html.count('class="cat-option') != 16 or 'value="peajes"' in html or 'Lo que no entra arriba' not in html:
+    fallas.append('el formulario no muestra las 16 categorías ordenadas con su ayuda')
 html = c.get('/vehiculo/3/estadisticas').get_data(as_text=True)
-if 'Chapa y pintura' not in html or 'Neumáticos' not in html or 'Accesorios y modificaciones' not in html:
+if 'Chapa y pintura' not in html or 'Neumáticos' not in html or 'Accesorios' not in html:
     fallas.append('las categorías nuevas no aparecen en gastos')
 
 from rutas.estadisticas import resumen_gastos
