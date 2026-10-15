@@ -64,9 +64,10 @@ CATEGORIAS = {
     "control": "Control / Service",
     "fluidos": "Cambio de fluidos",
     "piezas": "Cambio de piezas",
-    "accesorios": "Cambio de accesorios",
+    "accesorios": "Accesorios y modificaciones",
+    "neumaticos": "Neumáticos",
+    "chapa": "Chapa y pintura",
     "reparacion": "Reparación",
-    "modificacion": "Modificación",
     "lavado": "Lavado y estética",
     "seguro": "Seguro",
     "patente": "Patente",
@@ -79,8 +80,8 @@ CATEGORIAS = {
 }
 
 GRUPOS_CATEGORIAS = (
-    ("Mantenimiento y cuidado", ("control", "combustible", "fluidos", "piezas", "reparacion", "accesorios", "modificacion", "lavado")),
-    ("Gastos y papeles", ("seguro", "patente", "vtv", "estacionamiento", "peajes", "multas", "tramites")),
+    ("Mantenimiento y cuidado", ("control", "fluidos", "piezas", "neumaticos", "reparacion", "chapa", "accesorios", "lavado")),
+    ("Gastos y papeles", ("combustible", "seguro", "patente", "vtv", "estacionamiento", "peajes", "multas", "tramites")),
     ("Otro", ("otro",)),
 )
 
@@ -229,6 +230,8 @@ def init_db():
             CREATE INDEX IF NOT EXISTS ix_registros_vehiculo ON registros(vehiculo_id, fecha);
             CREATE INDEX IF NOT EXISTS ix_archivos_vehiculo ON archivos(vehiculo_id, registro_id);
         """)
+        # Unificar las categorías anteriores sin perder registros ni adjuntos.
+        db.execute("UPDATE registros SET categoria = 'accesorios' WHERE categoria = 'modificacion'")
         # Marcas y modelos escritos a mano ("ford") pasan a su forma del catálogo ("Ford").
         for vid, marca, modelo in db.execute("SELECT id, marca, modelo FROM vehiculos").fetchall():
             m = canon_marca(marca)
@@ -655,7 +658,7 @@ def datos_registro_form():
         # el trabajo ya se hizo: no puede ser de una fecha futura
         "fecha": to_fecha(f.get("fecha"), maximo=date.today()) or date.today().isoformat(),
         "km": to_int(f.get("km")),
-        "categoria": f.get("categoria") if f.get("categoria") in CATEGORIAS else "otro",
+        "categoria": "accesorios" if f.get("categoria") == "modificacion" else (f.get("categoria") if f.get("categoria") in CATEGORIAS else "otro"),
         "titulo": texto("titulo", 120),
         "detalle": texto("detalle", 4000),
         "costo": to_float(f.get("costo")),

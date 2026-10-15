@@ -98,6 +98,8 @@ def importar_zip(contenido):
                         continue
                     fr["titulo"] = fr["titulo"][:120]
                     fr["fecha"] = fr.get("fecha") or date.today().isoformat()
+                    if fr.get("categoria") == "modificacion":
+                        fr["categoria"] = "accesorios"
                     if fr.get("categoria") not in CATEGORIAS:
                         fr["categoria"] = "otro"
                     if fr.get("hecho_por") not in HECHO_POR:

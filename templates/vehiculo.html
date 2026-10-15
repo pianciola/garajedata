@@ -26,12 +26,11 @@
     {% if v.notas %}<p class="notes">{{ v.notas }}</p>{% endif %}
   <div class="acciones-auto">
     {% if can_edit %}
-    <a class="btn btn-primary accion-principal" href="{{ url_for('carga_rapida', vid=v.id) }}">
+    <a class="btn btn-primary accion-principal" href="{{ url_for('registro_nuevo', vid=v.id) }}">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-      Cargar gasto o service
+      Nuevo registro
     </a>
     {% endif %}
-    <a class="registro-completo" href="{{ url_for('registro_nuevo', vid=v.id) }}">Registro completo: facturas y próximos controles →</a>
     <nav class="acciones-grilla" aria-label="Acciones del vehículo">
       {% if can_edit %}
       <a class="accion" href="{{ url_for('vehiculo_editar', vid=v.id) }}">

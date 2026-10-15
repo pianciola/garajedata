@@ -1,61 +1,27 @@
 """Registros de mantenimiento: alta, edición y baja."""
 from nucleo import *  # noqa: F401,F403
 
-RAPIDOS = {
-    "service": ("Service", "control"),
-    "combustible": ("Carga de combustible", "combustible"),
-    "aceite": ("Cambio de aceite y filtro", "fluidos"),
-    "neumaticos": ("Neumáticos", "piezas"),
-    "reparacion": ("Reparación", "reparacion"),
-    "accesorios": ("Accesorios", "accesorios"),
-    "lavado": ("Lavado y estética", "lavado"),
-    "seguro": ("Seguro", "seguro"),
-    "patente": ("Patente", "patente"),
-    "vtv": ("VTV / RTO", "vtv"),
-    "estacionamiento": ("Estacionamiento y cochera", "estacionamiento"),
-    "peajes": ("Peajes", "peajes"),
-    "multas": ("Multas", "multas"),
-    "tramites": ("Trámites y transferencias", "tramites"),
-    "otro": ("Otro gasto", "otro"),
-}
-
-GRUPOS_RAPIDOS = (
-    ("Mantenimiento y cuidado", ("service", "combustible", "neumaticos", "reparacion", "accesorios", "lavado")),
-    ("Gastos y papeles", ("seguro", "patente", "vtv", "estacionamiento", "peajes", "multas", "tramites")),
-)
-
-
-@app.route("/cargar", methods=["GET", "POST"])
+@app.get("/cargar")
 @requiere_login
 def carga_rapida():
+    """Compatibilidad con enlaces anteriores al formulario único."""
+    return redirect(url_for("elegir_registro", vid=request.args.get("vid")))
+
+
+@app.get("/registro/nuevo")
+@requiere_login
+def elegir_registro():
+    elegido = to_int(request.args.get("vid"))
+    if elegido is not None:
+        v = get_vehiculo(elegido)
+        return redirect(url_for("registro_nuevo", vid=v["id"]))
     vehiculos = get_db().execute("SELECT * FROM vehiculos WHERE usuario_id = ? ORDER BY orden, id",
                                  (g.usuario["id"],)).fetchall()
-    elegido = to_int(request.form.get("vid") if request.method == "POST" else request.args.get("vid"))
-    v = get_vehiculo(elegido) if elegido is not None else None
     if not vehiculos:
-        flash("Agregá un vehículo para cargar su primer gasto o service.", "ok")
         return redirect(url_for("vehiculo_nuevo"))
-    if request.method == "POST":
-        if v is None:
-            flash("Elegí el vehículo.", "error")
-        elif request.form.get("tipo") not in RAPIDOS:
-            flash("Elegí qué querés cargar.", "error")
-        elif request.form.get("costo", "").strip() and to_float(request.form.get("costo")) is None:
-            flash("Revisá el importe del gasto.", "error")
-        else:
-            titulo, categoria = RAPIDOS[request.form["tipo"]]
-            if request.form["tipo"] == "service" and request.form.get("servicio") == "aceite":
-                titulo, categoria = RAPIDOS["aceite"]
-            d = datos_registro_form()
-            d.update(vehiculo_id=v["id"], titulo=d["titulo"] or titulo, categoria=categoria)
-            get_db().execute("""INSERT INTO registros
-                (vehiculo_id,fecha,km,categoria,titulo,costo,detalle,taller,hecho_por,prox_km,prox_fecha)
-                VALUES (:vehiculo_id,:fecha,:km,:categoria,:titulo,:costo,:detalle,:taller,:hecho_por,:prox_km,:prox_fecha)""", d)
-            get_db().commit()
-            flash("Listo, guardado en la bitácora.", "ok")
-            return redirect(url_for("vehiculo", vid=v["id"]))
-    return render_template("carga_rapida.html", vehiculos=vehiculos, v=v, rapidos=RAPIDOS, grupos_rapidos=GRUPOS_RAPIDOS,
-                           hoy=date.today().isoformat(), elegido=elegido)
+    if len(vehiculos) == 1:
+        return redirect(url_for("registro_nuevo", vid=vehiculos[0]["id"]))
+    return render_template("registro_vehiculo.html", vehiculos=vehiculos)
 
 
 @app.route("/vehiculo/<int:vid>/registro/nuevo", methods=["GET", "POST"])

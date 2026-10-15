@@ -19,7 +19,7 @@
     {% endif %}
   </div>
   {% if can_edit %}
-    <div class="hero-actions">{% if vehiculos %}<a class="btn btn-primary" href="{{ url_for('carga_rapida') }}">+ Cargar gasto o service</a>{% endif %}
+    <div class="hero-actions">{% if vehiculos %}<a class="btn btn-primary" href="{{ url_for('elegir_registro') }}">+ Nuevo registro</a>{% endif %}
     <a class="btn btn-ghost" href="{{ url_for('vehiculo_nuevo') }}">Agregar vehículo</a>
     <a class="btn btn-ghost" href="{{ url_for('agenda') }}">Ver calendario →</a></div>
   {% endif %}

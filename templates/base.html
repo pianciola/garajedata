@@ -55,8 +55,8 @@
     {% endwith %}
     {% block content %}{% endblock %}
   </main>
-  {% if usuario and request.endpoint not in ('carga_rapida', 'registro_nuevo', 'registro_editar', 'vehiculo_nuevo', 'vehiculo_editar') %}
-  <a class="carga-flotante no-print" href="{{ url_for('carga_rapida', vid=v.id if v is defined and v else none) }}">+ Cargar gasto o service</a>
+  {% if usuario and request.endpoint not in ('elegir_registro', 'carga_rapida', 'registro_nuevo', 'registro_editar', 'vehiculo_nuevo', 'vehiculo_editar') %}
+  <a class="carga-flotante no-print" href="{{ url_for('elegir_registro', vid=v.id if v is defined and v else none) }}">+ Nuevo registro</a>
   <script src="{{ url_for('static', filename='carga-acceso.js') }}"></script>
   {% endif %}
 

@@ -460,36 +460,33 @@ esperar("recibir form", c.get("/recibir"), 200)
 esperar("código de transferencia malo", c.post("/recibir", data={"codigo": "AAAA-BBBB-CCCC"}), 200)
 esperar("recibir auto", c.post("/recibir", data={"codigo": cod_transfer.lower()}), 302)
 esperar("auto recibido", c.get("/vehiculo/3"), 200)
-esperar("carga rápida form", c.get("/cargar?vid=3"), 200)
-esperar("carga rápida ajena", c.post("/cargar", data={"vid":"1", "tipo":"combustible"}), 404)
-esperar("carga rápida tipo inválido", c.post("/cargar", data={"vid":"3", "tipo":"inventado"}), 200)
-with sqlite3.connect(DB) as db:
-    antes = db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id=3").fetchone()[0]
-esperar("carga rápida importe inválido", c.post("/cargar", data={"vid":"3", "tipo":"combustible", "costo":"nan"}), 200)
-esperar("carga rápida respeta auto elegido sobre URL", c.post("/cargar?vid=1", data={"vid":"3", "tipo":"combustible", "costo":"25.000,50", "fecha":date.today().isoformat(), "km":"150000"}), 302)
-with sqlite3.connect(DB) as db:
-    r = db.execute("SELECT categoria,costo,titulo FROM registros WHERE vehiculo_id=3 ORDER BY id DESC LIMIT 1").fetchone()
-    if r != ('combustible',25000.5,'Carga de combustible') or db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id=3").fetchone()[0] != antes+1:
-        fallas.append("la carga rápida no guardó correctamente o guardó un importe inválido")
-
-html = c.get('/cargar?vid=3').get_data(as_text=True)
-if 'Mantenimiento y cuidado' not in html or 'Gastos y papeles' not in html or 'name="tipo" value="aceite"' in html or 'name="servicio"' not in html:
-    fallas.append('la carga rápida no organiza las categorías y el atajo de Service')
-for tipo in ('seguro','patente','vtv','estacionamiento','peajes','lavado','accesorios','multas','tramites'):
-    esperar('carga rápida '+tipo, c.post('/cargar', data={'vid':'3','tipo':tipo,'costo':'1.200,50','fecha':date.today().isoformat()}), 302)
+esperar("enlace anterior abre registro", c.get("/cargar?vid=3"), 302)
+esperar("selector rechaza auto ajeno", c.get("/registro/nuevo?vid=1"), 404)
+esperar("carga rápida retirada", c.post("/cargar", data={"vid":"3", "tipo":"combustible"}), 405)
+esperar("registro único", c.get("/vehiculo/3/registro/nuevo"), 200)
+html = c.get('/vehiculo/3/registro/nuevo').get_data(as_text=True)
+if 'Chapa y pintura' not in html or 'Neumáticos' not in html or 'Accesorios y modificaciones' not in html or 'value="modificacion"' in html:
+    fallas.append('las categorías del formulario único no están reorganizadas')
+if not html.index('Gastos y papeles') < html.index('value="combustible"'):
+    fallas.append('combustible debe pertenecer a gastos y papeles')
+for tipo in ('combustible','seguro','patente','vtv','estacionamiento','peajes','lavado','accesorios','multas','tramites','neumaticos','chapa'):
+    esperar('registro '+tipo, c.post('/vehiculo/3/registro/nuevo', data={'titulo':'Prueba '+tipo,'categoria':tipo,'costo':'1.200,50','fecha':date.today().isoformat()}), 302)
     with sqlite3.connect(DB) as db:
         dato = db.execute('SELECT categoria,costo FROM registros WHERE vehiculo_id=3 ORDER BY id DESC LIMIT 1').fetchone()
         if dato != (tipo,1200.5):
             fallas.append('la categoría '+tipo+' no se conserva al guardar')
     if '1.200,50' not in c.get('/vehiculo/3?cat='+tipo).get_data(as_text=True):
         fallas.append('el filtro no incluye el gasto de '+tipo)
-esperar('atajo aceite dentro de Service', c.post('/cargar', data={'vid':'3','tipo':'service','servicio':'aceite'}),302)
+# Las categorías antiguas se fusionan sin borrar contenido, y la migración es repetible.
 with sqlite3.connect(DB) as db:
-    if db.execute('SELECT categoria,titulo FROM registros WHERE vehiculo_id=3 ORDER BY id DESC LIMIT 1').fetchone() != ('fluidos','Cambio de aceite y filtro'):
-        fallas.append('el atajo de aceite no se guarda como fluido')
-esperar('formulario completo con seguro', c.post('/vehiculo/3/registro/nuevo', data={'titulo':'Cuota de seguro','categoria':'seguro','costo':'2000'}),302)
+    antiguo = db.execute("INSERT INTO registros (vehiculo_id,fecha,categoria,titulo,costo) VALUES (3,?,'modificacion','Polarizado anterior',1234)", (date.today().isoformat(),)).lastrowid
+nucleo.init_db()
+nucleo.init_db()
+with sqlite3.connect(DB) as db:
+    if db.execute('SELECT categoria,titulo,costo FROM registros WHERE id=?',(antiguo,)).fetchone() != ('accesorios','Polarizado anterior',1234):
+        fallas.append('la fusión de categorías alteró el registro anterior')
 html = c.get('/vehiculo/3/estadisticas').get_data(as_text=True)
-if 'Seguro' not in html or 'Peajes' not in html or 'Trámites y transferencias' not in html:
+if 'Chapa y pintura' not in html or 'Neumáticos' not in html or 'Accesorios y modificaciones' not in html:
     fallas.append('las categorías nuevas no aparecen en gastos')
 
 from rutas.estadisticas import resumen_gastos
@@ -526,7 +523,7 @@ esperar("bloqueo", c.post("/login", data={"usuario": "ana", "clave": "abcdefgh"}
 app.config["CSRF_APAGADO"] = False
 c3 = app.test_client()
 esperar("registro sin token", c3.post("/registro", data={"acepto": "1", "usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 400)
-esperar("carga rápida sin token", c3.post("/cargar", data={"vid":"3", "tipo":"combustible"}), 400)
+esperar("registro sin token", c3.post("/vehiculo/3/registro/nuevo", data={"titulo":"Prueba", "categoria":"combustible"}), 400)
 tok = re.search(r'name="csrf" value="([^"]+)"', c3.get("/registro").get_data(as_text=True)).group(1)
 esperar("registro con token", c3.post("/registro", data={"acepto": "1", "csrf": tok, "usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 302)
 tok = re.search(r'<meta name="csrf" content="([^"]+)"', c3.get("/").get_data(as_text=True)).group(1)

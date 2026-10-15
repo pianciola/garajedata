@@ -5,6 +5,8 @@
   // Por eso "pérdida de aceite" cae en Reparación antes que en Fluidos.
   const REGLAS = [
     ["combustible", ["carga de nafta", "carga de combustible", "carga de gnc", "carga de diesel", "cargar nafta"]],
+    ["neumaticos", ["neumatico", "cubierta", "pinchadura", "parche", "alineacion", "balanceo", "rotacion", "gomero", "gomeria"]],
+    ["chapa", ["chapa", "pintura", "choque", "abolladura", "granizo", "rayon"]],
     ["reparacion", ["arreglo", "reparacion", "reparar", "perdida", "fuga", "rectific", "soldad", "chapa",
                     "choque", "abolladura", "falla", "ruido", "electricidad", "cortocircuito", "repar"]],
     ["seguro", ["seguro", "poliza"]],
@@ -19,12 +21,12 @@
                     "portaequipaje", "barras de techo", "camara", "sensor de estacionamiento", "alarma",
                     "enganche", "gancho", "matafuego", "baliza", "cargador", "soporte", "cobertor", "lona",
                     "dashcam", "gps", "botiquin", "toldo", "cofre"]],
-    ["modificacion", ["modificacion", "deportiv", "tuning", "reprogram", "remap", "chip", "stage",
+    ["accesorios", ["modificacion", "deportiv", "tuning", "reprogram", "remap", "chip", "stage",
                       "polarizad", "vinilo", "ploteo", "coilover", "rebaje", "admision",
                       "intercooler", "spoiler", "aleron", "suspension regulable", "led", "xenon",
                       "downpipe", "llantas deportivas"]],
-    // Controles inconfundibles, antes de las piezas ("presión de neumáticos" es un control).
-    ["control", ["alineacion", "balanceo", "rotacion", "diagnostico", "escaneo", "presion"]],
+    // Los trabajos de neumáticos tienen su propia categoría.
+    ["control", ["diagnostico", "escaneo", "presion"]],
     ["fluidos", ["aceite", "refrigerante", "anticongelante", "liquido", "fluido", "atf", "valvulina",
                  "agua destilada", "lavaparabrisas", "aditivo", "gas del aire", "carga de aire"]],
     ["piezas", ["pastilla", "disco", "correa", "distribucion", "bujia", "bateria", "neumatico", "cubierta",

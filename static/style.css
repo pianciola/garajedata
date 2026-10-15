@@ -28,7 +28,6 @@
   --c-piezas: #9b7bff;
   --c-accesorios: #22c3c9;
   --c-reparacion: #f04438;
-  --c-modificacion: #22c55e;
   --c-otro: #8b93a1;
 }
 
@@ -393,15 +392,13 @@ main.wrap { padding-top: 30px; padding-bottom: 48px; min-height: calc(100vh - 15
 .cat-piezas, .badge-piezas { --cat: var(--c-piezas); }
 .cat-accesorios, .badge-accesorios { --cat: var(--c-accesorios); }
 .cat-reparacion, .badge-reparacion { --cat: var(--c-reparacion); }
-.cat-modificacion, .badge-modificacion { --cat: var(--c-modificacion); }
 .cat-otro, .badge-otro { --cat: var(--c-otro); }
-.chip-control, .chip-fluidos, .chip-piezas, .chip-accesorios, .chip-reparacion, .chip-modificacion, .chip-otro { border-left: 3px solid; }
+.chip-control, .chip-fluidos, .chip-piezas, .chip-accesorios, .chip-reparacion, .chip-otro { border-left: 3px solid; }
 .chip-control { border-left-color: var(--c-control); }
 .chip-fluidos { border-left-color: var(--c-fluidos); }
 .chip-piezas { border-left-color: var(--c-piezas); }
 .chip-accesorios { border-left-color: var(--c-accesorios); }
 .chip-reparacion { border-left-color: var(--c-reparacion); }
-.chip-modificacion { border-left-color: var(--c-modificacion); }
 .chip-otro { border-left-color: var(--c-otro); }
 
 /* ---------- formularios ---------- */
@@ -1567,7 +1564,6 @@ body::after { opacity: .12; }
 .perfil-auto .title-main h1 { font-size: clamp(2rem,3.6vw,3.2rem); line-height: 1.08; }
 .perfil-auto .title-row { gap: 16px; }
 .perfil-auto .notes { font-size: .86rem; max-height: 90px; overflow-y: auto; }
-.registro-completo { display: block; font-size: .78rem; margin: 10px 0 18px; }
 .stat-proximo strong { font-size: 1.15rem; white-space: normal; line-height: 1.2; overflow-wrap: anywhere; }
 .stat-proximo small, .stat-proximo a { display: block; color: var(--muted); font-size: .77rem; margin-top: 8px; }
 .stat > small { display: block; color: var(--muted); font-size: .74rem; margin-top: 8px; }
@@ -1586,12 +1582,6 @@ body::after { opacity: .12; }
 .historial-cabeza .eyebrow { margin-bottom: 6px; }
 .carga-flotante { display: none; }
 .carga-flotante.carga-oculta { visibility: hidden; pointer-events: none; }
-.rapidos-picker { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
-.rapido-opcion { cursor: pointer; position: relative; }
-.rapido-opcion input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.rapido-opcion span { display: flex; align-items: center; justify-content: center; min-height: 58px; text-align: center; padding: 10px; border: 1px solid var(--border-strong); border-radius: 10px; font-size: .88rem; }
-.rapido-opcion input:checked + span { color: var(--text); border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
-.rapido-opcion input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 3px; }
 .gasto-resumen { padding: 26px; margin-bottom: 18px; background: linear-gradient(120deg,rgb(var(--accent-rgb) / .065),transparent),var(--surface); }
 .comparacion-mes { display: flex; flex-wrap: wrap; gap: 24px 60px; margin: 22px 0; }
 .comparacion-mes span { display: block; color: var(--muted); font-size: .8rem; }
@@ -1611,16 +1601,12 @@ body::after { opacity: .12; }
   .perfil-seccion > summary { flex-wrap: wrap; gap: 6px; }
   .perfil-seccion > summary h2 { flex: 1; }
   .perfil-seccion > summary > span { flex-basis: 100%; order: 3; text-align: left; }
-  .rapidos-picker { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .carga-flotante { display: block; position: fixed; bottom: max(16px,env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 25; width: max-content; max-width: calc(100% - 32px); padding: 14px 24px; background: var(--accent); color: var(--on-accent); font-weight: 700; border: 1px solid rgb(255 255 255 / .16); border-radius: 999px; box-shadow: 0 8px 28px #0008; text-align: center; }
   body:has(.carga-flotante) { padding-bottom: 82px; }
   .cartel { bottom: 90px; }
 }
 @media print { .carga-flotante { display: none !important; } }
 
-.grupo-rapidos legend { margin-bottom: 10px; }
-.servicio-atajo { padding: 14px 16px; background: var(--accent-soft); border-left: 2px solid var(--accent); border-radius: 8px; }
-.rapido-otro { max-width: 220px; }
 .categoria-grupo { color: var(--muted); font-size: .8rem; margin: 16px 0 8px; }
 .cat-lavado, .badge-lavado, .chip-lavado { --cat: #50c8d5; }
 .cat-seguro, .badge-seguro, .chip-seguro { --cat: #8d9dff; }
@@ -1631,3 +1617,10 @@ body::after { opacity: .12; }
 .cat-multas, .badge-multas, .chip-multas { --cat: #f38e85; }
 .cat-tramites, .badge-tramites, .chip-tramites { --cat: #c8a2c5; }
 .chip-lavado, .chip-seguro, .chip-patente, .chip-vtv, .chip-estacionamiento, .chip-peajes, .chip-multas, .chip-tramites { border-left: 3px solid var(--cat); }
+
+.cat-neumaticos, .badge-neumaticos, .chip-neumaticos { --cat: #e0bd58; }
+.cat-chapa, .badge-chapa, .chip-chapa { --cat: #e58db3; }
+.badge-neumaticos, .badge-chapa { background: var(--cat); color: #111; }
+.entry.cat-neumaticos, .entry.cat-chapa { border-color: var(--cat); }
+.chip-neumaticos, .chip-chapa { border-left: 3px solid var(--cat); }
+.chip-neumaticos.active, .chip-chapa.active { background: color-mix(in srgb, var(--cat) 18%, var(--surface)); border-color: var(--cat); }
