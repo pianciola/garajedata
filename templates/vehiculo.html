@@ -152,7 +152,7 @@
   <div class="sin-dato">
     <p class="muted small">Para estimar estos services, cargá cuándo se hicieron por última vez:</p>
     <div class="sin-dato-chips">
-      {% for p in faltan %}<a class="chip" href="{{ url_for('registro_nuevo', vid=v.id, titulo=p.nombre, cat='fluidos' if p.clave in ('aceite', 'liquido_frenos', 'refrigerante') else ('control' if p.clave in ('alineacion', 'frenos') else 'piezas')) }}">+ {{ p.nombre }}</a>{% endfor %}
+      {% for p in faltan %}<a class="chip" href="{{ url_for('registro_nuevo', vid=v.id, titulo=p.nombre, cat='fluidos' if p.clave in ('aceite', 'liquido_frenos', 'refrigerante') else ('neumaticos' if p.clave in ('alineacion', 'neumaticos') else ('control' if p.clave == 'frenos' else 'piezas'))) }}">+ {{ p.nombre }}</a>{% endfor %}
     </div>
   </div>
   {% endif %}

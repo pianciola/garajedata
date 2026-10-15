@@ -3,10 +3,14 @@
 {% block content %}
 <section class="card form-card">
   <h1>Nuevo registro</h1>
-  <p class="muted">Elegí el vehículo para abrir su registro.</p>
-  <div class="form">
+  <p class="muted">¿De qué vehículo es?</p>
+  <div class="elegir-auto">
     {% for auto in vehiculos %}
-    <a class="btn btn-secondary" href="{{ url_for('registro_nuevo', vid=auto.id) }}">{{ nombre_auto(auto) }} · {{ auto.patente }}</a>
+    <a class="elegir-auto-btn" href="{{ url_for('registro_nuevo', vid=auto.id) }}">
+      {% if logo_marca(auto.marca) %}<img class="brand-logo{{ " logo-oscuro" if logo_oscuro(auto.marca) }}" src="{{ logo_marca(auto.marca) }}" alt="">{% endif %}
+      <strong>{{ nombre_auto(auto) }}</strong>
+      {% if auto.patente %}<small>{{ auto.patente }}</small>{% endif %}
+    </a>
     {% endfor %}
   </div>
 </section>
