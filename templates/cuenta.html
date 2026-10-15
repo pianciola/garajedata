@@ -8,7 +8,7 @@
 
   <div class="tabs" role="tablist" aria-label="Secciones de la cuenta">
     <button class="tab activa" type="button" role="tab" id="tab-seguridad" aria-controls="panel-seguridad" aria-selected="true" data-tab="seguridad">🔒 Seguridad</button>
-    <button class="tab" type="button" role="tab" id="tab-calendario" aria-controls="panel-calendario" aria-selected="false" data-tab="calendario">📅 Calendario</button>
+    <button class="tab" type="button" role="tab" id="tab-calendario" aria-controls="panel-calendario" aria-selected="false" data-tab="calendario">🔄 Sincronizar</button>
     <button class="tab" type="button" role="tab" id="tab-datos" aria-controls="panel-datos" aria-selected="false" data-tab="datos">📦 Mis datos</button>
   </div>
 
@@ -47,7 +47,7 @@
   </div>
 
   <div class="panel-tab" id="panel-calendario" role="tabpanel" aria-labelledby="tab-calendario" data-panel="calendario">
-    <p class="muted">Suscribite desde Google Calendar, el calendario del iPhone u Outlook y te llegan los próximos services y vencimientos como eventos, con aviso el día anterior. Se actualiza solo. También podés verlos en el <a href="{{ url_for('agenda') }}">calendario de la página</a>.</p>
+    <p class="muted">Pasá tus avisos al celular: suscribite desde Google Calendar, el calendario del iPhone u Outlook y te llegan los próximos services y vencimientos como eventos, con aviso el día anterior. Se actualiza solo. También podés verlos en el <a href="{{ url_for('agenda') }}">calendario de la página</a>.</p>
     {% if cal_link %}
     {% set webcal = cal_link|replace('https://', 'webcal://')|replace('http://', 'webcal://') %}
     <div class="cal-botones">
