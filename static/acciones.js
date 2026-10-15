@@ -68,3 +68,11 @@ document.querySelectorAll('input[type="password"]').forEach((campo) => {
   });
   envoltorio.appendChild(boton);
 });
+
+// Menú «⋯» de cada vehículo: se cierra al tocar afuera o con Escape (y solo uno abierto a la vez).
+document.addEventListener("click", (e) => {
+  document.querySelectorAll("details.car-menu[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; });
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") document.querySelectorAll("details.car-menu[open]").forEach((d) => { d.open = false; });
+});

@@ -1645,3 +1645,30 @@ body::after { opacity: .12; }
 .cat-option input:checked + span small { color: var(--text); opacity: .8; }
 .categoria-grupo { font-family: var(--display); font-weight: 700; font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; }
 @media (max-width: 560px) { .cat-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------- menú «⋯» de cada vehículo en el inicio ---------- */
+.car-card-wrap { position: relative; flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.car-card-wrap > .car-card { flex: 1; }
+.car-menu { position: absolute; top: 10px; right: 10px; z-index: 3; }
+.car-menu summary {
+  list-style: none; display: grid; place-items: center; width: 38px; height: 38px; cursor: pointer;
+  background: rgba(10, 11, 13, .72); color: var(--text); border: 1px solid rgba(255, 255, 255, .14); border-radius: 50%;
+  backdrop-filter: blur(6px); transition: background .15s, border-color .15s;
+}
+.car-menu summary::-webkit-details-marker { display: none; }
+.car-menu summary:hover, .car-menu[open] summary { background: var(--surface-3); border-color: var(--border-strong); }
+.car-menu summary:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.car-menu-lista {
+  position: absolute; top: calc(100% + 6px); right: 0; min-width: 220px; padding: 6px;
+  background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: 0 14px 34px rgba(0, 0, 0, .55);
+  animation: car-menu-in .14s ease-out;
+}
+@keyframes car-menu-in { from { opacity: 0; transform: translateY(-4px); } }
+.car-menu-lista a, .car-menu-lista button {
+  display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 6px; background: none;
+  color: var(--text); font: inherit; font-size: .92rem; text-align: left; cursor: pointer; white-space: nowrap;
+}
+.car-menu-lista a:hover, .car-menu-lista button:hover { background: var(--surface-3); text-decoration: none; }
+.car-menu-lista form { margin: 4px 0 0; padding-top: 4px; border-top: 1px solid var(--border); }
+.car-menu-borrar { color: var(--danger) !important; }
+.car-menu-borrar:hover { background: color-mix(in srgb, var(--danger) 14%, transparent) !important; }

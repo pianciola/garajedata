@@ -41,6 +41,7 @@
     <button type="button" class="btn btn-ghost" data-mover="1" aria-label="Mover después"><span class="orden-txt">Después</span> ▶</button>
   </div>
   {% set tema = tema_marca(v.marca) %}
+  <div class="car-card-wrap">
   <a class="card car-card{{ ' car-card-tema' if tema }}" href="{{ url_for('vehiculo', vid=v.id) }}"{% if tema %} style="{{ tema.estilo }}"{% endif %}>
     {% set al = alertas.get(v.id) %}
     {% if al and (al.vencido or al.pronto) %}
@@ -67,6 +68,19 @@
       </div>
     </dl>
   </a>
+  {% if can_edit %}
+  <details class="car-menu no-print">
+    <summary aria-label="Opciones de {{ nombre_auto(v) }}" title="Opciones"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg></summary>
+    <div class="car-menu-lista" role="menu">
+      <a role="menuitem" href="{{ url_for('vehiculo_editar', vid=v.id) }}">✏️ Editar datos</a>
+      <a role="menuitem" href="{{ url_for('transferir', vid=v.id) }}">🔑 Transferir a otra cuenta</a>
+      <form method="post" action="{{ url_for('vehiculo_eliminar', vid=v.id) }}" data-confirmar="Se borrará {{ nombre_auto(v) }} con TODOS sus registros y archivos. No se puede deshacer. ¿Continuar?"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <button role="menuitem" type="submit" class="car-menu-borrar">🗑️ Eliminar vehículo</button>
+      </form>
+    </div>
+  </details>
+  {% endif %}
+  </div>
   </div>
   {% endfor %}
 </div>
