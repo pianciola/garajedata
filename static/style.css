@@ -1754,3 +1754,21 @@ input[type="date"].fecha-invalida { border-color: var(--danger); box-shadow: 0 0
   background: var(--accent); color: var(--on-accent); font-family: "Inter", sans-serif; font-size: .8rem; font-weight: 800; line-height: 1;
 }
 .btn-auto:hover .btn-auto-ico { transform: translateX(3px); }
+
+/* ---------- tarjeta «Agregar vehículo» al final del garaje ---------- */
+.agregar-auto {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 240px;
+  padding: 24px; text-align: center; color: var(--muted); background: transparent;
+  border: 2px dashed var(--border-strong); box-shadow: none; transition: border-color .2s, color .2s, background .2s;
+}
+.agregar-auto:hover { border-color: var(--accent); color: var(--text); background: rgb(var(--accent-rgb) / .06); text-decoration: none; }
+.agregar-auto strong { font-family: var(--display); font-size: 1.35rem; letter-spacing: .04em; text-transform: uppercase; color: var(--text); }
+.agregar-auto small { font-size: .85rem; }
+.agregar-auto-ico { position: relative; color: var(--accent); margin-bottom: 4px; transition: transform .25s; }
+.agregar-auto-ico b {
+  position: absolute; top: -10px; right: -12px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent); font-family: "Inter", sans-serif; font-size: 1.1rem; font-weight: 800; line-height: 1;
+}
+.agregar-auto:hover .agregar-auto-ico { transform: translateX(6px); }
+.ordenando .agregar-auto { display: none; }
+@media (max-width: 720px) { .agregar-auto { min-height: 150px; } }
