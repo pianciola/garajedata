@@ -62,12 +62,12 @@
       </a>
     </div>
     <details class="acordeon">
-      <summary><span>Otro calendario o no funciona: copiar el link</span></summary>
+      <summary><span>Agregarlo a mano con el link</span></summary>
       <div class="codigo-box share-box">
         <code id="cal-link">{{ cal_link }}</code>
         <button class="btn btn-ghost btn-sm" type="button" data-copiar="#cal-link">Copiar</button>
       </div>
-      <p class="muted small">Pegalo en la opción «Suscribirse a un calendario / Añadir desde URL» de tu app.<br><b>Google Calendar</b> (a mano): «Otros calendarios» → «+» → «Desde URL».<br><b>iPhone</b> (a mano): Ajustes → Calendario → Cuentas → Añadir cuenta → Otra → «Añadir calendario suscrito».<br>Quien tenga el link ve tus fechas: no lo publiques.</p>
+      <p class="muted small">Sirve si usás otra app de calendario o si los botones no funcionan. Pegalo en la opción «Suscribirse a un calendario / Añadir desde URL» de tu app.<br><b>Google Calendar</b> (a mano): «Otros calendarios» → «+» → «Desde URL».<br><b>iPhone</b> (a mano): Ajustes → Calendario → Cuentas → Añadir cuenta → Otra → «Añadir calendario suscrito».<br>Quien tenga el link ve tus fechas: no lo publiques.</p>
       <form method="post" action="{{ url_for('calendario_link') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="quitar"><button class="btn btn-ghost btn-sm" type="submit">Desactivar link</button></form>
       <p class="muted small">Si lo desactivás, los calendarios donde lo agregaste dejan de actualizarse.</p>
     </details>
