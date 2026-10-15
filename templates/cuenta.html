@@ -53,13 +53,25 @@
       <code id="cal-link">{{ cal_link }}</code>
       <button class="btn btn-ghost btn-sm" type="button" data-copiar="#cal-link">Copiar</button>
     </div>
+    {% set webcal = cal_link|replace('https://', 'webcal://')|replace('http://', 'webcal://') %}
+    <p class="cal-agregar-titulo"><b>Agregalo con un toque:</b></p>
+    <div class="cal-botones">
+      <a class="cal-btn" href="https://calendar.google.com/calendar/r?cid={{ webcal|urlencode }}" target="_blank" rel="noopener">
+        <span class="cal-ico" aria-hidden="true">📅</span><span><strong>Google Calendar</strong><small>Se abre y solo confirmás</small></span>
+      </a>
+      <a class="cal-btn" href="{{ webcal }}">
+        <span class="cal-ico" aria-hidden="true"></span><span><strong>iPhone / Mac</strong><small>Calendario de Apple</small></span>
+      </a>
+      <a class="cal-btn" href="https://outlook.live.com/calendar/0/addfromweb?url={{ cal_link|urlencode }}&amp;name=GarajeData" target="_blank" rel="noopener">
+        <span class="cal-ico" aria-hidden="true">📨</span><span><strong>Outlook</strong><small>Outlook.com / Microsoft</small></span>
+      </a>
+    </div>
     <div class="share-actions">
-      <a class="btn btn-primary btn-sm" href="{{ cal_link|replace('https://', 'webcal://')|replace('http://', 'webcal://') }}">Abrir en mi calendario</a>
       <form method="post" action="{{ url_for('calendario_link') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="quitar"><button class="btn btn-ghost btn-sm" type="submit">Desactivar link</button></form>
     </div>
     <details class="acordeon">
-      <summary><span>¿Cómo lo agrego?</span></summary>
-      <p class="muted small"><b>Google Calendar:</b> en la compu, «Otros calendarios» → «+» → «Desde URL» y pegá el link.<br><b>iPhone:</b> Ajustes → Calendario → Cuentas → Añadir cuenta → Otra → «Añadir calendario suscrito».<br>Quien tenga el link ve tus fechas: no lo publiques.</p>
+      <summary><span>Otro calendario o no funciona</span></summary>
+      <p class="muted small">Copiá el link de arriba y pegalo en la opción «Suscribirse a un calendario / Añadir desde URL» de tu app.<br><b>Google Calendar</b> (a mano): «Otros calendarios» → «+» → «Desde URL».<br><b>iPhone</b> (a mano): Ajustes → Calendario → Cuentas → Añadir cuenta → Otra → «Añadir calendario suscrito».<br>Quien tenga el link ve tus fechas: no lo publiques.</p>
     </details>
     {% else %}
     <form method="post" action="{{ url_for('calendario_link') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
