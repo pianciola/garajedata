@@ -42,6 +42,7 @@ python app.py                  # local en http://127.0.0.1:5000
 - Capturas locales: Edge headless; no baja de ~500 px de ancho (usar iframe).
 - Tema por marca: `TEMAS` en `catalogo.py` (color, origen, año) → `tema_marca()`; `base.html` lo aplica al `<body>` cuando la página tiene un vehículo `v` (cambia `--accent`, `--accent-rgb`, `--on-accent`). Usar `rgb(var(--accent-rgb) / x)` en vez de rojos fijos. El rojo del logo de GarajeData no cambia.
 - Versión del auto: `equipamiento` (LT, LTZ, Ghia…; sugerencias en `EQUIPAMIENTOS` de `catalogo.py`) aparte de `version` (generación: MK1, J300…).
+- Administración: `/admin` (`rutas/admin.py`), solo cuentas con `usuarios.admin = 1` (a los demás les da 404). Muestra números y cuentas, nunca el contenido de los autos. Dar el rango en el servidor: `python3 tools/admin.py <usuario>` (`--quitar` para sacarlo).
 - Foto de perfil: `usuarios.foto` (`archivos.guardar_avatar`, 320 px sin metadatos), se ve solo en `/cuenta/foto`. Créditos (modelos 3D, logos, fuentes) en `/creditos`, enlazado desde el pie.
 - Logo propio: `static/img/logo-icono.png`, macro `templates/_logo.html`. Logos de marcas: `static/img/marcas/` (locales, sin CDN).
 - «Dato de garaje» del día (debajo de los autos): lista en `consejos.py` (500 entradas, ponderadas por categoría: consejos, datos curiosos y papeles). «Otro» saltea los ya vistos (localStorage + `/consejos/<desde>`). **Cada consejo es una responsabilidad**: verificar que sea cierto, que no dependa de una norma que pueda cambiar y que no invite a nada riesgoso.

@@ -156,6 +156,9 @@ PRIVACIDAD = {
           "para limitar la cantidad de cuentas nuevas que se crean desde una misma conexión y los intentos de ingreso; no se "
           "guarda en la base de datos. El servicio de alojamiento puede registrar datos técnicos de las conexiones (como IP, fecha, "
           "hora y navegador) en sus propios registros de seguridad y diagnóstico.",
+          "**Administración:** el responsable del Sitio puede ver la lista de cuentas (nombre de usuario, fecha de creación y "
+          "último día de uso) y cantidades de cada una (vehículos, registros y espacio ocupado), para mantener el servicio y "
+          "detectar abusos. **No ve el contenido** de los vehículos, registros ni archivos de cada usuario desde la aplicación.",
           "**No usamos** publicidad, herramientas de estadísticas de terceros, huellas digitales ni seguimiento del comportamiento "
           "de los usuarios."]),
         ("2. Cookies y almacenamiento en el dispositivo",

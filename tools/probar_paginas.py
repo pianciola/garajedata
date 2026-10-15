@@ -414,6 +414,30 @@ else:
             fallas.append("el pendiente no se borró")
 esperar("pendiente inexistente", c.post("/pendiente/999999/hecho"), 404)
 
+# Panel de administración: 404 para cualquiera que no sea admin; el admin ve números y cuentas, sin contenido
+esperar("admin sin sesión", app.test_client().get("/admin"), 404)
+esperar("admin sin rango", c.get("/admin"), 404)
+import subprocess  # noqa: E402
+cadm = app.test_client()
+cadm.post("/registro", data={"usuario": "jefa", "clave": "clave-123", "clave2": "clave-123", "acepto": "1"})
+salida = subprocess.run([sys.executable, os.path.join(RAIZ, "tools", "admin.py"), "jefa"], capture_output=True, text=True,
+                        env={**os.environ, "DB_PATH": DB}).stdout
+if "ahora es administrador" not in salida:
+    fallas.append(f"tools/admin.py no dio el rango: {salida!r}")
+html = esperar("admin con rango", cadm.get("/admin"), 200).get_data(as_text=True)
+if "Panel de control" not in html or "jefa" not in html or "noindex" not in cadm.get("/admin").headers.get("X-Robots-Tag", ""):
+    fallas.append("el panel de administración no muestra las cuentas o se puede indexar")
+if "AA 123 BC" in html or "Cambio de aceite" in html:
+    fallas.append("el panel de administración muestra contenido privado de los vehículos")
+if 'href="/admin"' not in cadm.get("/cuenta").get_data(as_text=True) or 'href="/admin"' in c.get("/cuenta").get_data(as_text=True):
+    fallas.append("el acceso al panel aparece donde no debe (o no aparece para el admin)")
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT actividad FROM usuarios WHERE usuario = 'jefa'").fetchone()[0] != date.today().isoformat():
+        fallas.append("no se anota la última actividad de la cuenta")
+subprocess.run([sys.executable, os.path.join(RAIZ, "tools", "admin.py"), "jefa", "--quitar"], capture_output=True,
+               env={**os.environ, "DB_PATH": DB})
+esperar("admin quitado", cadm.get("/admin"), 404)
+
 # Créditos en su propia página (pública), enlazada desde el pie; el pie ya no lista los modelos
 r = esperar("créditos", app.test_client().get("/creditos"), 200).get_data(as_text=True)
 if "Comrade1280" not in r or "car-logos-dataset" not in r or "Open Font License" not in r:

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Administración{% endblock %}
+{% macro peso(b) %}{{ '%.1f'|format(b / 1048576) }} MB{% endmacro %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}"><svg class="back-flecha" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Mis vehículos</span></a>
+<section class="hero">
+  <div>
+    <div class="eyebrow">Solo administradores</div>
+    <h1>Panel de control</h1>
+    <p class="muted">Números del sitio y cuentas. Por privacidad no se muestra el contenido de los vehículos ni los archivos de nadie.</p>
+  </div>
+</section>
+
+<div class="admin-kpis">
+  <div class="stat"><span>Usuarios</span><strong>{{ totales.usuarios }}</strong><small>{{ totales.activos_7 }} {{ 'activo' if totales.activos_7 == 1 else 'activos' }} esta semana · {{ totales.activos_30 }} en 30 días</small></div>
+  <div class="stat"><span>Vehículos</span><strong>{{ totales.vehiculos }}</strong><small>{{ totales.compartidos }} con link compartido</small></div>
+  <div class="stat"><span>Registros</span><strong>{{ totales.registros }}</strong><small>{{ totales.pendientes }} {{ 'pendiente' if totales.pendientes == 1 else 'pendientes' }} · {{ totales.gasto|plata }} cargados</small></div>
+  <div class="stat"><span>Archivos</span><strong>{{ totales.archivos }}</strong><small>{{ peso(totales.bytes) }} · {{ totales.calendarios }} {{ 'calendario sincronizado' if totales.calendarios == 1 else 'calendarios sincronizados' }}</small></div>
+</div>
+
+<div class="admin-grid">
+  <section class="card admin-card">
+    <h2>Cuentas nuevas por semana</h2>
+    <div class="admin-barras">
+      {% for s in semanas %}
+      <div class="admin-barra" title="{{ s.desde.strftime('%d/%m') }} – {{ s.hasta.strftime('%d/%m') }}: {{ s.n }}">
+        <b>{{ s.n }}</b><i style="height: {{ (s.n / tope * 100)|round|int }}%"></i><small>{{ s.hasta.strftime('%d/%m') }}</small>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  <section class="card admin-card">
+    <h2>Marcas más cargadas</h2>
+    {% if marcas %}<ol class="admin-lista">{% for m in marcas %}<li>{% if logo_marca(m.marca) %}<img class="brand-logo{{ ' logo-oscuro' if logo_oscuro(m.marca) }}" src="{{ logo_marca(m.marca) }}" alt="">{% endif %}<span>{{ m.marca }}</span><b>{{ m.n }}</b></li>{% endfor %}</ol>
+    {% else %}<p class="muted small">Todavía no hay vehículos.</p>{% endif %}
+  </section>
+  <section class="card admin-card">
+    <h2>Registros por tipo</h2>
+    {% if categorias %}<ol class="admin-lista">{% for nombre, n in categorias %}<li><span>{{ nombre }}</span><b>{{ n }}</b></li>{% endfor %}</ol>
+    {% else %}<p class="muted small">Todavía no hay registros.</p>{% endif %}
+  </section>
+  <section class="card admin-card">
+    <h2>Sistema</h2>
+    <dl class="admin-sistema">
+      <div><dt>Base de datos</dt><dd>{{ peso(sistema.base) }}</dd></div>
+      <div><dt>Archivos subidos</dt><dd>{{ peso(sistema.subidos) }} ({{ sistema.n_subidos }})</dd></div>
+      <div><dt>Respaldos diarios</dt><dd>{{ sistema.respaldos }}{% if sistema.ultimo_respaldo %} · último {{ sistema.ultimo_respaldo|fecha }}{% endif %}</dd></div>
+      <div><dt>Python</dt><dd>{{ sistema.python }}</dd></div>
+    </dl>
+  </section>
+</div>
+
+<section class="card admin-card admin-usuarios">
+  <h2>Cuentas <span class="muted">({{ usuarios|length }})</span></h2>
+  <div class="admin-tabla-wrap">
+    <table class="admin-tabla">
+      <thead><tr><th>Usuario</th><th>Creada</th><th>Última actividad</th><th>Autos</th><th>Registros</th><th>Pend.</th><th>Espacio</th><th>Extras</th></tr></thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td><b>{{ u.usuario }}</b>{% if u.admin %} <span class="tag-est">admin</span>{% endif %}</td>
+          <td>{{ (u.creado or '')[:10]|fecha }}</td>
+          <td>{% if u.dias is not none %}{{ 'hoy' if u.dias == 0 else ('ayer' if u.dias == 1 else (u.actividad|fecha)) }}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td>{{ u.vehiculos }}</td>
+          <td>{{ u.registros }}</td>
+          <td>{{ u.pendientes }}</td>
+          <td>{{ peso(u.bytes) if u.bytes else '—' }}</td>
+          <td class="muted">{{ ['📷' if u.con_foto, '📅' if u.con_calendario]|select|join(' ') or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small">📷 tiene foto de perfil · 📅 sincroniza el calendario. La actividad se anota una vez por día.</p>
+</section>
+{% endblock %}

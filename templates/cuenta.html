@@ -29,6 +29,7 @@
     </div>
   </div>
 
+  {% if usuario.admin %}<a class="btn btn-ghost btn-sm admin-acceso" href="{{ url_for('admin') }}">🛠️ Panel de administración</a>{% endif %}
   <div class="tabs" role="tablist" aria-label="Secciones de la cuenta">
     <button class="tab activa" type="button" role="tab" id="tab-seguridad" aria-controls="panel-seguridad" aria-selected="true" data-tab="seguridad">🔒 Seguridad</button>
     <button class="tab" type="button" role="tab" id="tab-calendario" aria-controls="panel-calendario" aria-selected="false" data-tab="calendario">🔄 Sincronizar</button>

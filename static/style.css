@@ -1772,3 +1772,31 @@ input[type="date"].fecha-invalida { border-color: var(--danger); box-shadow: 0 0
 .agregar-auto:hover .agregar-auto-ico { transform: translateX(6px); }
 .ordenando .agregar-auto { display: none; }
 @media (max-width: 720px) { .agregar-auto { min-height: 150px; } }
+
+/* ---------- panel de administración ---------- */
+.admin-acceso { margin: 4px 0 14px; }
+.admin-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.admin-kpis .stat small { display: block; margin-top: 4px; color: var(--muted); font-size: .78rem; }
+.admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
+.admin-card { padding: 18px; }
+.admin-card h2 { margin: 0 0 14px; font-size: 1.25rem; }
+.admin-barras { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; align-items: end; height: 150px; }
+.admin-barra { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+.admin-barra i { display: block; width: 100%; min-height: 3px; background: var(--accent); border-radius: 4px 4px 0 0; }
+.admin-barra b { font-family: var(--display); font-size: .95rem; }
+.admin-barra small { color: var(--muted); font-size: .7rem; }
+.admin-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.admin-lista li { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--surface-2); border-radius: 6px; }
+.admin-lista span { flex: 1; }
+.admin-lista b { font-family: var(--display); }
+.admin-lista .brand-logo { width: 28px; height: 20px; object-fit: contain; }
+.admin-sistema { display: grid; gap: 8px; margin: 0; }
+.admin-sistema div { display: flex; justify-content: space-between; gap: 12px; padding: 6px 10px; background: var(--surface-2); border-radius: 6px; }
+.admin-sistema dt { color: var(--muted); }
+.admin-sistema dd { margin: 0; font-weight: 600; }
+.admin-tabla-wrap { overflow-x: auto; }
+.admin-tabla { width: 100%; border-collapse: collapse; font-size: .9rem; white-space: nowrap; }
+.admin-tabla th { text-align: left; padding: 8px 10px; color: var(--muted); font-family: var(--display); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.admin-tabla td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
+.admin-tabla tbody tr:hover { background: var(--surface-2); }
+@media (max-width: 860px) { .admin-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-grid { grid-template-columns: 1fr; } }

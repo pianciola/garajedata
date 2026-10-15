@@ -253,6 +253,10 @@ def init_db():
             db.execute("ALTER TABLE usuarios ADD COLUMN cal_token TEXT")
         if "foto" not in cols_usuarios:
             db.execute("ALTER TABLE usuarios ADD COLUMN foto TEXT")
+        if "admin" not in cols_usuarios:
+            db.execute("ALTER TABLE usuarios ADD COLUMN admin INTEGER NOT NULL DEFAULT 0")
+        if "actividad" not in cols_usuarios:
+            db.execute("ALTER TABLE usuarios ADD COLUMN actividad TEXT")
         if "usuario_id" not in columnas:
             db.execute("ALTER TABLE vehiculos ADD COLUMN usuario_id INTEGER "
                        "REFERENCES usuarios(id) ON DELETE CASCADE")
@@ -373,7 +377,7 @@ def cargar_usuario():
         if isinstance(sid, str):
             token = hashlib.sha256(sid.encode()).hexdigest()
             g.usuario = get_db().execute(
-                "SELECT u.id, u.usuario, u.foto FROM usuarios u JOIN sesiones s ON s.usuario_id = u.id "
+                "SELECT u.id, u.usuario, u.foto, u.admin, u.actividad FROM usuarios u JOIN sesiones s ON s.usuario_id = u.id "
                 "WHERE u.id = ? AND s.token = ? AND s.vence > ?", (uid, token, time.time())).fetchone()
         if g.usuario is None:
             session.clear()
@@ -396,6 +400,26 @@ def revisar_csrf():
     # Sin token en la sesión no hay nada que comparar: "" == "" no puede valer como permiso.
     if not esperado or not secrets.compare_digest(enviado, esperado):
         abort(400)
+
+
+@app.before_request
+def anotar_actividad():
+    """Último día en que se usó cada cuenta (una escritura por día como mucho), para el panel de administración."""
+    u = g.get("usuario")
+    hoy = date.today().isoformat()
+    if u is not None and u["actividad"] != hoy:
+        get_db().execute("UPDATE usuarios SET actividad = ? WHERE id = ?", (hoy, u["id"]))
+        get_db().commit()
+
+
+def requiere_admin(view):
+    """Solo administradores. A cualquier otro se le responde 404: ni se entera de que la página existe."""
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        if g.get("usuario") is None or not g.usuario["admin"]:
+            abort(404)
+        return view(*args, **kwargs)
+    return wrapper
 
 
 def requiere_login(view):
