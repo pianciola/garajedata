@@ -1,22 +1,61 @@
 {% extends "base.html" %}
-{% block title %}Bienvenido{% endblock %}
+{% block title %}La bitácora de tu auto{% endblock %}
+{% block descripcion %}GarajeData es una bitácora gratuita para tu auto: anotá services, arreglos y gastos, recibí avisos de VTV, seguro y cambio de aceite, y descargá el libro de servicio en PDF. Sin email ni publicidad.{% endblock %}
 {% block content %}
-<section class="hero hero-car">
-  <div class="hero-info">
+<section class="landing-hero">
+  <div class="landing-texto">
     <div class="eyebrow">Bitácora del automotor</div>
     <h1>La historia completa de cada fierro</h1>
-    <p class="muted">Services, fluidos, piezas, accesorios, arreglos y modificaciones de tus vehículos, con recordatorios del próximo control. Gratis y desde cualquier dispositivo.</p>
+    <p class="landing-bajada">Anotá cada service, arreglo y gasto de tus vehículos. GarajeData te avisa cuándo toca el próximo control o vence la VTV, y arma el libro de servicio para cuando lo vendas.</p>
     <div class="hero-actions">
-      <a class="btn btn-primary" href="{{ url_for('registrarse') }}">Crear cuenta</a>
+      <a class="btn btn-primary" href="{{ url_for('registrarse') }}">Crear cuenta gratis</a>
       <a class="btn btn-ghost" href="{{ url_for('login') }}">Ya tengo cuenta</a>
     </div>
+    <ul class="landing-sellos">
+      <li>✔ Gratis</li><li>✔ Sin email ni datos personales</li><li>✔ Sin publicidad</li><li>✔ Celu y compu</li>
+    </ul>
   </div>
-  <div class="car-stage car-stage-hero" data-car3d data-interactive data-type="coupe" data-color="#c0262d" title="Arrastrá para girar"></div>
+  <figure class="landing-captura">
+    <div class="ventana"><span></span><span></span><span></span></div>
+    <img src="{{ url_for('static', filename='img/muestra/ficha.webp') }}" width="854" height="669" alt="Ficha de un Honda Fit en GarajeData: odómetro, gastos, próximos controles y botones para cargar registros" fetchpriority="high">
+  </figure>
 </section>
 
-<div class="features">
-  <div class="card feature"><h3>Tu garaje</h3><p class="muted">Cargá todos tus vehículos con marca, modelo, versión, patente y color.</p></div>
-  <div class="card feature"><h3>Cada trabajo</h3><p class="muted">Fecha, kilometraje, costo y taller de cada service o arreglo.</p></div>
-  <div class="card feature"><h3>Próximo control</h3><p class="muted">Avisos cuando se acerca el cambio de aceite, la VTV o lo que programes.</p></div>
-</div>
+<section class="landing-seccion">
+  <h2>Todo lo de tu auto, en un solo lugar</h2>
+  <div class="landing-funciones">
+    <div class="card feature"><span class="feature-icono" aria-hidden="true">🔧</span><h3>Cada trabajo</h3><p class="muted">Fecha, kilómetros, costo, quién lo hizo y las fotos o facturas de cada service o arreglo.</p></div>
+    <div class="card feature"><span class="feature-icono" aria-hidden="true">⏰</span><h3>Próximo control</h3><p class="muted">Te avisa cuándo toca el aceite, los filtros o la distribución, según cuánto usás el auto.</p></div>
+    <div class="card feature"><span class="feature-icono" aria-hidden="true">📄</span><h3>Vencimientos</h3><p class="muted">VTV, seguro, patente, matafuego y registro, con aviso antes de que venzan. También en tu calendario.</p></div>
+    <div class="card feature"><span class="feature-icono" aria-hidden="true">🗂️</span><h3>Bóveda digital</h3><p class="muted">Fotos de la cédula, el seguro y la VTV a mano, incluso sin conexión.</p></div>
+    <div class="card feature"><span class="feature-icono" aria-hidden="true">📊</span><h3>Gastos</h3><p class="muted">Cuánto gastás por mes y por categoría, y cuánto te cuesta cada kilómetro.</p></div>
+    <div class="card feature"><span class="feature-icono" aria-hidden="true">📘</span><h3>Libro de servicio</h3><p class="muted">Un PDF prolijo con toda la historia para mostrarle a un mecánico o a quien te compre el auto.</p></div>
+  </div>
+</section>
+
+<section class="landing-seccion">
+  <h2>Así se ve</h2>
+  <div class="landing-galeria">
+    <figure><img src="{{ url_for('static', filename='img/muestra/garaje.webp') }}" width="854" height="578" alt="Lista de vehículos con su kilometraje, último registro y próximo control" loading="lazy" decoding="async"><figcaption>Tu garaje: todos tus autos y lo que viene para cada uno.</figcaption></figure>
+    <figure><img src="{{ url_for('static', filename='img/muestra/ficha.webp') }}" width="854" height="669" alt="Ficha de un vehículo" loading="lazy" decoding="async"><figcaption>La ficha: odómetro, gastos, controles y documentación.</figcaption></figure>
+    <figure><img src="{{ url_for('static', filename='img/muestra/gastos.webp') }}" width="854" height="613" alt="Gráfico de gasto por mes y por categoría" loading="lazy" decoding="async"><figcaption>Gastos: por mes, por categoría y por kilómetro.</figcaption></figure>
+  </div>
+</section>
+
+<section class="landing-seccion landing-faq">
+  <h2>Preguntas frecuentes</h2>
+  <details><summary>¿Es gratis? ¿Cuál es la trampa?</summary><p>Es gratis y no hay trampa: GarajeData es un proyecto personal, sin publicidad y sin venta de datos. Los costos del sitio los cubre su autor.</p></details>
+  <details><summary>¿Quién está detrás?</summary><p>Lo hace Juan Manuel Pianciola, en Argentina. Podés leer los <a href="{{ url_for('terminos') }}">términos</a> y la <a href="{{ url_for('privacidad') }}">política de privacidad</a>, que explican todo en criollo.</p></details>
+  <details><summary>¿Dónde se guardan mis datos? ¿Quién los ve?</summary><p>En un servidor de PythonAnywhere, con copia de seguridad diaria. Solo vos los ves; si querés mostrar la historia de un auto, generás un link de solo lectura que podés desactivar cuando quieras.</p></details>
+  <details><summary>¿Por qué no me piden email?</summary><p>Para no guardar datos personales. A cambio, al crear la cuenta te damos un <b>código de recuperación</b> (podés descargarlo como archivo): con él y tu usuario creás una contraseña nueva si te la olvidás.</p></details>
+  <details><summary>¿Y si pierdo la contraseña y el código?</summary><p>Si descargaste una copia de tus datos (Mi cuenta → Mis datos), creás una cuenta nueva e <b>importás la copia</b>: vuelven tus autos, registros y archivos.</p></details>
+  <details><summary>¿Puedo llevarme o borrar mis datos?</summary><p>Sí. Desde Mi cuenta descargás todo en un .zip (con planillas para Excel) o borrás la cuenta con todo su contenido.</p></details>
+  <details><summary>¿Funciona en el celular?</summary><p>Sí, y se puede instalar como app desde el navegador («Agregar a la pantalla de inicio»).</p></details>
+</section>
+
+<section class="landing-cierre card">
+  <h2>Empezá a llevar la bitácora hoy</h2>
+  <p class="muted">Te lleva un minuto: usuario, contraseña y listo.</p>
+  <a class="btn btn-primary" href="{{ url_for('registrarse') }}">Crear cuenta gratis</a>
+</section>
 {% endblock %}

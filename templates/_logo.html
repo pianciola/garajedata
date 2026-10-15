@@ -1,4 +1,4 @@
-{# Logo de GarajeData (static/img). sello=True usa la versión con fondo oscuro, para papel blanco. #}
+{# Logo de GarajeData (static/img, WebP de 96 px: pesa ~6 KB). sello=True usa la versión con fondo oscuro, para papel blanco. #}
 {% macro logo(clase='', tam=36, sello=False) -%}
-<img class="gd-logo {{ clase }}" src="{{ url_for('static', filename='img/logo-sello.png' if sello else 'img/logo-icono.png') }}" width="{{ tam }}" height="{{ tam }}" alt="GarajeData">
+<img class="gd-logo {{ clase }}" src="{{ url_for('static', filename='img/logo-sello-128.webp' if sello else 'img/logo-96.webp') }}" width="{{ tam }}" height="{{ tam }}" alt="GarajeData">
 {%- endmacro %}

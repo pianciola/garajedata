@@ -194,6 +194,8 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
   renderer.setPixelRatio(Math.min(dpr, tactil ? 1.5 : 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   el.appendChild(renderer.domElement);
+  renderer.domElement.setAttribute("role", "img");
+  renderer.domElement.setAttribute("aria-label", `Modelo 3D de un auto (${NOMBRES[type] || type})`);
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -216,6 +218,10 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
     controls.enableDamping = true;
     controls.minPolarAngle = 0.7;
     controls.maxPolarAngle = 1.5;
+    // En pantallas táctiles el dedo vertical tiene que mover la página, no el auto: solo se gira en
+    // horizontal (OrbitControls pone touch-action: none, que bloquea el scroll).
+    renderer.domElement.style.touchAction = "pan-y";
+    if (tactil) controls.minPolarAngle = controls.maxPolarAngle = 1.23;
     controls.addEventListener("start", () => { spinning = false; });
     controls.addEventListener("end", () => { spinning = true; });
   }
@@ -253,6 +259,8 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
       car.rotation.y = rot;
       scene.add(car);
       frame();
+      renderer.domElement.setAttribute("aria-label", `Modelo 3D de un auto (${NOMBRES[t] || t})`);
+      el.classList.add("car-listo");
     } catch (err) {
       if (mio !== pedido) return;
       console.warn(`Modelo 3D "${t}" no disponible:`, err);

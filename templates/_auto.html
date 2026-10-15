@@ -4,6 +4,6 @@
 {% if v.imagen_modo == 'foto' and v.foto_id and foto_url -%}
 <div class="car-stage car-photo{{ ' foto-completa' if v.foto_ajuste == 'completa' }} {{ clase }}" style="--fx: {{ v.foto_x if v.foto_x is not none else 50 }}%; --fy: {{ v.foto_y if v.foto_y is not none else 50 }}%; --fz: {{ (v.foto_zoom or 100) / 100 }}"><img src="{{ foto_url }}" alt="Foto de {{ nombre_auto(v) }}" loading="lazy" decoding="async"></div>
 {%- else -%}
-<div class="car-stage {{ clase }}" data-car3d {% if interactivo %}data-interactive title="Arrastrá para girar"{% endif %} data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}"></div>
+<div class="car-stage {{ clase }}" style="--car-color: {{ v.color or COLOR_DEFAULT }}" data-car3d {% if interactivo %}data-interactive title="Arrastrá para girar"{% endif %} data-type="{{ v.carroceria or 'sedan' }}" data-color="{{ v.color or COLOR_DEFAULT }}"></div>
 {%- endif %}
 {%- endmacro %}

@@ -211,7 +211,7 @@ PRIVACIDAD = {
           "(en forma gratuita a intervalos no inferiores a seis meses, salvo que acredite un interés legítimo), rectificación, "
           "actualización y supresión. **Podés hacerlo vos mismo, sin pedirle nada a nadie, desde «Mi cuenta»:** descargar todos tus "
           "datos (un archivo .zip con tus vehículos, registros —también en planilla para Excel—, vencimientos y archivos), "
-          "editar o borrar cualquier dato, y **eliminar tu cuenta** con todo su contenido.",
+          "editar o borrar cualquier dato, **importar** una copia descargada en otra cuenta, y **eliminar tu cuenta** con todo su contenido.",
           "Como el Sitio no conoce la identidad de las personas, para atender un pedido sobre una cuenta el Responsable podrá "
           "pedir que se acredite el control de esa cuenta (por ejemplo, iniciando sesión). Para consultas sobre esta política: "
           + _CONTACTO_TXT[0].lower() + _CONTACTO_TXT[1:],

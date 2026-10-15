@@ -23,11 +23,11 @@
         </label>
         <label class="field">
           <span>Contraseña nueva</span>
-          <input type="password" name="clave" required minlength="6" maxlength="200" autocomplete="new-password">
+          <input type="password" name="clave" required minlength="8" maxlength="200" autocomplete="new-password">
         </label>
         <label class="field">
           <span>Repetí la contraseña nueva</span>
-          <input type="password" name="clave2" required minlength="6" maxlength="200" autocomplete="new-password">
+          <input type="password" name="clave2" required minlength="8" maxlength="200" autocomplete="new-password">
         </label>
         <div class="form-actions"><button class="btn btn-primary" type="submit">Cambiar contraseña</button></div>
       </form>
@@ -79,6 +79,17 @@
         <small>Cargá el código de transferencia que te dio el dueño anterior.</small>
       </a>
     </div>
+    <details class="acordeon">
+      <summary><span>⬆ Importar una copia</span></summary>
+      <p class="muted small">Subí el .zip que descargaste con «Descargar mis datos» (de esta u otra cuenta): sus vehículos, registros, vencimientos y archivos se <b>agregan</b> a esta cuenta. Sirve, por ejemplo, si perdiste el acceso a una cuenta vieja pero tenías la copia.</p>
+      <form method="post" action="{{ url_for('importar') }}" enctype="multipart/form-data" class="form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <label class="file-drop file-drop-sm">
+          <input type="file" name="copia" accept=".zip,application/zip" required>
+          <span>📎 Elegir el .zip</span>
+        </label>
+        <div class="form-actions"><button class="btn btn-primary btn-sm" type="submit">Importar</button></div>
+      </form>
+    </details>
     <p class="muted small"><a href="{{ url_for('privacidad') }}">Política de privacidad</a> · <a href="{{ url_for('terminos') }}">Términos y condiciones</a></p>
     <details class="danger-zone borrar-cuenta">
       <summary><strong>Borrar mi cuenta</strong></summary>

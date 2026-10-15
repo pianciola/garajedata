@@ -140,7 +140,7 @@ def cuenta():
                 flash("Contraseña cambiada.", "ok")
                 return redirect(url_for("cuenta"))
     cal = get_db().execute("SELECT cal_token FROM usuarios WHERE id = ?", (g.usuario["id"],)).fetchone()[0]
-    return render_template("cuenta.html", cal_link=url_for("calendario", token=cal, _external=True) if cal else None)
+    return render_template("cuenta.html", cal_link=url_absoluta("calendario", token=cal) if cal else None)
 
 
 @app.route("/cuenta/codigo")

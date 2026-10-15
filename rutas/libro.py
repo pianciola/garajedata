@@ -30,7 +30,7 @@ def compartir(vid):
             flash("Opciones guardadas.", "ok")
         db.commit()
         return redirect(url_for("compartir", vid=vid))
-    link = url_for("compartido", token=v["share_token"], _external=True) if v["share_token"] else None
+    link = url_absoluta("compartido", token=v["share_token"]) if v["share_token"] else None
     return render_template("compartir.html", v=v, link=link)
 
 

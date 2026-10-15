@@ -41,3 +41,24 @@ document.querySelectorAll('input[type="date"]:not([required])').forEach((campo) 
   tabs.forEach((t) => t.addEventListener("click", () => mostrar(t.dataset.tab, true)));
   mostrar(location.hash.slice(1) || "seguridad", false);
 })();
+
+// Botón «Ver» en los campos de contraseña.
+document.querySelectorAll('input[type="password"]').forEach((campo) => {
+  const envoltorio = document.createElement("div");
+  envoltorio.className = "clave-wrap";
+  campo.parentNode.insertBefore(envoltorio, campo);
+  envoltorio.appendChild(campo);
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.className = "clave-ver";
+  boton.textContent = "Ver";
+  boton.setAttribute("aria-label", "Mostrar la contraseña");
+  boton.addEventListener("click", () => {
+    const ver = campo.type === "password";
+    campo.type = ver ? "text" : "password";
+    boton.textContent = ver ? "Ocultar" : "Ver";
+    boton.setAttribute("aria-label", ver ? "Ocultar la contraseña" : "Mostrar la contraseña");
+    campo.focus();
+  });
+  envoltorio.appendChild(boton);
+});

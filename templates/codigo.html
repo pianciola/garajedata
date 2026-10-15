@@ -9,6 +9,7 @@
     <code id="codigo">{{ codigo }}</code>
     <button class="btn btn-ghost btn-sm" type="button" id="copiar">Copiar</button>
   </div>
+  <button class="btn btn-ghost btn-sm" type="button" id="descargar-codigo" data-usuario="{{ usuario.usuario }}">⬇ Descargar como archivo</button>
   <p class="muted codigo-aviso">Se muestra <b>una sola vez</b>. Anotalo, sacale una captura o guardalo en tus notas. Cada vez que lo usás se genera uno nuevo.</p>
   <div class="form-actions">
     <a class="btn btn-primary" href="{{ url_for('index') }}">Ya lo guardé</a>
@@ -17,6 +18,17 @@
 {% endblock %}
 {% block scripts %}
 <script nonce="{{ csp_nonce }}">
+  document.getElementById("descargar-codigo").addEventListener("click", (e) => {
+    const usuario = e.currentTarget.dataset.usuario;
+    const texto = "GarajeData - código de recuperación\r\n\r\nUsuario: " + usuario + "\r\nCódigo: " +
+      document.getElementById("codigo").textContent + "\r\n\r\nCon este código y tu usuario creás una contraseña nueva en " +
+      location.origin + "/recuperar\r\nCada vez que se usa se genera uno nuevo. Guardalo en un lugar seguro.\r\n";
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([texto], { type: "text/plain;charset=utf-8" }));
+    a.download = "garajedata-codigo-" + usuario + ".txt";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
   document.getElementById("copiar").addEventListener("click", async (e) => {
     try {
       await navigator.clipboard.writeText(document.getElementById("codigo").textContent);

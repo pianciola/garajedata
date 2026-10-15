@@ -454,7 +454,15 @@ input[type="date"] { color-scheme: dark; }
   text-align: center; color: var(--muted); pointer-events: none;
   font-family: var(--display); font-size: .9rem; letter-spacing: .12em; text-transform: uppercase;
 }
-.car-stage-loading::after { content: "Cargando modelo…"; }
+/* Mientras baja el modelo 3D (o si el celular no puede mostrarlo) se ve una silueta liviana del color del auto. */
+.car-stage[data-car3d]::before {
+  content: ""; position: absolute; inset: 22% 18% 16%; background: var(--car-color, #2e6fd8); opacity: .32;
+  -webkit-mask: url("img/silueta-auto.svg") center / contain no-repeat; mask: url("img/silueta-auto.svg") center / contain no-repeat;
+  transition: opacity .35s; pointer-events: none;
+}
+.car-stage.car-listo::before { opacity: 0; }
+.car-stage-loading::before { animation: silueta-late 1.4s ease-in-out infinite; }
+@keyframes silueta-late { 50% { opacity: .18; } }
 .car-stage-missing::after { content: attr(data-msg); }
 .car-card .car-stage {
   margin: -20px -20px 16px; border-bottom: 1px solid var(--border);
@@ -964,7 +972,7 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 @keyframes dialogo-entra { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
 .foto-aviso3d { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .dialogo[open] { animation: none; } }
-@media (max-width: 720px) { .hero-visual { order: -1; } .dialogo { padding: 16px; } }
+@media (max-width: 720px) { .dialogo { padding: 16px; } }
 @media print { .foto-editar, .dialogo { display: none !important; } }
 
 /* ---------- tarjeta del auto: próximo control ---------- */
@@ -1169,3 +1177,58 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .consejo-chip span { filter: grayscale(.6); }
 .consejo-chip:hover span { filter: none; }
 @media (max-width: 520px) { .consejo-zona { margin-top: 34px; } .consejo p { font-size: 1.02rem; } .consejo-icono { font-size: 1.5rem; } }
+
+/* El encabezado no tapa lo que queda arriba al saltar a un campo o a un ancla. */
+html { scroll-padding-top: 84px; }
+@media (prefers-reduced-motion: reduce) { .car-stage-loading::before { animation: none; } }
+
+.clave-wrap { position: relative; }
+.clave-wrap input { width: 100%; padding-right: 76px; }
+.clave-ver { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); padding: 6px 10px; background: none; border: 0; border-radius: 6px;
+  color: var(--muted); font-size: .82rem; font-weight: 600; cursor: pointer; }
+.clave-ver:hover { color: var(--text); background: var(--surface-3); }
+
+#descargar-codigo { margin-top: 10px; }
+
+/* ---------- portada pública ---------- */
+.landing-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 36px; align-items: center; margin: 10px 0 56px; }
+.landing-hero h1 { font-size: clamp(2.1rem, 4.6vw, 3.4rem); line-height: 1.02; }
+.landing-bajada { color: var(--muted); font-size: 1.08rem; line-height: 1.6; margin: 14px 0 22px; max-width: 52ch; }
+.landing-sellos { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: .9rem; }
+.landing-captura { margin: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #0c0d10;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 255, 255, .03); transform: perspective(1400px) rotateY(-6deg); }
+.landing-captura img, .landing-galeria img { display: block; width: 100%; height: auto; }
+.ventana { display: flex; gap: 6px; padding: 9px 12px; background: #15171c; border-bottom: 1px solid var(--border); }
+.ventana span { width: 10px; height: 10px; border-radius: 50%; background: #2c3139; }
+.ventana span:first-child { background: var(--accent); }
+.landing-seccion { margin: 0 0 56px; }
+.landing-seccion > h2 { margin-bottom: 18px; }
+.landing-funciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.feature-icono { font-size: 1.6rem; display: block; margin-bottom: 8px; }
+.landing-galeria { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.landing-galeria figure { margin: 0; }
+.landing-galeria img { border: 1px solid var(--border); border-radius: 10px; }
+.landing-galeria figcaption { margin-top: 8px; color: var(--muted); font-size: .9rem; }
+.landing-faq details { border-bottom: 1px solid var(--border); padding: 14px 0; }
+.landing-faq summary { cursor: pointer; font-weight: 600; font-size: 1.02rem; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.landing-faq summary::-webkit-details-marker { display: none; }
+.landing-faq summary::after { content: "+"; color: var(--accent); font-weight: 700; }
+.landing-faq details[open] summary::after { content: "–"; }
+.landing-faq details p { margin: 10px 0 0; color: var(--muted); line-height: 1.6; max-width: 75ch; }
+.landing-cierre { text-align: center; padding: 34px 20px; margin-bottom: 20px; }
+.landing-cierre p { margin: 6px 0 18px; }
+@media (max-width: 860px) {
+  .landing-hero { grid-template-columns: 1fr; gap: 26px; margin-bottom: 40px; }
+  .landing-captura { transform: none; }
+  .landing-galeria { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 82%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
+  .landing-galeria figure { scroll-snap-align: start; }
+}
+.landing-funciones { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .landing-funciones { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .landing-funciones { grid-template-columns: 1fr; } }
+@media (max-width: 520px) {
+  .landing-funciones { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .landing-funciones .feature { padding: 14px; }
+  .landing-funciones .feature h3 { font-size: 1rem; }
+  .landing-funciones .feature p { font-size: .86rem; line-height: 1.45; }
+}

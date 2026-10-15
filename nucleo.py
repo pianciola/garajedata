@@ -261,6 +261,8 @@ def encabezados_de_seguridad(resp):
     h.setdefault("Cross-Origin-Opener-Policy", "same-origin")
     if HTTPS:
         h.setdefault("Strict-Transport-Security", "max-age=31536000")
+    if request.endpoint not in PUBLICAS or g.get("usuario") is not None:
+        h.setdefault("X-Robots-Tag", "noindex, nofollow")
     # Los archivos subidos se sirven con su tipo real y nosniff; la CSP de página rompería el visor de PDF.
     if request.endpoint not in ("archivo", "archivo_compartido", "static"):
         h.setdefault("Content-Security-Policy", politica_csp(g.get("csp_nonce", "")))
@@ -269,6 +271,20 @@ def encabezados_de_seguridad(resp):
             and "Cache-Control" not in h:
         h["Cache-Control"] = "no-store"
     return resp
+
+
+def url_absoluta(endpoint, **valores):
+    """URL completa para compartir (links, calendario, Open Graph). En el sitio publicado siempre https,
+    aunque el servidor interno de PythonAnywhere atienda por http detrás del proxy."""
+    url = url_for(endpoint, _external=True, **valores)
+    return url.replace("http://", "https://", 1) if HTTPS else url
+
+
+app.jinja_env.globals["url_absoluta"] = url_absoluta
+
+# Páginas que pueden aparecer en buscadores; el resto (todo lo que es de una cuenta, links compartidos,
+# calendarios y archivos) se marca «noindex».
+PUBLICAS = {"index", "login", "registrarse", "recuperar", "terminos", "privacidad", "static", "robots", "sitemap"}
 
 
 RESPALDO_HECHO = {"dia": None}
@@ -732,8 +748,8 @@ def nuevo_codigo(uid):
 
 
 def validar_clave(clave, clave2):
-    if len(clave) < 6:
-        return "La contraseña debe tener al menos 6 caracteres."
+    if len(clave) < 8:
+        return "La contraseña debe tener al menos 8 caracteres."
     if len(clave) > 200:
         return "La contraseña es demasiado larga."
     if clave != clave2:

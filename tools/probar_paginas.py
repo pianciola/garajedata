@@ -50,9 +50,9 @@ esperar("vehículo sin cuenta", c.get("/vehiculo/1"), 302)
 esperar("alta sin cuenta", c.post("/vehiculo/nuevo", data={}), 302)
 
 # Registro: errores y alta. La primera cuenta se queda con el vehículo viejo.
-esperar("usuario corto", c.post("/registro", data={"acepto": "1", "usuario": "ab", "clave": "123456", "clave2": "123456"}), 200)
-esperar("claves distintas", c.post("/registro", data={"acepto": "1", "usuario": "juan", "clave": "123456", "clave2": "x"}), 200)
-esperar("registro ok", c.post("/registro", data={"acepto": "1", "usuario": "juan", "clave": "123456", "clave2": "123456"}), 302)
+esperar("usuario corto", c.post("/registro", data={"acepto": "1", "usuario": "ab", "clave": "clave-123", "clave2": "clave-123"}), 200)
+esperar("claves distintas", c.post("/registro", data={"acepto": "1", "usuario": "juan", "clave": "clave-123", "clave2": "x"}), 200)
+esperar("registro ok", c.post("/registro", data={"acepto": "1", "usuario": "juan", "clave": "clave-123", "clave2": "clave-123"}), 302)
 esperar("vehículo heredado", c.get("/vehiculo/1"), 200)
 
 # Vehículo vacío y vehículo completo
@@ -215,8 +215,8 @@ if 'id="cartel"' not in c.get("/").get_data(as_text=True) or 'id="cartel"' not i
 
 # Otra cuenta no ve ni toca nada de la primera
 esperar("salir", c.post("/logout"), 302)
-esperar("usuario repetido", c.post("/registro", data={"acepto": "1", "usuario": "JUAN", "clave": "123456", "clave2": "123456"}), 200)
-esperar("registro ana", c.post("/registro", data={"acepto": "1", "usuario": "ana", "clave": "abcdef", "clave2": "abcdef"}), 302)
+esperar("usuario repetido", c.post("/registro", data={"acepto": "1", "usuario": "JUAN", "clave": "clave-123", "clave2": "clave-123"}), 200)
+esperar("registro ana", c.post("/registro", data={"acepto": "1", "usuario": "ana", "clave": "abcdefgh", "clave2": "abcdefgh"}), 302)
 if "Focus" in c.get("/").get_data(as_text=True):
     fallas.append("ana ve los vehículos de juan")
 for p in ("/vehiculo/1", "/vehiculo/3", "/vehiculo/3/editar", "/vehiculo/3/exportar",
@@ -254,7 +254,7 @@ esperar("link inventado", c.get("/c/inventado"), 404)
 # Ingreso: clave mala, buena y redirección segura
 c.post("/logout")
 esperar("clave mala", c.post("/login", data={"usuario": "juan", "clave": "mal"}), 200)
-r = esperar("login ok", c.post("/login?next=//malo.com", data={"usuario": "Juan", "clave": "123456"}), 302)
+r = esperar("login ok", c.post("/login?next=//malo.com", data={"usuario": "Juan", "clave": "clave-123"}), 302)
 if r.headers.get("Location") != "/":
     fallas.append(f"redirección insegura: {r.headers.get('Location')}")
 esperar("ocultar adjuntos", c.post("/vehiculo/3/compartir", data={"accion": "opciones", "costos": "1"}), 302)
@@ -292,6 +292,54 @@ if [f[1] for f in filas][:2] != [None, None] or filas[2][1] is None or filas[3][
     fallas.append(f"los límites de fecha no se aplican: {filas}")
 with sqlite3.connect(DB) as db:
     db.execute("DELETE FROM registros WHERE titulo = 'prueba fechas'")
+# Buscadores: robots, sitemap, Open Graph y noindex en lo privado
+r = esperar("robots", app.test_client().get("/robots.txt"), 200)
+if "Disallow: /" not in r.get_data(as_text=True) or "Sitemap:" not in r.get_data(as_text=True):
+    fallas.append("robots.txt incompleto")
+if "<loc>" not in esperar("sitemap", app.test_client().get("/sitemap.xml"), 200).get_data(as_text=True):
+    fallas.append("sitemap.xml sin páginas")
+anon = app.test_client().get("/")
+if 'property="og:image"' not in anon.get_data(as_text=True) or 'name="description"' not in anon.get_data(as_text=True):
+    fallas.append("faltan meta description u Open Graph en la portada")
+if "noindex" in anon.headers.get("X-Robots-Tag", ""):
+    fallas.append("la portada pública quedó como noindex")
+if "noindex" not in c.get("/vehiculo/3").headers.get("X-Robots-Tag", ""):
+    fallas.append("una página privada no tiene noindex")
+esperar("og.png", app.test_client().get("/static/img/og.jpg"), 200)
+
+# Contraseña: mínimo 8
+esperar("clave de 7", app.test_client().post("/registro", data={"usuario": "corta7", "clave": "1234567", "clave2": "1234567", "acepto": "1"}), 200)
+
+# Importar la copia exportada: se agregan los vehículos, registros y archivos a otra cuenta
+r = c.get("/cuenta/exportar")
+cimp = app.test_client()
+cimp.post("/registro", data={"usuario": "importadora", "clave": "clave-123", "clave2": "clave-123", "acepto": "1"})
+esperar("importar", cimp.post("/cuenta/importar", data={"copia": (io.BytesIO(r.data), "copia.zip")},
+                                content_type="multipart/form-data"), 302)
+html = cimp.get("/").get_data(as_text=True)
+with sqlite3.connect(DB) as db:
+    uid_imp = db.execute("SELECT id FROM usuarios WHERE usuario = 'importadora'").fetchone()[0]
+    n_v = db.execute("SELECT COUNT(*) FROM vehiculos WHERE usuario_id = ?", (uid_imp,)).fetchone()[0]
+    n_r = db.execute("SELECT COUNT(*) FROM registros r JOIN vehiculos v ON v.id = r.vehiculo_id WHERE v.usuario_id = ?", (uid_imp,)).fetchone()[0]
+    n_a = db.execute("SELECT COUNT(*) FROM archivos a JOIN vehiculos v ON v.id = a.vehiculo_id WHERE v.usuario_id = ?", (uid_imp,)).fetchone()[0]
+if not (n_v >= 1 and n_r >= 1 and n_a >= 1):
+    fallas.append(f"la importación no trajo todo: {n_v} vehículos, {n_r} registros, {n_a} archivos")
+for malo, nombre in ((b"no es un zip", "x.zip"), (b"", "vacio.zip")):
+    esperar(f"importar {nombre}", cimp.post("/cuenta/importar", data={"copia": (io.BytesIO(malo), nombre)},
+                                             content_type="multipart/form-data"), 302)
+import zipfile as _zf  # noqa: E402
+_b = io.BytesIO()
+with _zf.ZipFile(_b, "w") as _z:
+    _z.writestr("garajedata.json", '{"vehiculos": [{"nombre": "<script>alert(1)</script>", "usuario_id": 1, "id": 1, "share_token": "x", "anio": "mil", "registros": [{"titulo": "ok", "categoria": "rara", "costo": 1e999}]}]}')
+esperar("importar raro", cimp.post("/cuenta/importar", data={"copia": (io.BytesIO(_b.getvalue()), "raro.zip")},
+                                     content_type="multipart/form-data"), 302)
+with sqlite3.connect(DB) as db:
+    fila = db.execute("SELECT usuario_id, share_token, anio FROM vehiculos WHERE nombre LIKE '<script>%'").fetchone()
+if not fila or fila[0] != uid_imp or fila[1] is not None or fila[2] is not None:
+    fallas.append(f"la importación aceptó datos internos o mal tipados: {fila}")
+if "<script>alert(1)" in cimp.get("/").get_data(as_text=True):
+    fallas.append("XSS por importación")
+
 # Consejo del día
 html = c.get("/").get_data(as_text=True)
 if 'id="consejo"' not in html or "Dato de garaje" not in html:
@@ -324,7 +372,7 @@ if "Política de Privacidad" not in html or "<b>" not in html or "Sin servicios 
     fallas.append("la política de privacidad no se muestra completa")
 if "Términos y Condiciones de Uso" not in esperar("términos", c.get("/terminos"), 200).get_data(as_text=True):
     fallas.append("faltan los términos")
-esperar("alta sin aceptar", app.test_client().post("/registro", data={"usuario": "sinacepto", "clave": "123456", "clave2": "123456"}), 200)
+esperar("alta sin aceptar", app.test_client().post("/registro", data={"usuario": "sinacepto", "clave": "clave-123", "clave2": "clave-123"}), 200)
 with sqlite3.connect(DB) as db:
     if db.execute("SELECT COUNT(*) FROM usuarios WHERE usuario = 'sinacepto'").fetchone()[0]:
         fallas.append("se creó una cuenta sin aceptar los términos")
@@ -360,7 +408,7 @@ cod_transfer = re.search(r'id="codigo-transfer">([A-Z0-9-]+)<', html).group(1)
 # Código de recuperación: se ve una sola vez, sirve una vez y cambia la contraseña
 
 c.post("/logout")
-c.post("/registro", data={"acepto": "1", "usuario": "pepe", "clave": "123456", "clave2": "123456"})
+c.post("/registro", data={"acepto": "1", "usuario": "pepe", "clave": "clave-123", "clave2": "clave-123"})
 html = esperar("ver código", c.get("/cuenta/codigo"), 200).get_data(as_text=True)
 codigo = re.search(r'id="codigo">([A-Z0-9-]+)<', html).group(1)
 esperar("código ya mostrado", c.get("/cuenta/codigo"), 302)
@@ -368,19 +416,19 @@ esperar("mi cuenta", c.get("/cuenta"), 200)
 c.post("/logout")
 esperar("recuperar form", c.get("/recuperar"), 200)
 esperar("código malo", c.post("/recuperar", data={"usuario": "pepe", "codigo": "AAAA-BBBB-CCCC-DDDD",
-                                                  "clave": "nueva1", "clave2": "nueva1"}), 200)
+                                                  "clave": "nueva-123", "clave2": "nueva-123"}), 200)
 esperar("recuperar ok", c.post("/recuperar", data={"usuario": "PEPE", "codigo": codigo.lower().replace("-", " "),
-                                                   "clave": "nueva1", "clave2": "nueva1"}), 302)
+                                                   "clave": "nueva-123", "clave2": "nueva-123"}), 302)
 c.post("/logout")
 esperar("código usado no sirve", c.post("/recuperar", data={"usuario": "pepe", "codigo": codigo,
-                                                            "clave": "otra12", "clave2": "otra12"}), 200)
-esperar("clave vieja no entra", c.post("/login", data={"usuario": "pepe", "clave": "123456"}), 200)
-esperar("clave nueva entra", c.post("/login", data={"usuario": "pepe", "clave": "nueva1"}), 302)
-esperar("cambiar clave mal", c.post("/cuenta", data={"accion": "clave", "actual": "x", "clave": "abcdef",
-                                                     "clave2": "abcdef"}), 200)
-esperar("cambiar clave", c.post("/cuenta", data={"accion": "clave", "actual": "nueva1", "clave": "abcdef",
-                                                 "clave2": "abcdef"}), 302)
-esperar("generar código", c.post("/cuenta", data={"accion": "codigo", "actual": "abcdef"}), 302)
+                                                            "clave": "otra-1234", "clave2": "otra-1234"}), 200)
+esperar("clave vieja no entra", c.post("/login", data={"usuario": "pepe", "clave": "clave-123"}), 200)
+esperar("clave nueva entra", c.post("/login", data={"usuario": "pepe", "clave": "nueva-123"}), 302)
+esperar("cambiar clave mal", c.post("/cuenta", data={"accion": "clave", "actual": "x", "clave": "abcdefgh",
+                                                     "clave2": "abcdefgh"}), 200)
+esperar("cambiar clave", c.post("/cuenta", data={"accion": "clave", "actual": "nueva-123", "clave": "abcdefgh",
+                                                 "clave2": "abcdefgh"}), 302)
+esperar("generar código", c.post("/cuenta", data={"accion": "codigo", "actual": "abcdefgh"}), 302)
 
 # pepe recibe el auto de juan con el código de transferencia
 esperar("recibir form", c.get("/recibir"), 200)
@@ -390,9 +438,9 @@ esperar("auto recibido", c.get("/vehiculo/3"), 200)
 esperar("código usado", c.post("/recibir", data={"codigo": cod_transfer}), 200)
 
 # Borrar la cuenta: pide el usuario escrito y la contraseña; se lleva todo
-esperar("borrar cuenta sin confirmar", c.post("/cuenta", data={"accion": "borrar", "confirmar": "x", "actual": "abcdef"}), 200)
-esperar("borrar cuenta", c.post("/cuenta", data={"accion": "borrar", "confirmar": "Pepe", "actual": "abcdef"}), 302)
-esperar("cuenta borrada", c.post("/login", data={"usuario": "pepe", "clave": "abcdef"}), 200)
+esperar("borrar cuenta sin confirmar", c.post("/cuenta", data={"accion": "borrar", "confirmar": "x", "actual": "abcdefgh"}), 200)
+esperar("borrar cuenta", c.post("/cuenta", data={"accion": "borrar", "confirmar": "Pepe", "actual": "abcdefgh"}), 302)
+esperar("cuenta borrada", c.post("/login", data={"usuario": "pepe", "clave": "abcdefgh"}), 200)
 with sqlite3.connect(DB) as db:
     if db.execute("SELECT COUNT(*) FROM vehiculos WHERE id = 3").fetchone()[0]:
         fallas.append("borrar la cuenta no borró sus vehículos")
@@ -401,7 +449,7 @@ with sqlite3.connect(DB) as db:
 c.post("/logout")
 for _ in range(5):
     c.post("/login", data={"usuario": "ana", "clave": "mal"})
-esperar("bloqueo", c.post("/login", data={"usuario": "ana", "clave": "abcdef"}), 429)
+esperar("bloqueo", c.post("/login", data={"usuario": "ana", "clave": "abcdefgh"}), 429)
 
 # CSRF: sin el token el formulario se rechaza; con el token de la página, pasa.
 app.config["CSRF_APAGADO"] = False
@@ -417,9 +465,9 @@ app.config["CSRF_APAGADO"] = True
 nucleo.ALTAS_IP.clear()
 nucleo.MAX_ALTAS_IP = 1
 c4 = app.test_client()
-esperar("alta 1 de la IP", c4.post("/registro", data={"acepto": "1", "usuario": "ip_uno", "clave": "123456", "clave2": "123456"}), 302)
+esperar("alta 1 de la IP", c4.post("/registro", data={"acepto": "1", "usuario": "ip_uno", "clave": "clave-123", "clave2": "clave-123"}), 302)
 c4.post("/logout")
-esperar("alta 2 de la IP bloqueada", c4.post("/registro", data={"acepto": "1", "usuario": "ip_dos", "clave": "123456", "clave2": "123456"}), 429)
+esperar("alta 2 de la IP bloqueada", c4.post("/registro", data={"acepto": "1", "usuario": "ip_dos", "clave": "clave-123", "clave2": "clave-123"}), 429)
 nucleo.MAX_ALTAS_IP = 100
 
 print("\n".join(fallas) if fallas else "TODO OK")
