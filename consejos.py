@@ -149,10 +149,24 @@ CONSEJOS = [
 
 
 def ordenados():
-    """Los consejos en un orden fijo mezclado: así el del día no sigue el orden de las categorías."""
-    orden = list(range(len(CONSEJOS)))
-    random.Random(2026).shuffle(orden)
-    return orden
+    """Orden fijo en el que se recorren los consejos, ponderado por categoría.
+
+    Cada categoría aparece en proporción a cuántos consejos tiene (la que tiene 24 sale más que la de 8) y sus
+    apariciones quedan parejas a lo largo del ciclo: no hay rachas de la misma categoría ni una categoría que
+    tarde meses en salir. Dentro de cada una el orden es mezclado y fijo."""
+    rng = random.Random(2026)
+    por_categoria = {}
+    for i, (cat, _) in enumerate(CONSEJOS):
+        por_categoria.setdefault(cat, []).append(i)
+    claves = []
+    for cat, indices in sorted(por_categoria.items()):
+        rng.shuffle(indices)
+        n = len(indices)
+        # El k-ésimo consejo de una categoría con n consejos cae en la posición (k + 0.5) / n del ciclo,
+        # más una pequeña variación para que los desempates no sigan siempre el mismo orden.
+        for k, i in enumerate(indices):
+            claves.append(((k + 0.5) / n + rng.uniform(-0.15, 0.15) / n, i))
+    return [i for _, i in sorted(claves)]
 
 
 _ORDEN = ordenados()

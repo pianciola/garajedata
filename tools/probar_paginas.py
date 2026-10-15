@@ -307,6 +307,15 @@ if len(set(textos)) != len(textos) or any(x[0] not in consejos.CATEGORIAS for x 
 vistos = {consejos.consejo_del_dia(date(2026, 1, 1) + timedelta(days=n))[0] for n in range(len(textos))}
 if len(vistos) != len(textos):
     fallas.append("el consejo del día repite antes de recorrer todos")
+# Ponderado por categoría: sin rachas y con apariciones parejas (cada categoría sale en proporción a sus consejos)
+cats_orden = [consejos.CONSEJOS[i][0] for i in consejos.ordenados()]
+if any(x == y for x, y in zip(cats_orden, cats_orden[1:])):
+    fallas.append("el consejo del día repite la misma categoría dos días seguidos")
+for cat in set(cats_orden):
+    pos = [k for k, c in enumerate(cats_orden) if c == cat]
+    esperado = len(cats_orden) / len(pos)
+    if any(b - a > esperado * 2 or b - a < esperado / 3 for a, b in zip(pos, pos[1:])):
+        fallas.append(f"las apariciones de la categoría {cat} no están repartidas parejo")
 html = esperar("estadísticas", c.get("/vehiculo/3/estadisticas"), 200).get_data(as_text=True)
 if "Gasto por mes" not in html or "Costo por km" not in html:
     fallas.append("faltan datos en estadísticas")
