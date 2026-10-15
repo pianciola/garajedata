@@ -83,6 +83,7 @@
   {% endif %}
 
   <footer class="wrap footer">
+    <span class="bandera" data-largada aria-hidden="true"></span>
     GarajeData · bitácora del automotor · <a href="{{ url_for('terminos') }}">Términos</a> · <a href="{{ url_for('privacidad') }}">Privacidad</a> · <a href="{{ url_for('creditos') }}">Créditos</a>
   </footer>
 
@@ -97,6 +98,7 @@
   <script src="{{ url_for('static', filename='archivos.js') }}"></script>
   {% endif %}
   <script src="{{ url_for('static', filename='acciones.js') }}"></script>
+  <script src="{{ url_for('static', filename='largada.js') }}" defer></script>
   {% if cartel %}<script src="{{ url_for('static', filename='avisos.js') }}"></script>{% endif %}
   <script nonce="{{ csp_nonce }}">
     // Copia offline de la bitácora y la bóveda: solo con la sesión abierta.
