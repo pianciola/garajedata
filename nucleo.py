@@ -3,6 +3,7 @@
 Las páginas están en rutas/ (una por tema) y se registran desde app.py.
 """
 import csv
+import hashlib
 import io
 import json
 import math
@@ -146,6 +147,11 @@ CREATE TABLE IF NOT EXISTS vehiculos (
     transmision TEXT,
     usuario_id  INTEGER REFERENCES usuarios(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS sesiones (
+    token TEXT PRIMARY KEY,
+    usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    vence REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS documentos (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     vehiculo_id INTEGER NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
@@ -252,6 +258,7 @@ def init_db():
                        "REFERENCES usuarios(id) ON DELETE CASCADE")
         db.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_share_token ON vehiculos(share_token)")
         db.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_cal_token ON usuarios(cal_token)")
+        db.execute("CREATE INDEX IF NOT EXISTS ix_sesiones_usuario ON sesiones(usuario_id)")
         db.executescript("""
             CREATE INDEX IF NOT EXISTS ix_vehiculos_usuario ON vehiculos(usuario_id);
             CREATE INDEX IF NOT EXISTS ix_registros_vehiculo ON registros(vehiculo_id, fecha);
@@ -360,11 +367,14 @@ def respaldo_diario():
 @app.before_request
 def cargar_usuario():
     """Deja en g.usuario la cuenta de la sesión (None si no hay o ya no existe)."""
-    uid = session.get("uid")
+    uid, sid = session.get("uid"), session.get("sid")
     g.usuario = None
     if uid is not None:
-        g.usuario = get_db().execute("SELECT id, usuario, foto FROM usuarios WHERE id = ?",
-                                     (uid,)).fetchone()
+        if isinstance(sid, str):
+            token = hashlib.sha256(sid.encode()).hexdigest()
+            g.usuario = get_db().execute(
+                "SELECT u.id, u.usuario, u.foto FROM usuarios u JOIN sesiones s ON s.usuario_id = u.id "
+                "WHERE u.id = ? AND s.token = ? AND s.vence > ?", (uid, token, time.time())).fetchone()
         if g.usuario is None:
             session.clear()
 
@@ -728,8 +738,8 @@ def datos_registro_form():
         # Nombre del taller o de quien lo hizo; "hecho por mí" no lleva nombre.
         "taller": texto("taller", 120) if hecho_por in ("taller", "otro") else "",
         "prox_km": to_int(f.get("prox_km")),
-        # el próximo control no puede ser de un año anterior al actual
-        "prox_fecha": to_fecha(f.get("prox_fecha"), minimo=date(date.today().year, 1, 1)),
+        # También se conserva un control vencido de años anteriores al editar el historial.
+        "prox_fecha": to_fecha(f.get("prox_fecha")),
     }
 
 
@@ -805,7 +815,20 @@ def destino_seguro():
 def iniciar_sesion(uid):
     session.clear()
     session["uid"] = uid
+    sid = secrets.token_urlsafe(32)
+    db = get_db()
+    db.execute("DELETE FROM sesiones WHERE vence <= ?", (time.time(),))
+    db.execute("INSERT INTO sesiones (token, usuario_id, vence) VALUES (?, ?, ?)",
+               (hashlib.sha256(sid.encode()).hexdigest(), uid,
+                time.time() + app.permanent_session_lifetime.total_seconds()))
+    db.commit()
+    session["sid"] = sid
     session.permanent = True
+
+
+def invalidar_sesiones(uid):
+    """Cambiar o recuperar la contraseña cierra todas las sesiones anteriores."""
+    get_db().execute("DELETE FROM sesiones WHERE usuario_id = ?", (uid,))
 
 
 # Código de recuperación: reemplaza al email para recuperar la cuenta, así no se
@@ -1128,9 +1151,19 @@ def guardar_registro(v, rid=None):
     if rid is None and request.form.get("modo") == "pendiente":
         return guardar_pendiente(v)
     d = datos_registro_form()
+    error = None
     if not d["titulo"]:
-        flash("Indicá qué trabajo se hizo.", "error")
-        return render_template("registro_form.html", v=v, r={**d, "id": rid, "pendiente": to_int(request.form.get("pendiente"))},
+        error = "Indicá qué trabajo se hizo."
+    elif "fecha" in request.form and not to_fecha(request.form.get("fecha"), maximo=date.today()):
+        error = "La fecha del trabajo tiene que ser válida, desde 1980 hasta hoy."
+    elif request.form.get("prox_fecha") and not d["prox_fecha"]:
+        error = "La fecha del próximo control no es válida o está fuera del rango permitido."
+    if error:
+        flash(error, "error")
+        return render_template("registro_form.html", v=v,
+                               r={**d, "fecha": request.form.get("fecha", d["fecha"]),
+                                  "prox_fecha": request.form.get("prox_fecha", d["prox_fecha"]),
+                                  "id": rid, "pendiente": to_int(request.form.get("pendiente"))},
                                adjuntos=adjuntos_por_registro(v["id"]).get(rid, []))
     db = get_db()
     if rid is None:

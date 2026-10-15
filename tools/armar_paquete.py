@@ -57,7 +57,7 @@ def main():
     con_base = "--sin-base" not in sys.argv
     os.makedirs(SALIDA, exist_ok=True)
 
-    incluir = ["app.py", "nucleo.py", "respaldos.py", "legal.py", "consejos.py", "rutas", os.path.join("tools", "respaldo.py"), "catalogo.py", "mantenimiento.py", "archivos.py", "requirements.txt",
+    incluir = ["app.py", "nucleo.py", "respaldos.py", "legal.py", "consejos.py", "rutas", os.path.join("tools", "respaldo.py"), os.path.join("tools", "sanear_fotos.py"), "catalogo.py", "mantenimiento.py", "archivos.py", "requirements.txt",
                "templates", "static"]
     if con_base:
         incluir.append("bitacora.db")

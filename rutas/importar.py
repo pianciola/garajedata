@@ -1,6 +1,7 @@
 """Importar la copia .zip que se descarga en «Mis datos» (por ejemplo, para pasar todo a una cuenta nueva
 si se perdieron la contraseña y el código de recuperación)."""
 import zipfile
+import zlib
 
 from nucleo import *  # noqa: F401,F403
 
@@ -45,6 +46,39 @@ def limpiar(fila, columnas):
     return {c: valor(fila.get(c), t) for c, t in columnas.items() if c in fila}
 
 
+def validar_estructura(datos):
+    """Rechaza copias dañadas antes de escribir datos o archivos."""
+    error = "La estructura de la copia no es válida. Volvé a descargarla desde Mis datos."
+    if not isinstance(datos, dict) or not isinstance(datos.get("vehiculos"), list):
+        raise ValueError(error)
+    vehiculos = datos["vehiculos"]
+    if len(vehiculos) > MAX_VEHICULOS:
+        raise ValueError("La copia tiene demasiados vehículos para importarla de una vez.")
+    registros = 0
+    for v in vehiculos:
+        if not isinstance(v, dict):
+            raise ValueError(error)
+        for campo in ("registros", "documentos", "pendientes", "archivos"):
+            items = v.get(campo)
+            if items is None:
+                continue
+            if not isinstance(items, list) or not all(isinstance(item, dict) for item in items):
+                raise ValueError(error)
+            if campo == "registros":
+                registros += len(items)
+            for item in items:
+                for nombre in ("id", "registro_id"):
+                    ident = item.get(nombre)
+                    if ident is not None and (type(ident) is not int or ident < 1):
+                        raise ValueError(error)
+        ids = [r["id"] for r in (v.get("registros") or []) if r.get("id") is not None]
+        if len(ids) != len(set(ids)):
+            raise ValueError(error)
+    if registros > MAX_REGISTROS:
+        raise ValueError("La copia tiene demasiados registros para importarla de una vez.")
+    return vehiculos
+
+
 def importar_zip(contenido):
     """Agrega a la cuenta actual los vehículos de un zip exportado. Devuelve (vehículos, registros, archivos, avisos)."""
     try:
@@ -62,12 +96,9 @@ def importar_zip(contenido):
             raise ValueError("El archivo de datos es demasiado grande.")
         try:
             datos = json.loads(z.read(info).decode("utf-8"))
-            vehiculos = datos["vehiculos"]
-            assert isinstance(vehiculos, list)
-        except (ValueError, KeyError, TypeError, AssertionError, UnicodeDecodeError):
+        except (ValueError, UnicodeDecodeError, zipfile.BadZipFile, RuntimeError, NotImplementedError, zlib.error):
             raise ValueError("No se pudo leer garajedata.json: el archivo está dañado o fue modificado.")
-        if len(vehiculos) > MAX_VEHICULOS or sum(len(v.get("registros") or []) for v in vehiculos if isinstance(v, dict)) > MAX_REGISTROS:
-            raise ValueError("La copia tiene demasiados vehículos o registros para importarla de una vez.")
+        vehiculos = validar_estructura(datos)
 
         db = get_db()
         uid = g.usuario["id"]
@@ -126,12 +157,15 @@ def importar_zip(contenido):
                         continue
                     db.execute("INSERT INTO pendientes (vehiculo_id, titulo, categoria, fecha, km, detalle, creado) "
                                "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                               (vid, p["titulo"].strip()[:120], categoria_valida(p.get("categoria")), fecha_p, km_p,
+                               (vid, p["titulo"].strip()[:120], categoria_valida(valor(p.get("categoria"), "txt")), fecha_p, km_p,
                                 (valor(p.get("detalle"), "txt") or None), datetime.now().isoformat(timespec="seconds")))
                 foto_vieja = v.get("foto_id")
                 for a in v.get("archivos") or []:
                     if not isinstance(a, dict) or not isinstance(a.get("en_el_zip"), str):
                         continue
+                    registro = ids_reg.get(a.get("registro_id")) if a.get("registro_id") is not None else None
+                    if a.get("registro_id") is not None and registro is None:
+                        continue  # No guardar archivos huérfanos de registros descartados.
                     try:
                         crudo = z.read(a["en_el_zip"])
                     except KeyError:
@@ -144,10 +178,9 @@ def importar_zip(contenido):
                         continue
                     nuevos_archivos.append(en_disco)
                     usados += peso
-                    categoria = a.get("categoria") if a.get("categoria") in archivos.BOVEDA or a.get("categoria") == "portada" else None
-                    registro = ids_reg.get(a.get("registro_id")) if a.get("registro_id") is not None else None
-                    if a.get("registro_id") is not None and registro is None:
-                        continue  # era de un registro que no se importó
+                    categoria = valor(a.get("categoria"), "txt")
+                    if categoria not in archivos.BOVEDA and categoria != "portada":
+                        categoria = None
                     aid = db.execute("INSERT INTO archivos (vehiculo_id, registro_id, categoria, nombre, archivo, mime, bytes, creado) "
                                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                                      (vid, registro, categoria, nombre, en_disco, mime, peso,
@@ -172,8 +205,8 @@ def importar():
         return redirect(url_for("cuenta") + "#datos")
     try:
         n_veh, n_reg, n_arch, avisos = importar_zip(archivo.read(45 * 1024 * 1024 + 1))
-    except ValueError as e:
-        flash(str(e), "error")
+    except (ValueError, zipfile.BadZipFile, RuntimeError, NotImplementedError, zlib.error) as e:
+        flash(str(e) if isinstance(e, ValueError) else "La copia está dañada o no se puede descomprimir.", "error")
         return redirect(url_for("cuenta") + "#datos")
     if not n_veh:
         flash("La copia no tenía vehículos para importar.", "error")

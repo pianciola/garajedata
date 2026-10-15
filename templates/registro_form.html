@@ -32,7 +32,7 @@
 
     <label class="field">
       <span id="etiqueta-titulo">{{ '¿Qué hay que hacer?' if modo == 'pendiente' else '¿Qué se hizo?' }} *</span>
-      <input id="titulo" name="titulo" required maxlength="120" value="{{ r.titulo or '' }}" placeholder="Ej: Cambio de aceite y filtro" list="sugerencias" autofocus>
+      <input id="titulo" name="titulo" required maxlength="120" value="{{ r.titulo or '' }}" placeholder="Ej: Cambio de aceite y filtro" list="sugerencias">
       <datalist id="sugerencias">
         <option value="Cambio de aceite y filtro"><option value="Filtro de aire"><option value="Filtro de combustible">
         <option value="Filtro de habitáculo"><option value="Líquido refrigerante"><option value="Líquido de frenos">
@@ -117,7 +117,7 @@
         </label>
         <label class="field">
           <span>O en la fecha</span>
-          <input type="date" name="prox_fecha" value="{{ r.prox_fecha or '' }}" min="{{ lim.inicio_anio }}" max="{{ lim.en_30_anios }}">
+          <input type="date" name="prox_fecha" value="{{ r.prox_fecha or '' }}" min="{{ lim.desde }}" max="{{ lim.en_30_anios }}">
         </label>
       </div>
     </fieldset>

@@ -160,7 +160,9 @@ PRIVACIDAD = {
           "de los usuarios."]),
         ("2. Cookies y almacenamiento en el dispositivo",
          ["Se usa **una cookie de sesión**, estrictamente necesaria, para mantener la sesión iniciada (hasta 60 días) y proteger los "
-          "formularios contra solicitudes falsificadas. No es una cookie publicitaria ni de seguimiento.",
+          "formularios contra solicitudes falsificadas. No es una cookie publicitaria ni de seguimiento. El servidor guarda "
+          "un identificador protegido de cada sesión y su vencimiento para poder revocarla al salir. Cambiar o recuperar "
+          "la contraseña invalida todas las sesiones anteriores.",
           "El navegador también guarda, solo en el dispositivo del usuario: preferencias de pantalla (por ejemplo, qué secciones "
           "mostrar en el libro de servicio o qué avisos silenciar) y, para que la bitácora se pueda consultar sin conexión, una "
           "**copia local de las páginas y archivos vistos**. Esa copia se borra al cerrar sesión. En un dispositivo compartido "

@@ -95,6 +95,7 @@ def recuperar():
         get_db().execute("UPDATE usuarios SET clave = ? WHERE id = ?",
                          (generate_password_hash(request.form["clave"]), u["id"]))
         ingreso_ok(nombre)
+        invalidar_sesiones(u["id"])
         iniciar_sesion(u["id"])
         # El código usado ya no sirve: se entrega uno nuevo.
         nuevo_codigo(u["id"])
@@ -171,7 +172,8 @@ def cuenta():
             else:
                 get_db().execute("UPDATE usuarios SET clave = ? WHERE id = ?",
                                  (generate_password_hash(request.form["clave"]), u["id"]))
-                get_db().commit()
+                invalidar_sesiones(u["id"])
+                iniciar_sesion(u["id"])
                 flash("Contraseña cambiada.", "ok")
                 return redirect(url_for("cuenta"))
     cal = get_db().execute("SELECT cal_token FROM usuarios WHERE id = ?", (g.usuario["id"],)).fetchone()[0]
@@ -192,5 +194,9 @@ def codigo():
 
 @app.post("/logout")
 def logout():
+    sid = session.get("sid")
+    if isinstance(sid, str):
+        get_db().execute("DELETE FROM sesiones WHERE token = ?", (hashlib.sha256(sid.encode()).hexdigest(),))
+        get_db().commit()
     session.clear()
     return redirect(url_for("index"))

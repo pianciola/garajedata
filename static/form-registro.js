@@ -1,6 +1,8 @@
 // Formulario de registro: elige la categoría sola según lo que se escribe en
 // "¿Qué se hizo?" (ej: "cambio de aceite" -> Cambio de fluidos).
 (() => {
+  const titulo = document.getElementById("titulo");
+  if (!titulo) return;
   // Se revisan en este orden: la primera regla con una palabra presente gana.
   // Por eso "pérdida de aceite" cae en Reparación antes que en Fluidos.
   const REGLAS = [
@@ -40,6 +42,9 @@
   const norm = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   function detectar(texto) {
     const t = norm(texto);
+    // Frases específicas antes de las palabras genéricas que contienen.
+    if (/\bsensor(?:es)? de estacionamiento\b|\bcamara (de (retroceso|estacionamiento)|trasera)\b/.test(t)) return "accesorios";
+    if (/\b(seguro|poliza)\b/.test(t)) return "seguro";
     for (const [categoria, palabras] of REGLAS) {
       if (palabras.some((p) => ['vtv', 'rto', 'itv'].includes(p) ? t.split(/\W+/).includes(p) : t.includes(p))) return categoria;
     }
@@ -58,7 +63,7 @@
     const radio = document.querySelector(`input[name=categoria][value="${cat}"]`);
     if (!radio || radio.checked) return;
     radio.checked = true;
-    aviso.textContent = `Detectado automáticamente: ${radio.nextElementSibling.textContent}`;
+    aviso.textContent = `Detectado automáticamente: ${radio.nextElementSibling.querySelector("b").textContent}`;
     aviso.hidden = false;
     aviso.classList.remove("flash-in");
     void aviso.offsetWidth; // reinicia la animación

@@ -301,17 +301,17 @@ esperar("km que baja", c.post("/vehiculo/3/km", data={"km": "1.000"}), 302)
 with sqlite3.connect(DB) as db:
     if db.execute("SELECT km_manual FROM vehiculos WHERE id = 3").fetchone()[0] != 987654:
         fallas.append("el odómetro bajó o no se guardó")
-# Fechas: nada de año 0001, ni próximos controles en el pasado, ni trabajos en el futuro
+# Fechas inválidas se rechazan; los próximos controles históricos se pueden conservar.
 with sqlite3.connect(DB) as db:
     antes = db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id = 3").fetchone()[0]
-for campos, esperado in (({"prox_fecha": "0001-01-01"}, None), ({"prox_fecha": "2020-05-01"}, None),
-                         ({"prox_fecha": (date.today() + timedelta(days=30)).isoformat()}, "futuro"),
-                         ({"fecha": "0001-01-01"}, "hoy"), ({"fecha": "2099-01-01"}, "hoy")):
-    c.post("/vehiculo/3/registro/nuevo", data={"titulo": "prueba fechas", **campos})
+for campos, codigo in (({"prox_fecha": "0001-01-01"}, 200), ({"prox_fecha": "2020-05-01"}, 302),
+                       ({"prox_fecha": (date.today() + timedelta(days=30)).isoformat()}, 302),
+                       ({"fecha": "0001-01-01"}, 200), ({"fecha": "2099-01-01"}, 200)):
+    esperar("validación de fechas", c.post("/vehiculo/3/registro/nuevo", data={"titulo": "prueba fechas", **campos}), codigo)
 with sqlite3.connect(DB) as db:
     filas = db.execute("SELECT fecha, prox_fecha FROM registros WHERE vehiculo_id = 3 AND titulo = 'prueba fechas' ORDER BY id").fetchall()
 hoy = date.today().isoformat()
-if [f[1] for f in filas][:2] != [None, None] or filas[2][1] is None or filas[3][0] != hoy or filas[4][0] != hoy:
+if filas != [(hoy, "2020-05-01"), (hoy, (date.today() + timedelta(days=30)).isoformat())]:
     fallas.append(f"los límites de fecha no se aplican: {filas}")
 with sqlite3.connect(DB) as db:
     db.execute("DELETE FROM registros WHERE titulo = 'prueba fechas'")

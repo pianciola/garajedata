@@ -59,7 +59,7 @@
       {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
     </div>
     <dl class="mini-stats">
-      <div><dt>Km</dt><dd>{{ [v.km_inicial or 0, v.max_km or 0]|max|miles }} km</dd></div>
+      <div><dt>Km</dt><dd>{{ [v.km_inicial or 0, v.max_km or 0, v.km_manual or 0]|max|miles }} km</dd></div>
       <div><dt>Registros</dt><dd>{{ v.n }}</dd></div>
       <div><dt>Último</dt><dd>{{ v.ultimo|fecha }}</dd></div>
       {% set px = proximos.get(v.id) %}

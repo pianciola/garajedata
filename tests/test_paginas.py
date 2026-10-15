@@ -21,6 +21,13 @@ def test_auditoria_de_seguridad():
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr[-1500:]
 
 
+def test_regresiones_auditoria():
+    r = subprocess.run([sys.executable, os.path.join(RAIZ, "tools", "probar_regresiones.py")],
+                       capture_output=True, text=True, encoding="utf-8",
+                       env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+    assert r.returncode == 0 and "REGRESIONES OK" in r.stdout, r.stdout + r.stderr
+
+
 def test_respaldo(tmp_path):
     import sqlite3
     base = tmp_path / "b.db"

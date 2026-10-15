@@ -53,8 +53,10 @@ if Image is not None:
 def achicar(datos, mime):
     """Foto más liviana: gira según el EXIF, limita el tamaño y pasa a JPEG.
     De paso descarta los metadatos (ubicación GPS de la foto, etc.)."""
-    if Image is None or mime == "application/pdf":
+    if mime == "application/pdf":
         return datos, mime
+    if Image is None:
+        raise ValueError("Ahora no se pueden procesar fotos. Probá más tarde.")
     try:
         img = Image.open(io.BytesIO(datos))
         img = ImageOps.exif_transpose(img)
@@ -64,11 +66,13 @@ def achicar(datos, mime):
             fondo.paste(img, mask=img.convert("RGBA").split()[-1])
             img = fondo
         salida = io.BytesIO()
+        img = img.copy()
+        img.info.clear()
         img.save(salida, "JPEG", quality=82, optimize=True)
     except Exception:  # imagen dañada o rara: se rechaza
         raise ValueError("La imagen no se pudo leer.")
     nuevo = salida.getvalue()
-    return (nuevo, "image/jpeg") if len(nuevo) < len(datos) or mime != "image/jpeg" else (datos, mime)
+    return nuevo, "image/jpeg"
 
 
 def guardar(archivo, usados, solo_imagen=False):
