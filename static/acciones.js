@@ -76,3 +76,33 @@ document.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") document.querySelectorAll("details.car-menu[open]").forEach((d) => { d.open = false; });
 });
+
+// Fechas fuera de rango: el navegador deja escribir cualquier año (por ejemplo 01/01/2000 para algo
+// que es a futuro) y recién lo frena al guardar. Acá se avisa en el momento, con el motivo, y no deja guardar.
+(() => {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const ar = (iso) => iso.split("-").reverse().join("/");
+  const revisar = (campo) => {
+    let error = "";
+    const v = campo.value;
+    if (v && campo.min && v < campo.min) {
+      error = campo.min === hoy ? "Tiene que ser de hoy en adelante." : `Tiene que ser desde el ${ar(campo.min)}.`;
+    } else if (v && campo.max && v > campo.max) {
+      error = campo.max === hoy ? "No puede ser una fecha futura." : `Tiene que ser hasta el ${ar(campo.max)}.`;
+    }
+    campo.setCustomValidity(error);
+    campo.classList.toggle("fecha-invalida", !!error);
+    let aviso = campo.parentNode.querySelector(".fecha-error");
+    if (error && !aviso) {
+      aviso = document.createElement("small");
+      aviso.className = "fecha-error";
+      aviso.setAttribute("role", "alert");
+      campo.insertAdjacentElement("afterend", aviso);
+    }
+    if (aviso) { aviso.textContent = error; aviso.hidden = !error; }
+  };
+  document.querySelectorAll('input[type="date"]').forEach((campo) => {
+    ["input", "change", "blur"].forEach((ev) => campo.addEventListener(ev, () => revisar(campo)));
+    if (campo.value) revisar(campo);
+  });
+})();

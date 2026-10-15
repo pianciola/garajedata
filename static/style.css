@@ -1735,3 +1735,22 @@ body::after { opacity: .12; }
 .modo-opcion input:focus-visible + span { box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / .3); }
 .pendiente-acciones { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
 .pendiente-acciones form { margin: 0; }
+
+/* ---------- fechas fuera de rango ---------- */
+input[type="date"].fecha-invalida { border-color: var(--danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 22%, transparent); }
+.fecha-error { display: block; margin-top: 6px; color: var(--danger); font-size: .82rem; }
+.fecha-error[hidden] { display: none; }
+
+/* ---------- botón «Agregar vehículo»: con su propio ícono, que no parezca uno más ---------- */
+.btn-auto {
+  gap: 10px; padding-left: 14px; color: var(--text);
+  background: linear-gradient(120deg, rgb(var(--accent-rgb) / .16), rgb(var(--accent-rgb) / .04));
+  box-shadow: inset 0 0 0 1.5px rgb(var(--accent-rgb) / .6);
+}
+.btn-auto:hover { background: linear-gradient(120deg, rgb(var(--accent-rgb) / .28), rgb(var(--accent-rgb) / .1)); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.btn-auto-ico { position: relative; display: inline-grid; place-items: center; color: var(--accent); transition: transform .2s; }
+.btn-auto-ico b {
+  position: absolute; top: -7px; right: -8px; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent); font-family: "Inter", sans-serif; font-size: .8rem; font-weight: 800; line-height: 1;
+}
+.btn-auto:hover .btn-auto-ico { transform: translateX(3px); }

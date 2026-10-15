@@ -1097,6 +1097,7 @@ def guardar_pendiente(v):
     fecha_p = to_fecha(f.get("pend_fecha"), minimo=date.today())
     km_p = to_int(f.get("pend_km"))
     error = ("Indicá qué hay que hacer." if not titulo
+             else "La fecha del pendiente tiene que ser de hoy en adelante." if f.get("pend_fecha") and not fecha_p
              else "Poné para cuándo (una fecha de hoy en adelante) o a qué kilometraje." if not (fecha_p or km_p)
              else None)
     if error:

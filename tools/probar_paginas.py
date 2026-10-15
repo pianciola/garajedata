@@ -369,8 +369,10 @@ if os.path.exists(archivos.ruta(foto_disco)):
 from datetime import timedelta as _td  # noqa: E402
 _enero = (date.today() + _td(days=90)).isoformat()
 esperar("pendiente sin fecha ni km", c.post("/vehiculo/3/registro/nuevo", data={"modo": "pendiente", "titulo": "Aceite"}), 200)
-esperar("pendiente con fecha pasada", c.post("/vehiculo/3/registro/nuevo", data={
-    "modo": "pendiente", "titulo": "Aceite", "pend_fecha": "2020-01-01"}), 200)
+r = esperar("pendiente con fecha pasada", c.post("/vehiculo/3/registro/nuevo", data={
+    "modo": "pendiente", "titulo": "Aceite", "pend_fecha": "2000-01-01", "pend_km": "150.000"}), 200)
+if "tiene que ser de hoy en adelante" not in r.get_data(as_text=True):
+    fallas.append("un pendiente con fecha pasada no avisa el motivo")
 esperar("pendiente", c.post("/vehiculo/3/registro/nuevo", data={
     "modo": "pendiente", "titulo": "Cambio de aceite (pendiente)", "categoria": "fluidos", "pend_fecha": _enero,
     "fecha": "2099-01-01", "costo": "999"}), 302)
