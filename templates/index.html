@@ -59,18 +59,21 @@
 </div>
 <div class="consejo-zona">
 <aside class="consejo consejo-{{ consejo.clave }}" id="consejo" data-i="{{ consejo.i }}" data-salto="0" aria-label="Dato de garaje del día">
-  <span class="consejo-icono" aria-hidden="true">💡</span>
+  <div class="consejo-cabeza">
+    <span class="consejo-tag">Dato de garaje</span>
+    <b class="consejo-cat" id="consejo-cat">{{ consejo.categoria }}</b>
+    <span class="consejo-num" id="consejo-num" aria-hidden="true">#{{ '%02d'|format(consejo.i + 1) }}</span>
+    <div class="consejo-botones">
+      <button type="button" class="consejo-btn" id="consejo-otro" title="Ver otro dato" aria-label="Ver otro dato"><span>Otro</span> <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M5 5l7 7-7 7V5zm8 0l7 7-7 7V5z"/></svg></button>
+      <button type="button" class="consejo-btn consejo-x" id="consejo-cerrar" title="Ocultar hasta mañana" aria-label="Ocultar el dato hasta mañana">✕</button>
+    </div>
+  </div>
   <div class="consejo-cuerpo">
-    <span class="consejo-tag">Dato de garaje · <b id="consejo-cat">{{ consejo.categoria }}</b></span>
     <p id="consejo-texto">{{ consejo.texto }}</p>
-    <small class="consejo-aviso">Información general y orientativa: ante la duda, consultá el manual de tu auto o a un profesional.</small>
   </div>
-  <div class="consejo-botones">
-    <button type="button" class="consejo-btn" id="consejo-otro" title="Ver otro dato" aria-label="Ver otro dato">↻</button>
-    <button type="button" class="consejo-btn" id="consejo-cerrar" title="Ocultar hasta mañana" aria-label="Ocultar el dato hasta mañana">✕</button>
-  </div>
+  <small class="consejo-aviso">Información general y orientativa: ante la duda, consultá el manual de tu auto o a un profesional.</small>
 </aside>
-<button type="button" class="consejo-chip" id="consejo-abrir" hidden><span aria-hidden="true">💡</span> Mostrar dato de garaje</button>
+<button type="button" class="consejo-chip" id="consejo-abrir" hidden><span class="consejo-chip-raya" aria-hidden="true"></span>Dato de garaje <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M8 5l8 7-8 7z"/></svg></button>
 </div>
 <script src="{{ url_for('static', filename='orden-autos.js') }}"></script>
 <script src="{{ url_for('static', filename='consejo.js') }}"></script>

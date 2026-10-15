@@ -560,18 +560,27 @@ input[type="date"] { color-scheme: dark; }
 /* ---------- cuentas ---------- */
 .topbar nav { display: flex; align-items: center; gap: 10px; }
 .user-chip {
-  color: var(--muted); font-family: var(--display); font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 46vw;
+  padding: 4px 10px 4px 4px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface-3); color: var(--text); font-family: var(--display); font-weight: 600;
   letter-spacing: .06em; text-transform: uppercase; font-size: .95rem;
-  max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: border-color .15s, background .15s;
 }
-.user-chip::before { content: "● "; color: var(--accent); font-size: .7em; vertical-align: middle; }
+.user-ini {
+  flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: .9rem; letter-spacing: 0;
+}
+.user-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-engranaje { flex: none; color: var(--muted); transition: transform .3s, color .15s; }
+a.user-chip:hover, .user-chip.activo { border-color: var(--accent); background: #2c3139; }
+a.user-chip:hover .user-engranaje, .user-chip.activo .user-engranaje { color: var(--text); transform: rotate(60deg); }
 .auth-form .form-actions .btn { flex: 1; }
 .auth-alt { margin-top: 18px; text-align: center; }
 .hint { color: var(--muted); font-size: .8rem; }
 .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 .feature { padding: 20px; }
 .feature h3 { color: var(--text); }
-a.user-chip:hover { color: var(--text); text-decoration: none; }
+a.user-chip:hover { text-decoration: none; }
 .auth-alt-2 { margin-top: 6px; }
 .codigo-box {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
@@ -858,7 +867,7 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
   width: 1px; height: 1px; padding: 0; margin: 0; left: 0; top: 0; overflow: hidden;
 }
 @media (max-width: 720px) {
-  .user-chip { padding: 10px 2px; }
+  .user-chip { padding: 6px 10px 6px 6px; }
   .quitar { padding: 8px 0 8px 8px; }
   .quitar input { width: 18px; height: 18px; }
 }
@@ -1137,46 +1146,110 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   .tab { min-width: 0; padding: 10px 4px; font-size: .78rem; letter-spacing: .02em; white-space: nowrap; }
 }
 
-/* ---------- consejo del día ---------- */
-.consejo { --cc: var(--accent); display: flex; align-items: center; gap: 14px; margin: 0 0 22px; padding: 12px 14px 12px 16px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--cc) 12%, var(--surface)) 0%, var(--surface) 70%);
-  border: 1px solid var(--border); border-left: 4px solid var(--cc); border-radius: 10px; }
+/* ---------- dato de garaje (debajo de los autos): estilo de la página, con animaciones «de pista» ---------- */
+.consejo-zona { margin-top: 44px; }
+.consejo {
+  --cc: var(--accent); position: relative; overflow: hidden; isolation: isolate; padding: 16px 18px 14px 26px;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+/* cuadriculado de bandera solo en la esquina, que se desvanece */
+.consejo-cabeza::after {
+  content: ""; position: absolute; top: 0; right: 0; width: 160px; height: 100%; pointer-events: none; z-index: -1;
+  background: repeating-conic-gradient(rgba(255, 255, 255, .045) 0 25%, transparent 0 50%) 0 0 / 14px 14px;
+  -webkit-mask: linear-gradient(225deg, #000, transparent 70%); mask: linear-gradient(225deg, #000, transparent 70%);
+}
+/* franja inclinada del color de la categoría */
+.consejo::before {
+  content: ""; position: absolute; left: 8px; top: -10px; bottom: -10px; width: 6px;
+  background: var(--cc); transform: skewX(-12deg); box-shadow: 7px 0 0 -2px color-mix(in srgb, var(--cc) 45%, transparent);
+  transition: background .3s;
+}
+/* barrido de velocidad al cambiar de dato */
+.consejo::after {
+  content: ""; position: absolute; inset: 0 auto 0 -40%; width: 35%; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--cc) 35%, transparent) 60%, rgba(255, 255, 255, .25) 72%, transparent);
+  transform: skewX(-20deg);
+}
 .consejo[hidden] { display: none; }
 .consejo-limpieza { --cc: #22b8cf; } .consejo-vial { --cc: #f5a524; } .consejo-seguridad { --cc: #e3262b; }
 .consejo-mantenimiento { --cc: #7c5cff; } .consejo-ahorro { --cc: #2ec27e; } .consejo-datos { --cc: #5b8def; } .consejo-documentos { --cc: #98a2b3; }
-.consejo-icono { font-size: 1.5rem; flex: none; }
-.consejo-cuerpo { min-width: 0; flex: 1; }
-.consejo-tag { display: block; font-family: var(--display); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.consejo-tag b { color: var(--cc); }
-.consejo p { margin: 3px 0 0; font-size: .95rem; line-height: 1.45; }
-.consejo-botones { display: flex; gap: 4px; flex: none; }
-.consejo-btn { width: 34px; height: 34px; display: grid; place-items: center; background: transparent; border: 1px solid transparent; border-radius: 8px;
-  color: var(--muted); font-size: 1.05rem; cursor: pointer; transition: background .15s, color .15s; }
-.consejo-btn:hover { background: var(--surface-3); color: var(--text); }
-.consejo-btn:disabled { opacity: .5; cursor: default; }
-.consejo-nuevo p { animation: consejo-in .35s ease; }
-@keyframes consejo-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.consejo-chip { margin: 0 0 18px; padding: 6px 12px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); border-radius: 999px; font-size: .82rem; cursor: pointer; }
-.consejo-chip:hover { color: var(--text); border-color: var(--border-strong); }
-.consejo-chip[hidden] { display: none; }
-@media (max-width: 520px) { .consejo { gap: 10px; padding: 11px 8px 11px 12px; } .consejo-icono { font-size: 1.25rem; } .consejo p { font-size: .9rem; } }
-@media print { .consejo, .consejo-chip { display: none !important; } }
-.consejo-aviso { display: block; margin-top: 4px; color: var(--muted); font-size: .74rem; opacity: .8; }
 
-/* ---------- dato de garaje: debajo de los autos, letra más cómoda, chip discreto ---------- */
-.consejo-zona { margin-top: 44px; }
-.consejo { margin: 0; padding: 16px 16px 16px 18px; gap: 16px; }
-.consejo-icono { font-size: 1.8rem; }
-.consejo-tag { font-size: .86rem; }
-.consejo p { margin-top: 5px; font-size: 1.12rem; line-height: 1.5; }
-.consejo-aviso { margin-top: 8px; font-size: .8rem; }
-.consejo-btn { width: 38px; height: 38px; font-size: 1.15rem; }
-.consejo-chip { display: inline-flex; align-items: center; gap: 7px; margin: 0; padding: 6px 4px; background: none; border: 0; border-radius: 6px;
-  color: var(--muted); font-size: .88rem; opacity: .75; cursor: pointer; transition: opacity .15s, color .15s; }
-.consejo-chip:hover, .consejo-chip:focus-visible { opacity: 1; color: var(--text); }
-.consejo-chip span { filter: grayscale(.6); }
-.consejo-chip:hover span { filter: none; }
-@media (max-width: 520px) { .consejo-zona { margin-top: 34px; } .consejo p { font-size: 1.02rem; } .consejo-icono { font-size: 1.5rem; } }
+.consejo-cabeza { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.consejo-tag {
+  display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 700; font-size: .85rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--accent);
+}
+.consejo-tag::before { content: ""; width: 20px; height: 3px; background: var(--accent); transform: skewX(-30deg); }
+.consejo-cat {
+  --cut: 7px; padding: 3px 14px; background: var(--cc); color: #0e1014; font-family: var(--display); font-weight: 700;
+  font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; line-height: 1.3;
+  clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%); transition: background .3s;
+}
+.consejo-num {
+  margin-left: auto; font-family: var(--display); font-weight: 700; font-style: italic; font-size: 1.25rem;
+  letter-spacing: .04em; color: color-mix(in srgb, var(--cc) 70%, var(--muted)); opacity: .85; font-variant-numeric: tabular-nums;
+}
+.consejo-botones { display: flex; gap: 6px; flex: none; }
+.consejo-btn {
+  --cut: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 14px;
+  background: var(--surface-3); color: var(--text); border: 0; font-family: var(--display); font-weight: 700; font-size: .88rem;
+  letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+  clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%); transition: background .15s, color .15s;
+}
+.consejo-btn:hover { background: var(--accent); color: #fff; }
+.consejo-btn svg { transition: transform .2s; }
+.consejo-btn:hover svg { transform: translateX(3px); }
+.consejo-btn:disabled { opacity: .6; cursor: default; }
+.consejo-x { width: 34px; padding: 0; color: var(--muted); font-size: .95rem; }
+.consejo-cuerpo { min-width: 0; }
+.consejo p { margin: 10px 0 0; font-size: 1.12rem; line-height: 1.5; }
+.consejo-aviso { display: block; margin-top: 8px; color: var(--muted); font-size: .8rem; opacity: .8; }
+
+/* «Dato de garaje» oculto: botoncito discreto con la misma onda */
+.consejo-chip {
+  --cut: 7px; display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 7px 14px 7px 12px;
+  background: var(--surface-2); color: var(--muted); border: 0; font-family: var(--display); font-weight: 700;
+  font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%); transition: background .15s, color .15s;
+}
+.consejo-chip-raya { width: 16px; height: 3px; background: var(--accent); transform: skewX(-30deg); }
+.consejo-chip:hover, .consejo-chip:focus-visible { background: var(--surface-3); color: var(--text); }
+.consejo-chip svg { transition: transform .2s; }
+.consejo-chip:hover svg { transform: translateX(3px); }
+.consejo-chip[hidden] { display: none; }
+
+/* animaciones */
+.consejo-sale .consejo-cuerpo, .consejo-sale .consejo-cat, .consejo-sale .consejo-num { animation: dato-sale .18s ease-in forwards; }
+.consejo-entra .consejo-cuerpo, .consejo-entra .consejo-cat, .consejo-entra .consejo-num { animation: dato-entra .4s cubic-bezier(.2, .9, .25, 1.12) both; }
+.consejo-entra .consejo-cat { animation-delay: .04s; }
+.consejo-entra .consejo-num { animation-delay: .08s; }
+.consejo-entra::after { animation: dato-barrido .5s ease-out; }
+.consejo-cerrando { animation: dato-arranca .42s cubic-bezier(.55, 0, .85, .35) forwards; pointer-events: none; }
+.consejo-abriendo { animation: dato-llega .45s cubic-bezier(.2, .9, .25, 1.1) both; }
+.consejo-abriendo::after { animation: dato-barrido .55s .1s ease-out; }
+.consejo-chip.consejo-entra { animation: dato-entra .35s cubic-bezier(.2, .9, .25, 1.12) both; }
+@keyframes dato-sale { to { opacity: 0; transform: translateX(-36px) skewX(12deg); filter: blur(2px); } }
+@keyframes dato-entra { from { opacity: 0; transform: translateX(48px) skewX(-14deg); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes dato-barrido { 0% { left: -40%; opacity: 1; } 100% { left: 120%; opacity: .6; } }
+@keyframes dato-arranca {
+  0% { transform: none; opacity: 1; }
+  18% { transform: translateX(-10px); }
+  100% { transform: translateX(70%) skewX(-18deg); opacity: 0; filter: blur(3px); }
+}
+@keyframes dato-llega { from { opacity: 0; transform: translateX(-60px) skewX(14deg); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .consejo-sale *, .consejo-entra *, .consejo-entra, .consejo-entra::after, .consejo-cerrando, .consejo-abriendo, .consejo-abriendo::after { animation: none !important; }
+}
+@media (max-width: 520px) {
+  .consejo-zona { margin-top: 34px; }
+  .consejo { padding: 14px 12px 12px 22px; }
+  .consejo p { font-size: 1.02rem; }
+  .consejo-num { font-size: 1.05rem; }
+  .consejo-btn { height: 30px; padding: 0 11px; }
+  .consejo-x { width: 30px; padding: 0; }
+}
+@media print { .consejo, .consejo-chip { display: none !important; } }
 
 /* El encabezado no tapa lo que queda arriba al saltar a un campo o a un ancla. */
 html { scroll-padding-top: 84px; }
@@ -1233,11 +1306,16 @@ html { scroll-padding-top: 84px; }
   .landing-funciones .feature p { font-size: .86rem; line-height: 1.45; }
 }
 
-.cal-agregar-titulo { margin: 4px 0 -2px !important; }
-.cal-botones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.cal-btn { display: flex; align-items: center; gap: 10px; padding: 12px 12px; background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; color: var(--text); transition: background .15s, border-color .15s; min-width: 0; }
-.cal-btn:hover { background: #2c3139; border-color: var(--accent); text-decoration: none; }
-.cal-btn strong { display: block; font-family: var(--display); font-size: 1rem; letter-spacing: .04em; text-transform: uppercase; }
+.cal-botones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 6px 0 4px; }
+.cal-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 22px 12px 18px; text-align: center; background: var(--surface-3); border: 1px solid var(--border); border-radius: 12px; color: var(--text); transition: background .15s, border-color .15s, transform .15s; min-width: 0; }
+.cal-btn:hover { background: #2c3139; border-color: var(--accent); text-decoration: none; transform: translateY(-2px); }
+.cal-btn strong { display: block; font-family: var(--display); font-size: 1.15rem; letter-spacing: .04em; text-transform: uppercase; line-height: 1.1; }
 .cal-btn small { display: block; color: var(--muted); font-size: .76rem; line-height: 1.25; }
-.cal-ico { font-size: 1.5rem; flex: none; }
-@media (max-width: 560px) { .cal-botones { grid-template-columns: 1fr; } }
+.cal-ico { font-size: 2rem; line-height: 1; margin-bottom: 6px; }
+#panel-calendario .acordeon .share-box { margin-top: 4px; }
+@media (max-width: 560px) {
+  .cal-botones { grid-template-columns: 1fr; }
+  .cal-btn { flex-direction: row; justify-content: flex-start; text-align: left; gap: 12px; padding: 14px; }
+  .cal-btn strong + small { margin-left: auto; }
+  .cal-ico { margin-bottom: 0; font-size: 1.6rem; }
+}
