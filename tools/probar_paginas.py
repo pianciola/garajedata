@@ -348,6 +348,18 @@ r = esperar("otro consejo", c.get("/consejo/3"), 200)
 if not r.get_json().get("texto"):
     fallas.append("el consejo de /consejo/N viene vacío")
 esperar("consejo enorme", c.get("/consejo/99999999999999999999"), 200)
+# Calendario dentro de la página
+html = esperar("calendario", c.get("/calendario"), 200).get_data(as_text=True)
+if 'class="cal-grilla"' not in html or "noindex" not in c.get("/calendario").headers.get("X-Robots-Tag", ""):
+    fallas.append("el calendario no muestra la grilla del mes")
+for mes in ("2026-02", "1999-01", "2101-01", "2026-13", "abc", "9" * 30):
+    esperar(f"calendario {mes}", c.get("/calendario?mes=" + mes), 200)
+esperar("calendario sin sesión", app.test_client().get("/calendario"), 302)
+otra = app.test_client()
+otra.post("/registro", data={"usuario": "sin-autos-cal", "clave": "clave-123", "clave2": "clave-123", "acepto": "1"})
+html_otra = esperar("calendario de otra cuenta", otra.get("/calendario"), 200).get_data(as_text=True)
+if "agenda-ev" in html_otra:
+    fallas.append("el calendario muestra eventos de otra cuenta")
 tanda = esperar("tanda de consejos", c.get("/consejos/5"), 200).get_json()
 if len(tanda) != 40 or tanda[0]["salto"] != 5 or len({t["i"] for t in tanda}) != 40:
     fallas.append("la tanda de /consejos/N no trae 40 consejos distintos")

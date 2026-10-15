@@ -36,6 +36,7 @@
       </a>
       <nav>
         {% if usuario %}
+          <a class="nav-cal{% if request.endpoint == 'agenda' %} activo{% endif %}" href="{{ url_for('agenda') }}" title="Calendario de controles y vencimientos" aria-label="Calendario"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17h2" stroke-width="2.6"/></svg><span>Calendario</span></a>
           <a class="user-chip{% if request.endpoint == 'cuenta' %} activo{% endif %}" href="{{ url_for('cuenta') }}" title="Mi cuenta: contraseña, calendario y tus datos" aria-label="Mi cuenta ({{ usuario.usuario }})"><span class="user-ini" aria-hidden="true">{{ usuario.usuario[:1]|upper }}</span><span class="user-nombre">{{ usuario.usuario }}</span><svg class="user-engranaje" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8.2" stroke-width="3.4" stroke-dasharray="3.2 3.24"/><circle cx="12" cy="12" r="5.6" stroke-width="2.4"/></svg></a>
           <form class="salir-form" method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn btn-ghost btn-sm" type="submit">Salir</button></form>
         {% elif request.endpoint != 'login' %}

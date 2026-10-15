@@ -1,0 +1,13 @@
+{% macro evento(e) %}
+<li class="agenda-ev cal-tipo-{{ e.tipo }} agenda-ev-{{ e.estado }}" style="--auto: {{ e.color }}">
+  <a href="{{ url_for('vehiculo', vid=e.vid) }}">
+    <span class="agenda-tipo">{{ tipos[e.tipo] }}</span>
+    <strong>{{ e.titulo }}</strong>
+    <span class="agenda-auto"><i aria-hidden="true"></i>{{ e.auto }}</span>
+    {% if e.detalle %}<small>{{ e.detalle }}{% if e.estimado %} · fecha estimada según tu uso{% endif %}</small>
+    {% elif e.estimado %}<small>Fecha estimada según tu uso</small>{% endif %}
+    {% if e.estado == 'vencido' %}<span class="badge agenda-badge agenda-badge-vencido">{{ 'Vencido' if e.tipo == 'doc' else 'Atrasado' }}{% if e.fecha < hoy %} · {{ e.fecha.strftime('%d/%m') }}{% endif %}</span>
+    {% elif e.estado == 'pronto' %}<span class="badge agenda-badge agenda-badge-pronto">Pronto</span>{% endif %}
+  </a>
+</li>
+{% endmacro %}

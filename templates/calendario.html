@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Calendario{% endblock %}
+{% block content %}
+{% from "_agenda.html" import evento with context %}
+<a class="back" href="{{ url_for('index') }}"><svg class="back-flecha" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></svg><span>Mis vehículos</span></a>
+<section class="hero">
+  <div>
+    <div class="eyebrow">Tu garaje</div>
+    <h1>Calendario</h1>
+    <p class="muted">Los próximos controles que anotaste en cada registro, los services estimados y los vencimientos de papeles de todos tus vehículos.</p>
+    {% if proximo %}<p class="garage-count">Lo próximo: <b>{{ proximo.titulo }}</b> · {{ proximo.auto }} · {{ dia_largo(proximo.fecha) }}</p>{% endif %}
+  </div>
+</section>
+
+{% if not hay_autos %}
+<div class="card empty">
+  <div class="empty-icon">📅</div>
+  <h2>Todavía no hay nada para mostrar</h2>
+  <p class="muted">Agregá un vehículo y cargá sus registros o vencimientos: van a aparecer acá.</p>
+  <a class="btn btn-primary" href="{{ url_for('vehiculo_nuevo') }}">+ Agregar vehículo</a>
+</div>
+{% else %}
+
+{% if atrasados %}
+<section class="card agenda-atrasados">
+  <h2 class="agenda-subtitulo">⚠ Atrasados <span class="muted">({{ atrasados|length }})</span></h2>
+  <ul class="agenda-lista">
+    {% for e in atrasados %}{{ evento(e) }}{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="card cal">
+  <header class="cal-cabeza">
+    <a class="cal-flecha" href="{{ url_for('agenda', mes=mes_anterior) }}" aria-label="Mes anterior" title="Mes anterior">‹</a>
+    <h2 class="cal-mes">{{ nombre_mes|capitalize }} <span>{{ anio }}</span></h2>
+    <a class="cal-flecha" href="{{ url_for('agenda', mes=mes_siguiente) }}" aria-label="Mes siguiente" title="Mes siguiente">›</a>
+    {% if not es_hoy %}<a class="btn btn-ghost btn-sm cal-hoy" href="{{ url_for('agenda') }}">Hoy</a>{% endif %}
+  </header>
+  <div class="cal-leyenda">
+    <span class="cal-tipo cal-tipo-control">Control anotado</span>
+    <span class="cal-tipo cal-tipo-plan">Service estimado</span>
+    <span class="cal-tipo cal-tipo-doc">Vencimiento</span>
+  </div>
+  <div class="cal-grilla" role="grid" aria-label="{{ nombre_mes|capitalize }} {{ anio }}">
+    {% for d in dias_semana %}<div class="cal-dsem" role="columnheader">{{ d }}</div>{% endfor %}
+    {% for semana in semanas %}{% for d in semana %}
+      {% set evs = por_dia.get(d, []) %}
+      {% set clases = ['cal-dia'] %}
+      {% if d.month != mes %}{% set _ = clases.append('cal-otro') %}{% endif %}
+      {% if d == hoy %}{% set _ = clases.append('cal-hoy-dia') %}{% endif %}
+      {% if d < hoy %}{% set _ = clases.append('cal-pasado') %}{% endif %}
+      {% if evs %}{% set _ = clases.append('cal-con') %}{% endif %}
+      {% if evs and d.month == mes %}<a class="{{ clases|join(' ') }}" role="gridcell" href="#dia-{{ d.isoformat() }}" aria-label="{{ dia_largo(d) }}: {{ evs|length }} {{ 'evento' if evs|length == 1 else 'eventos' }}">
+      {% else %}<div class="{{ clases|join(' ') }}" role="gridcell">{% endif %}
+        <span class="cal-num">{{ d.day }}</span>
+        {% if evs %}
+        <span class="cal-eventos">
+          {% for e in evs[:3] %}<span class="cal-ev cal-tipo-{{ e.tipo }} cal-ev-{{ e.estado }}" style="--auto: {{ e.color }}" title="{{ e.titulo }} · {{ e.auto }}"><i aria-hidden="true"></i><span>{{ e.titulo }}</span></span>{% endfor %}
+          {% if evs|length > 3 %}<span class="cal-mas">+{{ evs|length - 3 }}</span>{% endif %}
+        </span>
+        {% endif %}
+      {% if evs and d.month == mes %}</a>{% else %}</div>{% endif %}
+    {% endfor %}{% endfor %}
+  </div>
+</section>
+
+<section class="agenda-mes">
+  <h2 class="agenda-subtitulo">En {{ nombre_mes }}</h2>
+  {% if del_mes %}
+    {% for d, evs in del_mes %}
+    <div class="agenda-dia{% if d == hoy %} agenda-dia-hoy{% endif %}" id="dia-{{ d.isoformat() }}">
+      <h3><span>{{ d.day }}</span> {{ dia_largo(d)|capitalize }}{% if d == hoy %} <b>· hoy</b>{% endif %}</h3>
+      <ul class="agenda-lista">{% for e in evs %}{{ evento(e) }}{% endfor %}</ul>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="card agenda-vacia">
+      <p><b>No hay nada anotado para {{ nombre_mes }}.</b></p>
+      <p class="muted small">Para que aparezcan cosas acá: al cargar un registro completá «Próximo control» (km o fecha), cargá las fechas de vencimiento en la ficha de cada auto o elegí un perfil de uso para que se estimen los services.</p>
+    </div>
+  {% endif %}
+  <p class="muted small agenda-pie">¿Lo querés en el celular? En <a href="{{ url_for('cuenta') }}#calendario">Mi cuenta → Calendario</a> lo agregás a Google Calendar, Apple u Outlook con un toque.</p>
+</section>
+{% endif %}
+{% endblock %}

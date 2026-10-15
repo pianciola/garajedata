@@ -42,6 +42,7 @@ python app.py                  # local en http://127.0.0.1:5000
 - Capturas locales: Edge headless; no baja de ~500 px de ancho (usar iframe).
 - Logo propio: `static/img/logo-icono.png`, macro `templates/_logo.html`. Logos de marcas: `static/img/marcas/` (locales, sin CDN).
 - «Dato de garaje» del día (debajo de los autos): lista en `consejos.py` (500 entradas, ponderadas por categoría: consejos, datos curiosos y papeles). «Otro» saltea los ya vistos (localStorage + `/consejos/<desde>`). **Cada consejo es una responsabilidad**: verificar que sea cierto, que no dependa de una norma que pueda cambiar y que no invite a nada riesgoso.
+- Calendario en la página: `/calendario` (`rutas/agenda.py`, botón en la barra de arriba). Junta próximos controles de los registros, services estimados del plan y vencimientos (los que se repiten se proyectan). El .ics para Google/Apple/Outlook está en `rutas/datos.py`.
 - Recuperar una cuenta: código de recuperación (se puede bajar como .txt) o importar la copia .zip de «Mis datos» (`rutas/importar.py`, valida todo como una subida normal).
 - SEO: `meta description`/Open Graph en `base.html` (imagen `static/img/og.jpg`), `robots.txt` y `sitemap.xml` en `rutas/sitio.py`; lo privado lleva `X-Robots-Tag: noindex`. Capturas de la portada en `static/img/muestra/`.
 - Contraseñas: mínimo 8 caracteres (las cuentas viejas con 6 siguen entrando).
