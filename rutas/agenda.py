@@ -9,6 +9,7 @@ MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto
          "octubre", "noviembre", "diciembre"]
 DIAS_SEMANA = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"]
 DIAS_LARGOS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+ANIOS_ATRAS, ANIOS_ADELANTE = 2, 5  # el calendario muestra desde hace 2 años hasta dentro de 5
 TIPOS = {"control": "Control", "plan": "Service estimado", "doc": "Vencimiento"}
 
 
@@ -81,12 +82,22 @@ def dia_largo(d):
 @requiere_login
 def agenda():
     hoy = date.today()
+    anio_min, anio_max = hoy.year - ANIOS_ATRAS, hoy.year + ANIOS_ADELANTE
     anio, mes = hoy.year, hoy.month
+    # Se pide como ?mes=2026-12 (flechas) o ?a=2026&m=12 (desplegables). Lo que no encaja se ignora
+    # y un año fuera del rango se lleva al borde más cercano.
     pedido = request.args.get("mes", "")
+    a = m = None
     if re.fullmatch(r"\d{4}-\d{2}", pedido):
         a, m = int(pedido[:4]), int(pedido[5:])
-        if 2000 <= a <= 2100 and 1 <= m <= 12:
-            anio, mes = a, m
+    elif re.fullmatch(r"\d{4}", request.args.get("a", "")) and re.fullmatch(r"\d{1,2}", request.args.get("m", "")):
+        a, m = int(request.args["a"]), int(request.args["m"])
+    if a is not None and 1 <= m <= 12:
+        if a < anio_min:
+            a, m = anio_min, 1
+        elif a > anio_max:
+            a, m = anio_max, 12
+        anio, mes = a, m
     semanas = calendar.Calendar(0).monthdatescalendar(anio, mes)
     eventos = agenda_de(g.usuario["id"], hasta=max(semanas[-1][-1], hoy))
     por_dia = {}
@@ -102,6 +113,8 @@ def agenda():
                            del_mes=del_mes, tipos=TIPOS, dia_largo=dia_largo, proximo=proximo,
                            mes_anterior=f"{anterior.year}-{anterior.month:02d}",
                            mes_siguiente=f"{siguiente.year}-{siguiente.month:02d}",
-                           es_hoy=(anio == hoy.year and mes == hoy.month),
+                           es_hoy=(anio == hoy.year and mes == hoy.month), meses=MESES,
+                           anios=range(anio_min, anio_max + 1),
+                           hay_anterior=(anio, mes) > (anio_min, 1), hay_siguiente=(anio, mes) < (anio_max, 12),
                            hay_autos=bool(get_db().execute("SELECT 1 FROM vehiculos WHERE usuario_id = ?",
                                                            (g.usuario["id"],)).fetchone()))

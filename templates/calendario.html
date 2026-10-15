@@ -32,9 +32,20 @@
 
 <section class="card cal">
   <header class="cal-cabeza">
-    <a class="cal-flecha" href="{{ url_for('agenda', mes=mes_anterior) }}" aria-label="Mes anterior" title="Mes anterior">‹</a>
-    <h2 class="cal-mes">{{ nombre_mes|capitalize }} <span>{{ anio }}</span></h2>
-    <a class="cal-flecha" href="{{ url_for('agenda', mes=mes_siguiente) }}" aria-label="Mes siguiente" title="Mes siguiente">›</a>
+    {% if hay_anterior %}<a class="cal-flecha" href="{{ url_for('agenda', mes=mes_anterior) }}" aria-label="Mes anterior" title="Mes anterior">‹</a>
+    {% else %}<span class="cal-flecha cal-flecha-off" aria-hidden="true">‹</span>{% endif %}
+    <form class="cal-elegir" method="get" action="{{ url_for('agenda') }}" data-autoenviar>
+      <h2 class="visually-hidden">{{ nombre_mes|capitalize }} {{ anio }}</h2>
+      <label class="cal-select"><span class="visually-hidden">Mes</span>
+        <select name="m">{% for nm in meses %}<option value="{{ loop.index }}"{% if loop.index == mes %} selected{% endif %}>{{ nm|capitalize }}</option>{% endfor %}</select>
+      </label>
+      <label class="cal-select cal-select-anio"><span class="visually-hidden">Año</span>
+        <select name="a">{% for a in anios %}<option value="{{ a }}"{% if a == anio %} selected{% endif %}>{{ a }}</option>{% endfor %}</select>
+      </label>
+      <button class="btn btn-ghost btn-sm" type="submit" data-sin-js>Ver</button>
+    </form>
+    {% if hay_siguiente %}<a class="cal-flecha" href="{{ url_for('agenda', mes=mes_siguiente) }}" aria-label="Mes siguiente" title="Mes siguiente">›</a>
+    {% else %}<span class="cal-flecha cal-flecha-off" aria-hidden="true">›</span>{% endif %}
     {% if not es_hoy %}<a class="btn btn-ghost btn-sm cal-hoy" href="{{ url_for('agenda') }}">Hoy</a>{% endif %}
   </header>
   <div class="cal-leyenda">

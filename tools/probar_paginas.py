@@ -354,6 +354,15 @@ if 'class="cal-grilla"' not in html or "noindex" not in c.get("/calendario").hea
     fallas.append("el calendario no muestra la grilla del mes")
 for mes in ("2026-02", "1999-01", "2101-01", "2026-13", "abc", "9" * 30):
     esperar(f"calendario {mes}", c.get("/calendario?mes=" + mes), 200)
+for q in ("a=1900&m=5", "a=9999&m=1", "a=2026&m=13", "a=2026&m=0", "a=abc&m=1", "a=2026&m=-1", "a=&m=", "a=2026&m=1x"):
+    esperar(f"calendario {q}", c.get("/calendario?" + q), 200)
+_hoy = date.today()
+html = c.get(f"/calendario?a={_hoy.year - 50}&m=6").get_data(as_text=True)
+if f'<option value="{_hoy.year - 2}" selected>' not in html or f'value="{_hoy.year - 3}"' in html or f'value="{_hoy.year + 6}"' in html:
+    fallas.append("el calendario deja elegir años fuera de rango")
+html = c.get(f"/calendario?a={_hoy.year + 50}&m=6").get_data(as_text=True)
+if f'<option value="{_hoy.year + 5}" selected>' not in html or '<option value="12" selected>' not in html:
+    fallas.append("el calendario no lleva un año muy lejano al último mes permitido")
 esperar("calendario sin sesión", app.test_client().get("/calendario"), 302)
 otra = app.test_client()
 otra.post("/registro", data={"usuario": "sin-autos-cal", "clave": "clave-123", "clave2": "clave-123", "acepto": "1"})

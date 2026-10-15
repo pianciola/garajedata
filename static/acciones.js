@@ -7,6 +7,12 @@ document.addEventListener("submit", (e) => {
 document.addEventListener("click", (e) => {
   if (e.target.closest("[data-imprimir]")) window.print();
 });
+// Formularios que se envían solos al cambiar un desplegable (por ejemplo, el mes del calendario).
+document.addEventListener("change", (e) => {
+  const form = e.target.closest("form[data-autoenviar]");
+  if (form && e.target.matches("select")) form.submit();
+});
+document.querySelectorAll("form[data-autoenviar] [data-sin-js]").forEach((b) => { b.hidden = true; });
 
 // Campos de fecha opcionales: botón para borrarlos (el selector del navegador no siempre deja vaciarlos).
 document.querySelectorAll('input[type="date"]:not([required])').forEach((campo) => {
