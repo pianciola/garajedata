@@ -6,7 +6,7 @@
   <title>{% block title %}GarajeData{% endblock %} · Bitácora del automotor</title>
   <link rel="preload" href="{{ url_for('static', filename='vendor/fonts/saira-condensed-800.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20261015') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <meta name="csrf" content="{{ csrf_token() }}">
   <meta name="description" content="{% block descripcion %}Bitácora gratuita para tu auto: services, vencimientos, gastos, recordatorios y libro de servicio en PDF. Sin email ni publicidad.{% endblock %}">
   <meta property="og:type" content="website">
@@ -15,14 +15,14 @@
   <meta property="og:title" content="{% block og_titulo %}GarajeData · La historia completa de tu auto{% endblock %}">
   <meta property="og:description" content="{{ self.descripcion() }}">
   <meta property="og:url" content="{{ url_absoluta('index') }}">
-  <meta property="og:image" content="{{ url_absoluta('static', filename='img/og.jpg', v='20261015') }}">
+  <meta property="og:image" content="{{ url_absoluta('static', filename='img/og.jpg') }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="GarajeData: la bitácora de tu auto">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png', v='20261015') }}">
-  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-192.png', v='20261015') }}">
-  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest', v='20261015') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-192.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="theme-color" content="#0a0b0d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -55,6 +55,10 @@
     {% endwith %}
     {% block content %}{% endblock %}
   </main>
+  {% if usuario and request.endpoint not in ('carga_rapida', 'registro_nuevo', 'registro_editar', 'vehiculo_nuevo', 'vehiculo_editar') %}
+  <a class="carga-flotante no-print" href="{{ url_for('carga_rapida', vid=v.id if v is defined and v else none) }}">+ Cargar gasto o service</a>
+  <script src="{{ url_for('static', filename='carga-acceso.js') }}"></script>
+  {% endif %}
 
   {% if cartel %}
   <aside class="cartel" id="cartel" role="status" aria-live="polite" aria-label="Recordatorios de mantenimiento">

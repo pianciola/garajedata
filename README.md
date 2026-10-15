@@ -6,6 +6,12 @@ crea su cuenta y ve solo sus vehículos.
 
 ## Funciones
 
+- Resumen de controles y vencimientos pendientes con acceso directo desde el inicio.
+- Carga rápida (`/cargar`) de services, combustible, aceite, neumáticos, reparaciones y otros gastos; formulario completo para adjuntos y próximos controles.
+- Perfiles con imagen destacada y secciones desplegables; acceso móvil que acompaña el scroll.
+- Gastos del mes frente al mismo tramo del anterior, importes faltantes y costo por km con lecturas fechadas y crecientes.
+- Marca SVG en `static/img/logo.svg` y `logo-completo.svg` (letras en curvas). El paquete `exports/garajedata-marca.zip` incluye SVG, PNG de 4096 px y marca completa de 6000 px de ancho. Para regenerar: `tools/exportar_marca.py` (fonttools y brotli) y `tools/exportar_rasters.cjs` (sharp). Son herramientas de diseño, no dependencias del servidor.
+
 - **Cuentas** con usuario y contraseña, sin email ni datos personales. La recuperación se hace con
   un código que se muestra una sola vez al crear la cuenta.
 - **Vehículos** con modelo 3D girando según la carrocería y el color elegido, marca con logo,

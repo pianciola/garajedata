@@ -210,8 +210,8 @@ for esperado in ('data-toggle="costos"', 'data-incluir', 'Qué se ve en el PDF')
         fallas.append(f"falta en el libro: {esperado}")
 
 # Cartel de recordatorios
-if 'id="cartel"' not in c.get("/").get_data(as_text=True) or 'id="cartel"' not in c.get("/vehiculo/3").get_data(as_text=True):
-    fallas.append("no aparece el cartel de recordatorios")
+if 'id="atencion-titulo"' not in c.get("/").get_data(as_text=True) or 'id="cartel"' not in c.get("/vehiculo/3").get_data(as_text=True):
+    fallas.append("no aparece el resumen de atención o el cartel del perfil")
 
 # Otra cuenta no ve ni toca nada de la primera
 esperar("salir", c.post("/logout"), 302)
@@ -390,7 +390,7 @@ for cat in set(cats_orden):
     if any(b - a > esperado * 2 or b - a < esperado / 3 for a, b in zip(pos, pos[1:])):
         fallas.append(f"las apariciones de la categoría {cat} no están repartidas parejo")
 html = esperar("estadísticas", c.get("/vehiculo/3/estadisticas"), 200).get_data(as_text=True)
-if "Gasto por mes" not in html or "Costo por km" not in html:
+if "Gasto por mes" not in html or "Costo registrado por km" not in html:
     fallas.append("faltan datos en estadísticas")
 html = esperar("privacidad", c.get("/privacidad"), 200).get_data(as_text=True)
 if "Política de Privacidad" not in html or "<b>" not in html or "Sin servicios externos" not in html:
@@ -460,6 +460,32 @@ esperar("recibir form", c.get("/recibir"), 200)
 esperar("código de transferencia malo", c.post("/recibir", data={"codigo": "AAAA-BBBB-CCCC"}), 200)
 esperar("recibir auto", c.post("/recibir", data={"codigo": cod_transfer.lower()}), 302)
 esperar("auto recibido", c.get("/vehiculo/3"), 200)
+esperar("carga rápida form", c.get("/cargar?vid=3"), 200)
+esperar("carga rápida ajena", c.post("/cargar", data={"vid":"1", "tipo":"combustible"}), 404)
+esperar("carga rápida tipo inválido", c.post("/cargar", data={"vid":"3", "tipo":"inventado"}), 200)
+with sqlite3.connect(DB) as db:
+    antes = db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id=3").fetchone()[0]
+esperar("carga rápida importe inválido", c.post("/cargar", data={"vid":"3", "tipo":"combustible", "costo":"nan"}), 200)
+esperar("carga rápida respeta auto elegido sobre URL", c.post("/cargar?vid=1", data={"vid":"3", "tipo":"combustible", "costo":"25.000,50", "fecha":date.today().isoformat(), "km":"150000"}), 302)
+with sqlite3.connect(DB) as db:
+    r = db.execute("SELECT categoria,costo,titulo FROM registros WHERE vehiculo_id=3 ORDER BY id DESC LIMIT 1").fetchone()
+    if r != ('combustible',25000.5,'Carga de combustible') or db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id=3").fetchone()[0] != antes+1:
+        fallas.append("la carga rápida no guardó correctamente o guardó un importe inválido")
+
+from rutas.estadisticas import resumen_gastos
+v_gastos = {"km_manual":None,"km_manual_fecha":None}
+datos = [dict(fecha='2026-09-15',km=1000,costo=10), dict(fecha='2026-09-30',km=None,costo=500),
+         dict(fecha='2026-10-01',km=1100,costo=0), dict(fecha='2026-10-10',km=1200,costo=20),
+         dict(fecha='2026-10-12',km=None,costo=None), dict(fecha='2026-10-20',km=1300,costo=999)]
+res = resumen_gastos(datos,v_gastos,date(2026,10,15))
+if res['mes_previo'] != 10 or res['mes_actual'] != 20 or res['diferencia'] != 100 or res['sin_costo'] != 1 or res['costo_km'] != 2.6:
+    fallas.append("el resumen mezcla períodos, gastos futuros o lecturas sin fecha")
+res = resumen_gastos([dict(fecha='2026-10-01',km=0,costo=None),dict(fecha='2026-10-02',km=100,costo=0)],v_gastos,date(2026,10,15))
+if res['costo_km'] != 0:
+    fallas.append("el costo por km pierde los trabajos gratuitos o la lectura cero")
+res = resumen_gastos([dict(fecha='2026-10-01',km=100,costo=20)],v_gastos,date(2026,10,15))
+if res['costo_km'] is not None:
+    fallas.append("el costo por km inventa distancia con una sola lectura")
 esperar("código usado", c.post("/recibir", data={"codigo": cod_transfer}), 200)
 
 # Borrar la cuenta: pide el usuario escrito y la contraseña; se lleva todo
@@ -480,6 +506,7 @@ esperar("bloqueo", c.post("/login", data={"usuario": "ana", "clave": "abcdefgh"}
 app.config["CSRF_APAGADO"] = False
 c3 = app.test_client()
 esperar("registro sin token", c3.post("/registro", data={"acepto": "1", "usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 400)
+esperar("carga rápida sin token", c3.post("/cargar", data={"vid":"3", "tipo":"combustible"}), 400)
 tok = re.search(r'name="csrf" value="([^"]+)"', c3.get("/registro").get_data(as_text=True)).group(1)
 esperar("registro con token", c3.post("/registro", data={"acepto": "1", "csrf": tok, "usuario": "csrf_x", "clave": "clave1234", "clave2": "clave1234"}), 302)
 tok = re.search(r'<meta name="csrf" content="([^"]+)"', c3.get("/").get_data(as_text=True)).group(1)

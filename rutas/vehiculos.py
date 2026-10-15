@@ -49,8 +49,9 @@ def index():
     cartel.sort(key=lambda x: x["estado"] != "vencido")
     i, categoria, texto = consejo_del_dia()
     consejo = {"i": i, "clave": categoria, "categoria": CATEGORIAS_CONSEJO[categoria], "texto": texto}
-    return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=cartel, proximos=proximos,
-                           consejo=consejo)
+    return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=[], proximos=proximos,
+                           pendientes=cartel, consejo=consejo,
+                           vencidos=sum(p["estado"] == "vencido" for p in cartel))
 
 
 @app.post("/vehiculos/orden")
@@ -120,7 +121,7 @@ def vehiculo(vid):
         km_hoy=a["km_hoy"], recordatorios=a["recordatorios"], plan=a["plan"],
         documentos=a["documentos"], boveda=boveda, adjuntos=adjuntos_por_registro(vid),
         cat=cat, q=q, anio=anio, espacio=espacio_usado(), cartel=lista_avisos(v, a),
-        boveda_cat=request.args.get("boveda"))
+        boveda_cat=request.args.get("boveda"), proximo=proximo_control(v, a))
 
 
 @app.post("/vehiculo/<int:vid>/km")

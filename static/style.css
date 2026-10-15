@@ -1535,3 +1535,80 @@ a.cal-dia:hover { border-color: var(--accent); background: #20242a; text-decorat
 
 /* Contiene el emblema de marca y la perspectiva dentro del ancho del celular. */
 .perfil-auto .hero-car { overflow: clip; }
+
+/* Garaje centrado en las fotos y en la próxima acción. */
+:root { --cut: 0px; --radius: 14px; --c-combustible: #3cbfae; }
+body { background-image: radial-gradient(ellipse 85% 45% at 50% -10%, rgb(var(--accent-rgb) / .08), transparent 70%); background-size: auto; }
+body::before { opacity: .35; }
+body::after { opacity: .12; }
+.btn, .accion, .nav-cal, .user-chip, .cat-option span, .chip { clip-path: none; border-radius: 9px; }
+.btn { min-height: 42px; }
+.card { border-radius: var(--radius); }
+.atencion { padding: 24px; margin-bottom: 30px; background: linear-gradient(120deg, rgb(var(--accent-rgb) / .055), transparent 65%), var(--surface); }
+.atencion h2 { font-size: 1.6rem; margin: 0; }
+.atencion .eyebrow { font-size: .72rem; margin-bottom: 5px; }
+.pendientes-lista { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; list-style: none; margin: 18px 0; padding: 0; }
+.pendientes-lista a { display: flex; gap: 12px; align-items: center; height: 100%; padding: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); }
+.pendientes-lista a:hover { border-color: var(--accent); text-decoration: none; }
+.pendientes-lista a > span:nth-child(2) { flex: 1; min-width: 0; }
+.pendientes-lista strong, .pendientes-lista small { display: block; overflow-wrap: anywhere; }
+.pendientes-lista small { color: var(--muted); margin-top: 3px; }
+.estado-punto { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--warn); }
+.estado-vencido { background: var(--danger); }
+.perfil-auto .hero-car { grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); gap: 28px; align-items: center; padding-bottom: 12px; }
+.perfil-auto .car-stage-hero { height: clamp(300px,32vw,440px); }
+.perfil-auto .hero-info { min-width: 0; }
+.perfil-auto .title-main h1 { font-size: clamp(2rem,3.6vw,3.2rem); line-height: 1.08; }
+.perfil-auto .title-row { gap: 16px; }
+.perfil-auto .notes { font-size: .86rem; max-height: 90px; overflow-y: auto; }
+.registro-completo { display: block; font-size: .78rem; margin: 10px 0 18px; }
+.stat-proximo strong { font-size: 1.15rem; white-space: normal; line-height: 1.2; overflow-wrap: anywhere; }
+.stat-proximo small, .stat-proximo a { display: block; color: var(--muted); font-size: .77rem; margin-top: 8px; }
+.stat > small { display: block; color: var(--muted); font-size: .74rem; margin-top: 8px; }
+.perfil-auto > .panel-grid { align-items: start; }
+.perfil-seccion > summary { display: flex; align-items: center; gap: 12px; justify-content: space-between; cursor: pointer; list-style: none; min-height: 28px; }
+.perfil-seccion > summary::-webkit-details-marker { display: none; }
+.perfil-seccion > summary h2 { margin: 0; }
+.perfil-seccion > summary > span { color: var(--muted); font-size: .76rem; text-align: right; }
+.perfil-seccion > summary::after { content: "+"; font-size: 1.2rem; color: var(--accent); }
+.perfil-seccion[open] > summary::after { content: "−"; }
+.perfil-seccion[open] > summary { margin-bottom: 20px; }
+.perfil-seccion .panel-head h2 { display: none; }
+.historial-cabeza { display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 12px; margin: 30px 0 18px; }
+.historial-cabeza h2 { margin: 0; font-size: 1.7rem; }
+.historial-cabeza > a { font-size: .85rem; }
+.historial-cabeza .eyebrow { margin-bottom: 6px; }
+.carga-flotante { display: none; }
+.carga-flotante.carga-oculta { visibility: hidden; pointer-events: none; }
+.rapidos-picker { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+.rapido-opcion { cursor: pointer; position: relative; }
+.rapido-opcion input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.rapido-opcion span { display: flex; align-items: center; justify-content: center; min-height: 58px; text-align: center; padding: 10px; border: 1px solid var(--border-strong); border-radius: 10px; font-size: .88rem; }
+.rapido-opcion input:checked + span { color: var(--text); border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.rapido-opcion input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 3px; }
+.gasto-resumen { padding: 26px; margin-bottom: 18px; background: linear-gradient(120deg,rgb(var(--accent-rgb) / .065),transparent),var(--surface); }
+.comparacion-mes { display: flex; flex-wrap: wrap; gap: 24px 60px; margin: 22px 0; }
+.comparacion-mes span { display: block; color: var(--muted); font-size: .8rem; }
+.comparacion-mes strong { font-family: var(--display); font-size: clamp(2rem,4vw,3rem); }
+.datos-faltantes { padding: 16px 20px; border: 1px solid var(--border-strong); border-radius: 10px; color: var(--muted); margin-bottom: 20px; font-size: .88rem; }
+.badge-combustible, .barras-h-pista .badge-combustible { background: var(--c-combustible); color: #081c18; }
+.cat-combustible { --cat: var(--c-combustible); }
+.entry.cat-combustible { border-color: var(--c-combustible); }
+.cat-combustible input:checked + span, .chip-combustible.active { background: #123e37; border-color: var(--c-combustible); }
+@media (max-width: 720px) {
+  .atencion, .gasto-resumen { padding: 18px; }
+  .atencion .panel-head { align-items: start; flex-direction: column; }
+  .pendientes-lista { grid-template-columns: 1fr; }
+  .perfil-auto .hero-car { grid-template-columns: minmax(0,1fr); gap: 18px; }
+  .perfil-auto .car-stage-hero { height: clamp(240px,65vw,360px); }
+  .perfil-auto .hero-visual { grid-row: 1; }
+  .perfil-auto .title-main h1 { font-size: 2rem; }
+  .perfil-seccion > summary { flex-wrap: wrap; gap: 6px; }
+  .perfil-seccion > summary h2 { flex: 1; }
+  .perfil-seccion > summary > span { flex-basis: 100%; order: 3; text-align: left; }
+  .rapidos-picker { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .carga-flotante { display: block; position: fixed; bottom: max(16px,env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 25; width: max-content; max-width: calc(100% - 32px); padding: 14px 24px; background: var(--accent); color: var(--on-accent); font-weight: 700; border: 1px solid rgb(255 255 255 / .16); border-radius: 999px; box-shadow: 0 8px 28px #0008; text-align: center; }
+  body:has(.carga-flotante) { padding-bottom: 82px; }
+  .cartel { bottom: 90px; }
+}
+@media print { .carga-flotante { display: none !important; } }

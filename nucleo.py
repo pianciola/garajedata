@@ -60,6 +60,7 @@ app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", S
                   MAX_CONTENT_LENGTH=45 * 1024 * 1024)
 
 CATEGORIAS = {
+    "combustible": "Combustible",
     "control": "Control / Service",
     "fluidos": "Cambio de fluidos",
     "piezas": "Cambio de piezas",
@@ -881,9 +882,9 @@ def lista_avisos(v, a, con_nombre=False):
     url = url_for("vehiculo", vid=v["id"])
     salida = []
 
-    def agregar(clave, titulo, detalle, estado):
+    def agregar(clave, titulo, detalle, estado, destino=None):
         salida.append({"clave": f"{v['id']}:{clave}", "titulo": titulo, "detalle": detalle,
-                       "estado": estado, "url": url, "auto": nombre if con_nombre else None})
+                       "estado": estado, "url": destino or url, "auto": nombre if con_nombre else None})
 
     for rec in a["recordatorios"]:
         if rec["estado"] == "ok":
@@ -897,19 +898,20 @@ def lista_avisos(v, a, con_nombre=False):
             if rec["faltan_dias"] is not None:
                 partes.append(f"{rec['faltan_dias']} días")
         agregar("rec:" + rec["registro"]["titulo"].strip().lower(), rec["registro"]["titulo"],
-                " · ".join(partes), rec["estado"])
+                " · ".join(partes), rec["estado"], url_for("vehiculo", vid=v["id"], _anchor="registro-" + str(rec["registro"]["id"])))
     for p in a["plan"]:
         if p["estado"] in ("vencido", "pronto"):
             detalle = "Ya toca" if p["estado"] == "vencido" else \
                 f"≈ {fecha(p['fecha'])}" + (f" · {miles(p['faltan_km'])} km" if p["faltan_km"] is not None else "")
-            agregar("plan:" + p["clave"], p["nombre"] + " (estimado)", detalle, p["estado"])
+            agregar("plan:" + p["clave"], p["nombre"] + " (estimado)", detalle, p["estado"],
+                    url_for("registro_nuevo", vid=v["id"], titulo=p["nombre"]))
     for d in a["documentos"]:
         if d["estado"] not in ("vencido", "pronto") or d["dias"] is None:
             continue
         detalle = (f"Venció hace {-d['dias']} {'día' if d['dias'] == -1 else 'días'}" if d["dias"] < 0
                    else "Vence hoy" if d["dias"] == 0
                    else f"Faltan {d['dias']} {'día' if d['dias'] == 1 else 'días'}")
-        agregar("doc:" + d["doc"]["tipo"], d["nombre"], detalle, d["estado"])
+        agregar("doc:" + d["doc"]["tipo"], d["nombre"], detalle, d["estado"], url_for("documentos", vid=v["id"]))
     salida.sort(key=lambda x: x["estado"] != "vencido")
     return salida
 

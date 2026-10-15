@@ -10,11 +10,20 @@
     {% if vehiculos %}<p class="garage-count"><b>{{ vehiculos|length }}</b> {{ 'vehículo' if vehiculos|length == 1 else 'vehículos' }} en boxes</p>{% endif %}
   </div>
   {% if can_edit %}
-    <a class="btn btn-primary" href="{{ url_for('vehiculo_nuevo') }}">+ Agregar vehículo</a>
+    <div class="hero-actions">{% if vehiculos %}<a class="btn btn-primary" href="{{ url_for('carga_rapida') }}">+ Cargar gasto o service</a>{% endif %}
+    <a class="btn btn-ghost" href="{{ url_for('vehiculo_nuevo') }}">Agregar vehículo</a></div>
   {% endif %}
 </section>
 
 {% if vehiculos %}
+<section class="card atencion" aria-labelledby="atencion-titulo">
+  <div class="panel-head"><div><div class="eyebrow">Tu próximo paso</div><h2 id="atencion-titulo">{{ 'Qué necesita atención' if pendientes else 'Tu garaje, al día con lo cargado' }}</h2></div><a href="{{ url_for('agenda') }}" class="btn btn-ghost btn-sm">Ver calendario →</a></div>
+  {% if pendientes %}
+  <p class="muted">{{ vencidos }} {{ 'pendiente vencido' if vencidos == 1 else 'pendientes vencidos' }} · {{ pendientes|length - vencidos }} próximos a vencer.</p>
+  <ul class="pendientes-lista">{% for p in pendientes[:4] %}<li><a href="{{ p.url }}"><span class="estado-punto estado-{{ p.estado }}" aria-hidden="true"></span><span><strong>{{ p.titulo }}</strong><small>{{ (p.auto ~ ' · ') if p.auto }}{{ p.detalle }}</small></span><span aria-hidden="true">→</span></a></li>{% endfor %}</ul>
+  {% if pendientes|length > 4 %}<a href="{{ url_for('agenda') }}">Ver los {{ pendientes|length }} pendientes en el calendario →</a>{% endif %}
+  {% else %}<p class="muted">No hay avisos vencidos ni próximos en tus datos. Mantené al día los services y vencimientos para que podamos avisarte.</p>{% endif %}
+</section>
 {% if vehiculos|length > 1 %}
 <div class="orden-barra no-print">
   <button class="btn btn-ghost" type="button" id="orden-btn" data-url="{{ url_for('vehiculos_orden') }}">⇅ Ordenar</button>

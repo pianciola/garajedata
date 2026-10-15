@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Carga rápida{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('vehiculo', vid=v.id) if v else url_for('index') }}">← Volver</a>
+<section class="card form-card carga-rapida">
+  <div class="eyebrow">Un minuto para dejarlo anotado</div>
+  <h1>Cargar gasto o service</h1>
+  <p class="muted">Elegí el auto y qué hiciste. Los kilómetros y el importe son opcionales.</p>
+  <form method="post" class="form">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label class="field"><span>Vehículo</span>
+      <select name="vid" required><option value="">Elegí tu auto</option>
+        {% for auto in vehiculos %}<option value="{{ auto.id }}" {{ 'selected' if auto.id == elegido or (not elegido and vehiculos|length == 1) }}>{{ nombre_auto(auto) }}{{ ' · ' ~ auto.patente if auto.patente }}</option>{% endfor %}
+      </select>
+    </label>
+    <fieldset><legend>¿Qué querés anotar?</legend><div class="rapidos-picker">
+      {% for key, item in rapidos.items() %}<label class="rapido-opcion"><input type="radio" name="tipo" value="{{ key }}" required {{ 'checked' if request.form.get('tipo', 'service') == key }}><span>{{ item[0] }}</span></label>{% endfor %}
+    </div></fieldset>
+    <label class="field"><span>Descripción <small class="optional">(opcional)</small></span><input name="titulo" maxlength="120" value="{{ request.form.get('titulo', '') }}" placeholder="Ej: carga de nafta en la ruta"></label>
+    <div class="row">
+      <label class="field"><span>Fecha</span><input type="date" name="fecha" required min="{{ lim.desde }}" max="{{ hoy }}" value="{{ request.form.get('fecha', hoy) }}"></label>
+      <label class="field"><span>Importe ($)</span><input name="costo" class="num-miles" data-decimales inputmode="decimal" value="{{ request.form.get('costo', '') }}" placeholder="Ej: 35.000"></label>
+      <label class="field"><span>Kilometraje</span><input name="km" class="num-miles" inputmode="numeric" value="{{ request.form.get('km', '') }}" placeholder="Lo que marca el odómetro"></label>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Guardar en la bitácora</button></div>
+  </form>
+  <p class="muted small">¿Necesitás adjuntar una factura o programar el próximo control?</p>
+  {% if v or vehiculos|length == 1 %}<a href="{{ url_for('registro_nuevo', vid=v.id if v else vehiculos[0].id) }}">Abrir formulario completo →</a>{% else %}<p class="muted small">Entrá al perfil del auto y elegí «Registro completo».</p>{% endif %}
+</section>
+{% endblock %}

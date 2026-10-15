@@ -26,11 +26,12 @@
     {% if v.notas %}<p class="notes">{{ v.notas }}</p>{% endif %}
   <div class="acciones-auto">
     {% if can_edit %}
-    <a class="btn btn-primary accion-principal" href="{{ url_for('registro_nuevo', vid=v.id) }}">
+    <a class="btn btn-primary accion-principal" href="{{ url_for('carga_rapida', vid=v.id) }}">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-      Nuevo registro
+      Cargar gasto o service
     </a>
     {% endif %}
+    <a class="registro-completo" href="{{ url_for('registro_nuevo', vid=v.id) }}">Registro completo: facturas y próximos controles →</a>
     <nav class="acciones-grilla" aria-label="Acciones del vehículo">
       {% if can_edit %}
       <a class="accion" href="{{ url_for('vehiculo_editar', vid=v.id) }}">
@@ -89,11 +90,11 @@
   </div>
   <div class="stat"><span>Registros</span><strong>{{ stats.n }}</strong></div>
   <div class="stat"><span>Gastado en {{ anio }}</span><strong>{{ stats.anio|plata }}</strong></div>
-  <div class="stat"><span>Gastado en total</span><strong>{{ stats.total|plata }}</strong></div>
+  <div class="stat stat-proximo"><span>Próximo control</span>{% if proximo %}<strong>{{ proximo.titulo }}</strong><small>{{ proximo.detalle }}</small>{% else %}<strong>Sin programar</strong><a href="{{ url_for('registro_nuevo', vid=v.id) }}">Cargar un control →</a>{% endif %}</div>
 </div>
 
 {% set ficha = ficha_tecnica(v) %}
-<details class="card ficha" {% if ficha %}open{% endif %}>
+<details class="card ficha">
   <summary><h2>Ficha técnica</h2><a class="btn btn-ghost btn-sm" href="{{ url_for('vehiculo_editar', vid=v.id) }}">{{ 'Editar' if ficha else 'Completar' }}</a></summary>
   {% if ficha %}
   <dl class="ficha-grid">
@@ -105,8 +106,8 @@
 </details>
 
 {% if recordatorios or plan %}
-<section class="card reminders">
-  <h2>Próximos controles</h2>
+<details class="card reminders perfil-seccion" id="controles">
+  <summary><h2>Plan y próximos controles</h2><span>{{ recordatorios|length }} {{ 'control cargado' if recordatorios|length == 1 else 'controles cargados' }} · ver detalle</span></summary>
   <ul>
     {% for rec in recordatorios %}
     {% set r = rec.registro %}
@@ -156,11 +157,12 @@
     </div>
   </div>
   {% endif %}
-</section>
+</details>
 {% endif %}
 
 <div class="panel-grid">
-  <section class="card panel" id="documentacion">
+  <details class="card panel perfil-seccion" id="documentacion" {{ 'open' if documentos|selectattr('estado', 'equalto', 'vencido')|list }}>
+    <summary><h2>Documentación</h2><span>{{ documentos|length }} vencimientos · ver detalle</span></summary>
     <div class="panel-head">
       <h2>Documentación</h2>
       <a class="btn btn-ghost btn-sm" href="{{ url_for('documentos', vid=v.id) }}">{{ 'Editar' if documentos else 'Cargar vencimientos' }}</a>
@@ -190,9 +192,10 @@
     {% else %}
     <p class="muted small">VTV, seguro, matafuegos, patente y registro: cargá las fechas y te avisamos antes de que venzan.</p>
     {% endif %}
-  </section>
+  </details>
 
-  <section class="card panel" id="boveda">
+  <details class="card panel perfil-seccion" id="boveda" {{ 'open' if boveda_cat }}>
+    <summary><h2>Bóveda digital</h2><span>{{ boveda|length }} archivos · ver detalle</span></summary>
     <div class="panel-head">
       <h2>Bóveda digital</h2>
       <span class="muted small" title="Espacio usado por tu cuenta">{{ '%.1f'|format(espacio / 1048576) }} / 100 MB</span>
@@ -235,10 +238,11 @@
         });
       })();
     </script>
-  </section>
+  </details>
 </div>
 
 
+<div class="historial-cabeza"><div><div class="eyebrow">La historia de tu auto</div><h2>Últimos trabajos y gastos</h2></div><a href="{{ url_for('estadisticas', vid=v.id) }}">Ver análisis de gastos →</a></div>
 <section class="toolbar">
   <div class="chips">
     <a class="chip {% if not cat %}active{% endif %}" href="{{ url_for('vehiculo', vid=v.id, q=q or None) }}">Todos</a>
@@ -255,7 +259,7 @@
 {% if registros %}
 <ol class="timeline">
   {% for r in registros %}
-  <li class="entry cat-{{ r.categoria }}">
+  <li class="entry cat-{{ r.categoria }}" id="registro-{{ r.id }}">
     <div class="entry-date">
       <strong>{{ r.fecha|fecha }}</strong>
       {% if r.km %}<span>{{ r.km|miles }} km</span>{% endif %}
@@ -306,7 +310,7 @@
     <p class="muted"><a href="{{ url_for('vehiculo', vid=v.id) }}">Ver todos los registros</a></p>
   {% else %}
     <h2>La bitácora está vacía</h2>
-    <p class="muted">Cargá el primer service, cambio o arreglo con <b>+ Nuevo registro</b>.</p>
+    <p class="muted">Cargá el primer gasto o service para empezar a construir su historia.</p>
   {% endif %}
 </div>
 {% endif %}

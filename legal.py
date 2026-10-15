@@ -14,7 +14,7 @@ Si cambia lo que la app hace con los datos, hay que cambiar este texto y la fech
 
 MARCA = "GarajeData"
 RESPONSABLE = "Juan Manuel Pianciola"
-ACTUALIZACION = "14 de octubre de 2026"
+ACTUALIZACION = "15 de octubre de 2026"
 CONTACTO = "juanpianciola06@gmail.com"
 DOMICILIO = "Ciudad Autónoma de Buenos Aires"
 
@@ -147,7 +147,7 @@ PRIVACIDAD = {
           "leerla). Lo mismo ocurre con el código de recuperación, que se guarda cifrado y se muestra una sola vez. Conviene elegir "
           "un nombre de usuario que no revele quién sos.",
           "**Datos que carga el usuario:** vehículos (marca, modelo, patente, VIN, color, kilometraje y ficha técnica), registros de "
-          "mantenimiento (fechas, costos, quién hizo el trabajo y notas), vencimientos de documentos y los archivos que sube "
+          "mantenimiento y gastos, incluido combustible (fechas, costos, quién hizo el trabajo y notas), vencimientos de documentos y los archivos que sube "
           "(fotos del auto, facturas y documentos de la bóveda, como la cédula o el seguro). Estos datos pueden ser personales "
           "—por ejemplo, la patente o un documento que contenga nombres—, por lo que se recomienda subir solo lo necesario y "
           "no cargar datos de terceros sin su consentimiento.",

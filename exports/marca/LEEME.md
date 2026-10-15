@@ -1,12 +1,14 @@
-# GarajeData · marca sin puntas
+# GarajeData · marca vectorial
 
-Originales PNG sin pérdida, a la resolución nativa entregada por ImageGen. No se amplían artificialmente. Fondo oscuro.
+El símbolo conserva la G, el velocímetro y el contorno hexagonal sin puntas. Los SVG tienen resolución independiente del tamaño. El logo completo incluye las letras convertidas a curvas: no necesita fuentes instaladas.
 
-- garajedata-icono-original.png: 1254 × 1254 px
-- garajedata-logo-completo-original.png: 2170 × 725 px
-- garajedata-social-original.png: 1731 × 909 px
+- garajedata-logo.svg: símbolo transparente.
+- garajedata-logo-sello.svg: símbolo con fondo oscuro.
+- garajedata-logo-completo.svg: marca completa, transparente, letras en curvas.
+- garajedata-icono-original.png: 4096 × 4096 px, transparente, exportado desde SVG.
+- garajedata-logo-completo-original.png: 6000 px de ancho, transparente, exportado desde SVG.
+- garajedata-social-original.png: tarjeta para compartir.
 
-Generación: herramienta integrada ImageGen.
-Prompt final del ícono: Recreate the GarajeData logo on an opaque solid #0a0b0d dark background. Red rounded hexagonal continuous border, white G, red speedometer needle and two red gauge segments. Remove all spikes, distressed patches, flecks, noise and ragged edges. Clean geometric edges and solid fills. Centered square icon. Highest native resolution.
+Para imprenta, carteles y cualquier tamaño, usar los SVG. Los PNG son archivos sin pérdida. Esta revisión vectorial se construyó por código a partir del rediseño aprobado; los símbolos no dependen de imágenes generadas.
 
-Versiones completa y social: reemplazar el símbolo anterior por este ícono, conservando textos y composición.
+Reproducir: python tools/exportar_marca.py (fonttools y brotli), después node tools/exportar_rasters.cjs (sharp). Las fuentes utilizadas ya están en static/vendor/fonts.

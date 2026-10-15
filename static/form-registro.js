@@ -4,6 +4,7 @@
   // Se revisan en este orden: la primera regla con una palabra presente gana.
   // Por eso "pérdida de aceite" cae en Reparación antes que en Fluidos.
   const REGLAS = [
+    ["combustible", ["carga de nafta", "carga de combustible", "carga de gnc", "carga de diesel", "cargar nafta"]],
     ["reparacion", ["arreglo", "reparacion", "reparar", "perdida", "fuga", "rectific", "soldad", "chapa",
                     "choque", "abolladura", "falla", "ruido", "electricidad", "cortocircuito", "repar"]],
     ["accesorios", ["accesorio", "alfombra", "cubre", "funda", "estereo", "stereo", "radio", "parlante",

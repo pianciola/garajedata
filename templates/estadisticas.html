@@ -15,11 +15,18 @@
   <p class="muted">Cargá registros con su costo y kilometraje para ver cuánto gastás y cuánto te cuesta cada km.</p>
 </div>
 {% else %}
+<section class="card gasto-resumen">
+  <div class="eyebrow">Cómo viene este mes</div><h2>Gastos registrados hasta hoy</h2>
+  <div class="comparacion-mes"><div><span>Este mes · hasta el {{ hoy.day if hoy is defined else resumen.corte_previo[-2:] }}</span><strong>{{ resumen.mes_actual|plata }}</strong></div><div><span>Mes anterior · hasta el {{ resumen.corte_previo|fecha }}</span><strong>{{ resumen.mes_previo|plata }}</strong></div></div>
+  {% if resumen.diferencia is not none %}<p>{{ '%.1f'|format(resumen.diferencia|abs)|replace('.', ',') }}% {{ 'más' if resumen.diferencia > 0 else ('menos' if resumen.diferencia < 0 else 'de diferencia') }} en gastos cargados respecto del mismo tramo del mes anterior.</p>{% else %}<p class="muted">No hay un importe base en ese tramo del mes anterior para calcular un porcentaje.</p>{% endif %}
+  <p class="muted small">Comparación en pesos nominales, sin ajustar por inflación. Un mes sin registros no demuestra que no haya habido gastos.</p>
+</section>
+{% if resumen.sin_costo %}<aside class="datos-faltantes" role="note">{{ resumen.sin_costo }} {{ 'registro no tiene' if resumen.sin_costo == 1 else 'registros no tienen' }} importe. Los totales muestran sólo los costos cargados. <a href="{{ url_for('vehiculo', vid=v.id) }}">Completar en la bitácora →</a></aside>{% endif %}
 <div class="stats stats-4">
   <div class="stat"><span>Gastado en total</span><strong>{{ total|plata }}</strong></div>
   <div class="stat"><span>Últimos 12 meses</span><strong>{{ anio_total|plata }}</strong></div>
-  <div class="stat"><span>Promedio por mes</span><strong>{{ por_mes_prom|plata if por_mes_prom else '—' }}</strong></div>
-  <div class="stat"><span>Costo por km</span><strong>{{ ('$ ' ~ ('%.0f'|format(costo_km) if costo_km >= 10 else '%.1f'|format(costo_km)|replace('.', ','))) if costo_km else '—' }}</strong></div>
+  <div class="stat"><span>Promedio por mes</span><strong>{{ por_mes_prom|plata if por_mes_prom is not none else '—' }}</strong><small>{{ meses_promedio }} meses calendario, incluido el actual.</small></div>
+  <div class="stat"><span>Costo registrado por km</span><strong>{{ costo_km|plata if costo_km is not none else '—' }}</strong></div>
 </div>
 
 <section class="card panel est-panel">
@@ -58,7 +65,7 @@
       <div><dt>Km por mes (medido)</dt><dd>{{ ('≈ ' ~ medido|miles ~ ' km') if medido else '—' }}</dd></div>
       <div><dt>Perfil de uso</dt><dd>{{ USOS[v.uso][0] if v.uso in USOS else 'Sin elegir' }}</dd></div>
     </dl>
-    <p class="muted small">El costo por km divide todo lo gastado por los km entre el primer registro y el kilometraje actual.</p>
+    {% if costo_km is not none %}<p class="muted small">Entre {{ resumen.periodo_desde|fecha }} y {{ resumen.periodo_hasta|fecha }}: costos cargados después de la lectura inicial y hasta la final, divididos por {{ recorridos|miles }} km. No incluye el día de la primera lectura.{% if resumen.faltantes_intervalo %} Hay {{ resumen.faltantes_intervalo }} registros sin costo en ese período: el valor es parcial.{% endif %}</p>{% else %}<p class="muted small">Para calcular el costo por km hacen falta dos lecturas de odómetro de fechas distintas, con kilometraje creciente, y al menos un gasto en ese intervalo. Podés cargar 0 si el trabajo fue gratuito.</p>{% endif %}
   </section>
 </div>
 {% endif %}
