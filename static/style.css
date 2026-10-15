@@ -1544,9 +1544,15 @@ body::after { opacity: .12; }
 .btn, .accion, .nav-cal, .user-chip, .cat-option span, .chip { clip-path: none; border-radius: 9px; }
 .btn { min-height: 42px; }
 .card { border-radius: var(--radius); }
-.atencion { padding: 24px; margin-bottom: 30px; background: linear-gradient(120deg, rgb(var(--accent-rgb) / .055), transparent 65%), var(--surface); }
-.atencion h2 { font-size: 1.6rem; margin: 0; }
-.atencion .eyebrow { font-size: .72rem; margin-bottom: 5px; }
+.garaje-hero { display: grid; gap: 18px; }
+.garaje-estado, .garaje-pendientes > summary { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: .84rem; margin: 12px 0 0; }
+.garaje-pendientes > summary { cursor: pointer; list-style: none; }
+.garaje-pendientes > summary::-webkit-details-marker { display: none; }
+.pendientes-ver { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.garaje-pendientes { max-width: 760px; }
+.garaje-pendientes > summary::after { content: "+"; color: var(--accent); }
+.garaje-pendientes[open] > summary::after { content: "−"; }
+.estado-punto.estado-ok { background: var(--ok); }
 .pendientes-lista { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; list-style: none; margin: 18px 0; padding: 0; }
 .pendientes-lista a { display: flex; gap: 12px; align-items: center; height: 100%; padding: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); }
 .pendientes-lista a:hover { border-color: var(--accent); text-decoration: none; }
@@ -1596,8 +1602,7 @@ body::after { opacity: .12; }
 .entry.cat-combustible { border-color: var(--c-combustible); }
 .cat-combustible input:checked + span, .chip-combustible.active { background: #123e37; border-color: var(--c-combustible); }
 @media (max-width: 720px) {
-  .atencion, .gasto-resumen { padding: 18px; }
-  .atencion .panel-head { align-items: start; flex-direction: column; }
+  .gasto-resumen { padding: 18px; }
   .pendientes-lista { grid-template-columns: 1fr; }
   .perfil-auto .hero-car { grid-template-columns: minmax(0,1fr); gap: 18px; }
   .perfil-auto .car-stage-hero { height: clamp(240px,65vw,360px); }
