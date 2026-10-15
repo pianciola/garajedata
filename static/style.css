@@ -12,7 +12,9 @@
   --border-strong: #353a43;
   --accent: #e3262b;
   --accent-hover: #ff3a3f;
-  --accent-soft: rgba(227, 38, 43, .12);
+  --accent-rgb: 227 38 43;
+  --accent-soft: rgb(var(--accent-rgb) / .12);
+  --on-accent: #fff;
   --danger: #ef4444;
   --ok: #22c55e;
   --warn: #f5a524;
@@ -41,7 +43,7 @@ body {
   background-color: var(--bg);
   /* Resplandor rojo arriba + trama de fibra de carbono muy sutil. */
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(227, 38, 43, .13), transparent 70%),
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgb(var(--accent-rgb) / .13), transparent 70%),
     linear-gradient(45deg, rgba(255, 255, 255, .022) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, .022) 75%),
     linear-gradient(45deg, rgba(255, 255, 255, .022) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, .022) 75%);
   background-size: 100% 100%, 6px 6px, 6px 6px;
@@ -52,10 +54,10 @@ body {
 body::before, body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 body::before {
   background:
-    radial-gradient(ellipse 60% 40% at 18% -8%, rgba(227, 38, 43, .16), transparent 70%),
-    radial-gradient(ellipse 50% 45% at 105% 105%, rgba(227, 38, 43, .09), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 18% -8%, rgb(var(--accent-rgb) / .16), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 105% 105%, rgb(var(--accent-rgb) / .09), transparent 70%),
     radial-gradient(ellipse 40% 35% at -5% 95%, rgba(91, 141, 239, .045), transparent 70%),
-    linear-gradient(118deg, transparent 72%, rgba(227, 38, 43, .07) 72%, rgba(227, 38, 43, .07) 74.2%,
+    linear-gradient(118deg, transparent 72%, rgb(var(--accent-rgb) / .07) 72%, rgb(var(--accent-rgb) / .07) 74.2%,
       transparent 74.2%, transparent 75.4%, rgba(255, 255, 255, .028) 75.4%, rgba(255, 255, 255, .028) 76.6%, transparent 76.6%),
     radial-gradient(ellipse 120% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, .55));
 }
@@ -66,8 +68,8 @@ body::after {
 @media (max-width: 720px) {
   body::before {
     background:
-      radial-gradient(ellipse 90% 35% at 30% -8%, rgba(227, 38, 43, .16), transparent 70%),
-      linear-gradient(118deg, transparent 80%, rgba(227, 38, 43, .06) 80%, rgba(227, 38, 43, .06) 82%, transparent 82%),
+      radial-gradient(ellipse 90% 35% at 30% -8%, rgb(var(--accent-rgb) / .16), transparent 70%),
+      linear-gradient(118deg, transparent 80%, rgb(var(--accent-rgb) / .06) 80%, rgb(var(--accent-rgb) / .06) 82%, transparent 82%),
       radial-gradient(ellipse 130% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, .5));
   }
 }
@@ -96,7 +98,7 @@ h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
 }
 .eyebrow::before {
   content: ""; width: 26px; height: 3px; background: var(--accent);
-  transform: skewX(-30deg); box-shadow: 6px 0 0 -0.5px rgba(227, 38, 43, .45);
+  transform: skewX(-30deg); box-shadow: 6px 0 0 -0.5px rgb(var(--accent-rgb) / .45);
 }
 
 /* ---------- topbar ---------- */
@@ -120,7 +122,7 @@ h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
   text-transform: uppercase; letter-spacing: .02em;
 }
 .brand:hover { text-decoration: none; }
-.brand b { color: var(--accent); }
+.brand b { color: #e3262b; } /* el rojo de GarajeData no cambia con la marca del auto */
 .brand-mark { flex: none; display: block; filter: drop-shadow(0 2px 6px rgba(227, 38, 43, .35)); transition: transform .2s ease, filter .2s ease; }
 .brand:hover .brand-mark { transform: scale(1.08); filter: drop-shadow(0 3px 9px rgba(227, 38, 43, .55)); }
 
@@ -153,7 +155,7 @@ main.wrap { padding-top: 30px; padding-bottom: 48px; min-height: calc(100vh - 15
 /* El corte diagonal oculta el outline: el foco de teclado se marca por dentro. */
 .btn:focus-visible, .back:focus-visible { outline: none; box-shadow: inset 0 0 0 2px #fff; }
 .btn-sm { padding: 6px 16px; font-size: .9rem; --cut: 7px; }
-.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
 .btn-primary:hover { background: var(--accent-hover); }
 .btn-ghost { background: var(--surface-3); color: var(--text); }
 .btn-ghost:hover { background: #2c3139; }
@@ -592,7 +594,7 @@ input[type="date"] { color-scheme: dark; }
 }
 .user-ini {
   flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
-  background: var(--accent); color: #fff; font-size: .9rem; letter-spacing: 0;
+  background: var(--accent); color: var(--on-accent); font-size: .9rem; letter-spacing: 0;
 }
 .user-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .user-engranaje { flex: none; color: var(--muted); transition: transform .3s, color .15s; }
@@ -609,7 +611,7 @@ a.user-chip:hover { text-decoration: none; }
 .codigo-box {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   margin: 20px 0 12px; padding: 16px 18px; border: 1px dashed var(--accent);
-  border-radius: var(--radius); background: rgba(227, 38, 43, .06);
+  border-radius: var(--radius); background: rgb(var(--accent-rgb) / .06);
 }
 .codigo-box code {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 1.25rem;
@@ -651,7 +653,7 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .uso-card b { color: var(--accent); font-family: var(--display); letter-spacing: .04em; }
 .uso-card small { color: var(--muted); font-size: .78rem; line-height: 1.35; }
 .uso-option > input:checked + .uso-card { border-color: var(--accent); background: var(--accent-soft); }
-.uso-option > input:focus-visible + .uso-card { box-shadow: 0 0 0 3px rgba(227, 38, 43, .3); }
+.uso-option > input:focus-visible + .uso-card { box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / .3); }
 .uso-picker.apagado .uso-option > input:checked + .uso-card { border-color: var(--border); background: var(--surface); }
 
 .odo-est { display: block; margin-top: 4px; color: var(--warn); font-size: .8rem; font-style: normal; letter-spacing: .04em; }
@@ -1120,7 +1122,7 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .legal-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 18px; }
 .legal-tabs a { padding: 7px 14px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: .88rem; }
 .legal-tabs a:hover { text-decoration: none; color: var(--text); border-color: var(--border-strong); }
-.legal-tabs a.activo { background: var(--accent); border-color: var(--accent); color: #fff; }
+.legal-tabs a.activo { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .legal p { margin: 8px 0; line-height: 1.6; color: var(--text); }
 .legal h3 { margin-top: 24px; }
 .acepto { align-items: flex-start; margin: 4px 0 12px; }
@@ -1150,7 +1152,7 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   border-radius: 10px; font-family: var(--display); font-size: .98rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; cursor: pointer;
   transition: background .15s, color .15s, border-color .15s; }
 .tab:hover { color: var(--text); border-color: var(--border-strong); }
-.tab.activa { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tab.activa { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .panel-tab { margin-top: 16px; display: grid; gap: 12px; }
 .panel-tab p { margin: 0; }
 .acordeon { border: 1px solid var(--border); border-radius: 10px; background: #0e1013; padding: 0 16px; }
@@ -1221,7 +1223,7 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
   clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%); transition: background .15s, color .15s;
 }
-.consejo-btn:hover { background: var(--accent); color: #fff; }
+.consejo-btn:hover { background: var(--accent); color: var(--on-accent); }
 .consejo-btn svg { transition: transform .2s; }
 .consejo-btn:hover svg { transform: translateX(3px); }
 .consejo-btn:disabled { opacity: .6; cursor: default; }
@@ -1383,7 +1385,7 @@ a.cal-dia:hover { border-color: var(--accent); background: #20242a; text-decorat
 .cal-pasado:not(.cal-hoy-dia) .cal-num { color: var(--muted); }
 .cal-num { font-family: var(--display); font-weight: 700; font-size: 1.05rem; line-height: 1; }
 .cal-hoy-dia { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.cal-hoy-dia .cal-num { display: inline-grid; place-items: center; align-self: flex-start; min-width: 24px; height: 24px; padding: 0 4px; margin: -2px; background: var(--accent); color: #fff; border-radius: 4px; }
+.cal-hoy-dia .cal-num { display: inline-grid; place-items: center; align-self: flex-start; min-width: 24px; height: 24px; padding: 0 4px; margin: -2px; background: var(--accent); color: var(--on-accent); border-radius: 4px; }
 .cal-eventos { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .cal-ev {
   display: flex; align-items: center; gap: 5px; min-width: 0; padding: 2px 5px; border-radius: 3px;
@@ -1416,10 +1418,10 @@ a.cal-dia:hover { border-color: var(--accent); background: #20242a; text-decorat
   --cut: 6px; display: inline-grid; place-items: center; min-width: 38px; height: 30px; padding: 0 8px; background: var(--surface-3); color: var(--text); font-size: 1.15rem;
   clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
 }
-.agenda-dia-hoy h3 span { background: var(--accent); color: #fff; }
+.agenda-dia-hoy h3 span { background: var(--accent); color: var(--on-accent); }
 .agenda-dia-hoy h3 b { color: var(--accent); }
 .agenda-dia:target h3 span { animation: agenda-marca 1.2s ease; }
-@keyframes agenda-marca { 0%, 40% { background: var(--accent); color: #fff; transform: scale(1.12); } }
+@keyframes agenda-marca { 0%, 40% { background: var(--accent); color: var(--on-accent); transform: scale(1.12); } }
 .agenda-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .agenda-ev a {
   position: relative; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 12px 14px 12px 18px;
@@ -1467,3 +1469,32 @@ a.cal-dia:hover { border-color: var(--accent); background: #20242a; text-decorat
   .cal-select::after { right: 8px; width: 7px; height: 7px; }
   .cal-flecha { width: 38px; }
 }
+
+/* ---------- tema de la marca: la ficha de cada auto se «viste» con su marca ---------- */
+.eyebrow-fila { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; margin-bottom: 6px; }
+.eyebrow-fila .eyebrow { margin-bottom: 0; }
+.marca-origen {
+  --cut: 6px; padding: 2px 12px; background: rgb(var(--accent-rgb) / .14); color: var(--muted);
+  font-size: .76rem; letter-spacing: .04em;
+  clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+}
+.hero-tema { position: relative; isolation: isolate; }
+/* el logo de la marca, grande y apenas visible, detrás de la ficha */
+.hero-tema::before {
+  content: ""; position: absolute; z-index: -1; top: 50%; left: -2%; width: min(46%, 380px); aspect-ratio: 1;
+  transform: translateY(-50%) rotate(-8deg); pointer-events: none;
+  background: var(--marca-logo) center / contain no-repeat; filter: grayscale(1) brightness(1.6); opacity: .055;
+}
+.hero-tema-oscuro::before { filter: grayscale(1) invert(1); opacity: .06; }
+/* resplandor del color de la marca detrás del auto */
+.hero-tema .hero-visual { position: relative; }
+.hero-tema .hero-visual::before {
+  content: ""; position: absolute; inset: 8% 4% -6%; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 60%, rgb(var(--accent-rgb) / .28), transparent 68%); filter: blur(8px);
+}
+.con-tema .car-stage-hero { border-color: rgb(var(--accent-rgb) / .35); }
+/* tarjetas del inicio: el filete de color y el brillo al pasar el mouse son los de la marca */
+.car-card-tema { border-top: 2px solid rgb(var(--accent-rgb) / .7); }
+.car-card-tema:hover { border-color: rgb(var(--accent-rgb) / .55); box-shadow: 0 14px 34px rgba(0, 0, 0, .5), 0 0 0 1px rgb(var(--accent-rgb) / .25); }
+@media (max-width: 720px) { .hero-tema::before { width: 70%; left: auto; right: -10%; top: 22%; } }
+@media print { .hero-tema::before, .hero-tema .hero-visual::before { display: none; } }

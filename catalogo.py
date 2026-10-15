@@ -26,6 +26,35 @@ LOGOS_OSCUROS = {
     "mitsubishi", "nissan", "suzuki", "tesla", "toyota", "volkswagen",
 }
 
+# Tema de cada marca para las páginas de sus vehículos: (color de acento, origen, año de fundación).
+# El color es el que se asocia a la marca, ajustado para que se lea bien sobre el fondo oscuro.
+TEMAS = {
+    "Alfa Romeo": ("#d0202e", "italiana", 1910), "Audi": ("#c8102e", "alemana", 1909),
+    "BMW": ("#1c69d4", "alemana", 1916), "BYD": ("#2b7de9", "china", 1995),
+    "Chery": ("#d71920", "china", 1997), "Chevrolet": ("#d4a12a", "estadounidense", 1911),
+    "Chrysler": ("#3f72b0", "estadounidense", 1925), "Citroën": ("#da291c", "francesa", 1919),
+    "Cupra": ("#c27a4a", "española", 2018), "Dodge": ("#d81e1e", "estadounidense", 1900),
+    "DS": ("#a58b63", "francesa", None), "Ferrari": ("#ef1c24", "italiana", 1947),
+    "Fiat": ("#c41230", "italiana", 1899), "Ford": ("#2f74e0", "estadounidense", 1903),
+    "Geely": ("#2c6fd6", "china", 1986), "Great Wall": ("#c8102e", "china", 1984),
+    "Haval": ("#e2231a", "china", 2013), "Honda": ("#e40521", "japonesa", 1948),
+    "Hyundai": ("#3a7bd5", "surcoreana", 1967), "Iveco": ("#2c6bd1", "italiana", 1975),
+    "JAC": ("#e4002b", "china", 1964), "Jaguar": ("#2e8b57", "británica", 1922),
+    "Jeep": ("#7a8f3a", "estadounidense", 1941), "Jetour": ("#0aa5a5", "china", 2018),
+    "Kia": ("#d6213b", "surcoreana", 1944), "Lamborghini": ("#d9a520", "italiana", 1963),
+    "Land Rover": ("#2a8a52", "británica", 1948), "Lexus": ("#a7adb5", "japonesa", 1989),
+    "Maserati": ("#3563b0", "italiana", 1914), "Mazda": ("#c1272d", "japonesa", 1920),
+    "Mercedes-Benz": ("#a9b2bd", "alemana", 1926), "MG": ("#d3122a", "de origen británico", 1924),
+    "Mini": ("#2b7a4f", "británica", 1959), "Mitsubishi": ("#e60012", "japonesa", 1970),
+    "Nissan": ("#c3002f", "japonesa", 1933), "Peugeot": ("#2f5fbf", "francesa", 1810),
+    "Porsche": ("#c9a227", "alemana", 1931), "RAM": ("#c8102e", "estadounidense", 2010),
+    "Renault": ("#f2c200", "francesa", 1899), "Seat": ("#d24a1e", "española", 1950),
+    "Skoda": ("#4ba82e", "checa", 1895), "Subaru": ("#2f63c4", "japonesa", 1953),
+    "Suzuki": ("#e30613", "japonesa", 1909), "Tesla": ("#e82127", "estadounidense", 2003),
+    "Toyota": ("#eb0a1e", "japonesa", 1937), "Volkswagen": ("#2b6cc4", "alemana", 1937),
+    "Volvo": ("#3a6ea5", "sueca", 1927),
+}
+
 # Modelos más conocidos de cada marca, agrupados por carrocería.
 MODELOS = {
     "Alfa Romeo": {"hatchback": ["147", "Giulietta", "MiTo"], "sedan": ["156", "159", "Giulia"],
@@ -194,6 +223,28 @@ def logo_marca(marca):
 
 def logo_oscuro(marca):
     return _SLUGS.get(_norm(marca)) in LOGOS_OSCUROS
+
+
+def tema_marca(marca):
+    """Colores y datos de la marca para «vestir» las páginas de ese vehículo; None si no está en el catálogo."""
+    marca = _MARCAS.get(_norm(marca))
+    if marca not in TEMAS:
+        return None
+    color, origen, anio = TEMAS[marca]
+    r, g, b = (int(color[i:i + 2], 16) for i in (1, 3, 5))
+
+    def lineal(c):
+        c /= 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+    luz = 0.2126 * lineal(r) + 0.7152 * lineal(g) + 0.0722 * lineal(b)
+    claro = [round(c + (255 - c) * 0.18) for c in (r, g, b)]
+    texto = "#0e1014" if luz > 0.3 else "#fff"  # sobre colores claros (dorado, plata, amarillo) va texto oscuro
+    estilo = (f"--accent: {color}; --accent-hover: #{claro[0]:02x}{claro[1]:02x}{claro[2]:02x}; "
+              f"--accent-rgb: {r} {g} {b}; --accent-soft: rgb({r} {g} {b} / .12); --on-accent: {texto};")
+    logo = logo_marca(marca)
+    return {"marca": marca, "color": color, "estilo": estilo, "logo": logo, "logo_oscuro": logo_oscuro(marca),
+            "origen": f"Marca {origen}" + (f" · fundada en {anio}" if anio else "")}
 
 
 def catalogo_js():

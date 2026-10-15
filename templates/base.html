@@ -27,7 +27,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
-<body>
+{%- set tema = tema_marca(v.marca) if (v is defined and v and v.marca) else none %}
+<body{% if tema %} class="con-tema" style="{{ tema.estilo }}" data-marca="{{ tema.marca }}"{% endif %}>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <a class="brand" href="{{ url_for('index') }}">

@@ -20,7 +20,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import archivos
 import respaldos
-from catalogo import canon_marca, canon_modelo, catalogo_js, logo_marca, logo_oscuro
+from catalogo import canon_marca, canon_modelo, catalogo_js, logo_marca, logo_oscuro, tema_marca
 from mantenimiento import (KM_MES_MAX, DOCUMENTOS, REPETICION_SUGERIDA, REPETICIONES, USOS, km_estimado,
                            km_por_mes, plan_mantenimiento, promedio_medido, sumar_meses, vencimientos)
 
@@ -353,7 +353,7 @@ def inject_globals():
             "COMBUSTIBLES": COMBUSTIBLES, "FRENOS": FRENOS, "USOS": USOS, "HECHO_POR": HECHO_POR,
             "DOCUMENTOS": DOCUMENTOS, "REPETICIONES": REPETICIONES, "BOVEDA": archivos.BOVEDA,
             "COLOR_DEFAULT": COLOR_DEFAULT,
-            "catalogo_js": catalogo_js, "logo_marca": logo_marca,
+            "catalogo_js": catalogo_js, "logo_marca": logo_marca, "tema_marca": tema_marca,
             "logo_oscuro": logo_oscuro, "nombre_auto": nombre_auto, "detalle_auto": detalle_auto, "ficha_tecnica": ficha_tecnica,
             "patente_info": patente_info,
             "creditos_modelos": creditos_modelos}
