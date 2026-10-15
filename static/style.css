@@ -1719,3 +1719,19 @@ body::after { opacity: .12; }
 .largada-record { margin: 4px 0 0; color: var(--muted); font-size: .9rem; min-height: 1.2em; }
 .largada-botones { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
 .largada-botones[hidden] { display: none; }
+
+/* ---------- «Ya lo hice» / «Lo tengo que hacer» ---------- */
+.modo-registro { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 6px; }
+.modo-opcion { position: relative; cursor: pointer; }
+.modo-opcion input { position: absolute; opacity: 0; pointer-events: none; }
+.modo-opcion span {
+  display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
+  background: #0e1013; transition: border-color .15s, background .15s;
+}
+.modo-opcion b { font-family: var(--display); font-size: 1.05rem; letter-spacing: .04em; text-transform: uppercase; }
+.modo-opcion small { color: var(--muted); font-size: .78rem; }
+.modo-opcion:hover span { background: var(--surface-2); }
+.modo-opcion input:checked + span { border-color: var(--accent); background: rgb(var(--accent-rgb) / .12); }
+.modo-opcion input:focus-visible + span { box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / .3); }
+.pendiente-acciones { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.pendiente-acciones form { margin: 0; }

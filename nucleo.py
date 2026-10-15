@@ -155,6 +155,16 @@ CREATE TABLE IF NOT EXISTS documentos (
     detalle     TEXT,
     UNIQUE (vehiculo_id, tipo)
 );
+CREATE TABLE IF NOT EXISTS pendientes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    vehiculo_id INTEGER NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
+    titulo      TEXT NOT NULL,
+    categoria   TEXT,
+    fecha       TEXT,
+    km          INTEGER,
+    detalle     TEXT,
+    creado      TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS archivos (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     vehiculo_id INTEGER NOT NULL REFERENCES vehiculos(id) ON DELETE CASCADE,
@@ -583,6 +593,25 @@ def calcular_recordatorios(vid, km_hoy):
         recordatorios.append({"registro": r, "estado": estado, "faltan_km": faltan_km,
                               "faltan_dias": faltan_dias,
                               "progreso": 1.0 if estado == "vencido" else progreso(r, km_hoy, hoy)})
+    for p in get_db().execute("SELECT * FROM pendientes WHERE vehiculo_id = ? ORDER BY fecha, km, id", (vid,)):
+        faltan_km = p["km"] - km_hoy if p["km"] else None
+        faltan_dias = None
+        if p["fecha"]:
+            try:
+                faltan_dias = (date.fromisoformat(p["fecha"]) - hoy).days
+            except ValueError:
+                pass
+        if (faltan_km is not None and faltan_km <= 0) or (faltan_dias is not None and faltan_dias < 0):
+            estado = "vencido"
+        elif (faltan_km is not None and faltan_km <= 1000) or (faltan_dias is not None and faltan_dias <= 30):
+            estado = "pronto"
+        else:
+            estado = "ok"
+        # Mismo formato que un registro con «próximo control», para que lo usen igual todas las vistas.
+        reg = {"id": None, "titulo": p["titulo"], "prox_km": p["km"], "prox_fecha": p["fecha"],
+               "categoria": p["categoria"], "detalle": p["detalle"]}
+        recordatorios.append({"registro": reg, "pendiente": p["id"], "estado": estado, "faltan_km": faltan_km,
+                              "faltan_dias": faltan_dias, "progreso": 1.0 if estado == "vencido" else 0.0})
     orden = {"vencido": 0, "pronto": 1, "ok": 2}
     recordatorios.sort(key=lambda x: orden[x["estado"]])
     return recordatorios
@@ -947,8 +976,10 @@ def lista_avisos(v, a, con_nombre=False):
                 partes.append(f"faltan {miles(rec['faltan_km'])} km")
             if rec["faltan_dias"] is not None:
                 partes.append(f"{rec['faltan_dias']} días")
-        agregar("rec:" + rec["registro"]["titulo"].strip().lower(), rec["registro"]["titulo"],
-                " · ".join(partes), rec["estado"], url_for("vehiculo", vid=v["id"], _anchor="registro-" + str(rec["registro"]["id"])))
+        destino = (url_for("vehiculo", vid=v["id"], _anchor="controles") if rec.get("pendiente")
+                   else url_for("vehiculo", vid=v["id"], _anchor="registro-" + str(rec["registro"]["id"])))
+        agregar(("pend:" + str(rec["pendiente"])) if rec.get("pendiente") else "rec:" + rec["registro"]["titulo"].strip().lower(),
+                rec["registro"]["titulo"], " · ".join(partes), rec["estado"], destino)
     for p in a["plan"]:
         if p["estado"] in ("vencido", "pronto"):
             detalle = "Ya toca" if p["estado"] == "vencido" else \
@@ -1059,12 +1090,46 @@ def vehiculo_compartido(token):
 
 # ---------------------------------------------------------------- rutas: registros
 
+def guardar_pendiente(v):
+    """«Lo tengo que hacer»: un trabajo a futuro (no va a la bitácora hasta que se hace)."""
+    f = request.form
+    titulo = (f.get("titulo") or "").strip()[:120]
+    fecha_p = to_fecha(f.get("pend_fecha"), minimo=date.today())
+    km_p = to_int(f.get("pend_km"))
+    error = ("Indicá qué hay que hacer." if not titulo
+             else "Poné para cuándo (una fecha de hoy en adelante) o a qué kilometraje." if not (fecha_p or km_p)
+             else None)
+    if error:
+        flash(error, "error")
+        r = {"titulo": titulo, "categoria": categoria_valida(f.get("categoria")), "pend_fecha": f.get("pend_fecha"),
+             "pend_km": km_p, "detalle": f.get("detalle"), "fecha": date.today().isoformat(), "km": km_actual(v) or None}
+        return render_template("registro_form.html", v=v, r=r, adjuntos=[], modo="pendiente")
+    get_db().execute("INSERT INTO pendientes (vehiculo_id, titulo, categoria, fecha, km, detalle, creado) "
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                     (v["id"], titulo, categoria_valida(f.get("categoria")), fecha_p, km_p,
+                      (f.get("detalle") or "").strip()[:4000] or None, datetime.now().isoformat(timespec="seconds")))
+    get_db().commit()
+    flash("Anotado como pendiente. Te lo recordamos en la ficha, el calendario y los avisos.", "ok")
+    return redirect(url_for("vehiculo", vid=v["id"], _anchor="controles"))
+
+
+def get_pendiente(pid):
+    """Pendiente de un vehículo del usuario; 404 si no existe o es de otra cuenta."""
+    p = get_db().execute("SELECT p.* FROM pendientes p JOIN vehiculos v ON v.id = p.vehiculo_id "
+                         "WHERE p.id = ? AND v.usuario_id = ?", (pid, g.usuario["id"])).fetchone()
+    if p is None:
+        abort(404)
+    return p
+
+
 def guardar_registro(v, rid=None):
     """Alta o edición de un registro con sus fotos y facturas."""
+    if rid is None and request.form.get("modo") == "pendiente":
+        return guardar_pendiente(v)
     d = datos_registro_form()
     if not d["titulo"]:
         flash("Indicá qué trabajo se hizo.", "error")
-        return render_template("registro_form.html", v=v, r={**d, "id": rid},
+        return render_template("registro_form.html", v=v, r={**d, "id": rid, "pendiente": to_int(request.form.get("pendiente"))},
                                adjuntos=adjuntos_por_registro(v["id"]).get(rid, []))
     db = get_db()
     if rid is None:
@@ -1073,6 +1138,10 @@ def guardar_registro(v, rid=None):
             "INSERT INTO registros (vehiculo_id, fecha, km, categoria, titulo, detalle, costo, "
             "taller, hecho_por, prox_km, prox_fecha) VALUES (:vehiculo_id, :fecha, :km, :categoria, "
             ":titulo, :detalle, :costo, :taller, :hecho_por, :prox_km, :prox_fecha)", d).lastrowid
+        # Si venía de «Ya lo hice» en un pendiente, ese pendiente se cierra.
+        pid = to_int(request.form.get("pendiente"))
+        if pid:
+            db.execute("DELETE FROM pendientes WHERE id = ? AND vehiculo_id = ?", (pid, v["id"]))
         flash("Registro agregado a la bitácora.", "ok")
     else:
         d["id"] = rid

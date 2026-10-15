@@ -32,8 +32,30 @@ def registro_nuevo(vid):
         return guardar_registro(v)
     titulo = request.args.get("titulo", "")[:120]
     nuevo = {"fecha": date.today().isoformat(), "km": km_actual(v) or None,
-             "categoria": request.args.get("cat", "control"), "titulo": titulo}
-    return render_template("registro_form.html", v=v, r=nuevo, adjuntos=[])
+             "categoria": categoria_valida(request.args.get("cat", "control")), "titulo": titulo}
+    modo = "pendiente" if request.args.get("modo") == "pendiente" else "hecho"
+    return render_template("registro_form.html", v=v, r=nuevo, adjuntos=[], modo=modo)
+
+
+@app.post("/pendiente/<int:pid>/hecho")
+@requiere_login
+def pendiente_hecho(pid):
+    """«Ya lo hice»: abre el registro con lo del pendiente; al guardarlo, el pendiente se cierra."""
+    p = get_pendiente(pid)
+    v = get_vehiculo(p["vehiculo_id"])
+    nuevo = {"fecha": date.today().isoformat(), "km": km_actual(v) or None, "titulo": p["titulo"],
+             "categoria": categoria_valida(p["categoria"]), "detalle": p["detalle"], "pendiente": p["id"]}
+    return render_template("registro_form.html", v=v, r=nuevo, adjuntos=[], modo="hecho")
+
+
+@app.post("/pendiente/<int:pid>/borrar")
+@requiere_login
+def pendiente_borrar(pid):
+    p = get_pendiente(pid)
+    get_db().execute("DELETE FROM pendientes WHERE id = ?", (p["id"],))
+    get_db().commit()
+    flash("Pendiente eliminado.", "ok")
+    return redirect(url_for("vehiculo", vid=p["vehiculo_id"], _anchor="controles"))
 
 
 @app.route("/registro/<int:rid>/editar", methods=["GET", "POST"])

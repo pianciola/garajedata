@@ -40,6 +40,7 @@ def exportar_todo():
             carpeta = "".join(c if c.isalnum() else "_" for c in nombre_auto(v)) + f"_{vid}"
             regs = filas("SELECT * FROM registros WHERE vehiculo_id = ? ORDER BY fecha, km, id", (vid,))
             docs = filas("SELECT * FROM documentos WHERE vehiculo_id = ?", (vid,))
+            pend = filas("SELECT titulo, categoria, fecha, km, detalle, creado FROM pendientes WHERE vehiculo_id = ?", (vid,))
             arch = filas("SELECT id, registro_id, categoria, nombre, archivo, mime, bytes, creado "
                          "FROM archivos WHERE vehiculo_id = ?", (vid,))
             for a in arch:
@@ -51,11 +52,11 @@ def exportar_todo():
                 except OSError:
                     a["en_el_zip"] = None
                 a.pop("archivo")
-            salida["vehiculos"].append({**v, "registros": regs, "documentos": docs, "archivos": arch})
+            salida["vehiculos"].append({**v, "registros": regs, "documentos": docs, "pendientes": pend, "archivos": arch})
             z.writestr(f"{carpeta}/registros.csv", csv_registros(regs))
         z.writestr("garajedata.json", json.dumps(salida, ensure_ascii=False, indent=2, default=str))
         z.writestr("LEEME.txt", "Copia de tus datos de GarajeData.\n\n"
-                   "garajedata.json: todos los datos (vehículos, registros, documentos y archivos).\n"
+                   "garajedata.json: todos los datos (vehículos, registros, pendientes, documentos y archivos).\n"
                    "Cada carpeta de vehículo tiene registros.csv (se abre con Excel) y sus archivos.\n")
     buf.seek(0)
     return send_file(buf, mimetype="application/zip", as_attachment=True,
@@ -85,7 +86,8 @@ def eventos_de(uid):
             if not dias:
                 continue
             detalle = f"Próximo a los {miles(reg['prox_km'])} km" if reg["prox_km"] else ""
-            salida.append((f"rec-{reg['id']}", hoy + timedelta(days=max(0, min(dias))),
+            salida.append((f"pend-{r['pendiente']}" if r.get("pendiente") else f"rec-{reg['id']}",
+                           hoy + timedelta(days=max(0, min(dias))),
                            f"{reg['titulo']} · {auto}", detalle))
         for p in a["plan"]:
             if p.get("fecha"):

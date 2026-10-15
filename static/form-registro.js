@@ -46,7 +46,6 @@
     return null;
   }
 
-  const titulo = document.getElementById("titulo");
   const aviso = document.getElementById("aviso-categoria");
   // Última categoría puesta automáticamente: si el usuario la cambia a mano,
   // no se la pisa mientras el texto siga indicando lo mismo.
@@ -88,3 +87,25 @@
   });
 })();
 
+
+// «Ya lo hice» / «Lo tengo que hacer»: cada modo muestra sus campos. Los ocultos se desactivan
+// para que no se validen ni se envíen (por ejemplo, la fecha del trabajo no puede ser futura).
+(() => {
+  const radios = document.querySelectorAll("input[name=modo]");
+  if (!radios.length) return;
+  const boton = document.getElementById("boton-guardar");
+  const aplicar = () => {
+    const modo = document.querySelector("input[name=modo]:checked")?.value || "hecho";
+    document.querySelectorAll("[data-solo]").forEach((el) => {
+      const ver = el.dataset.solo === modo;
+      el.hidden = !ver;
+      el.querySelectorAll("input, select, textarea").forEach((c) => { c.disabled = !ver; });
+      if (el.matches("input, select, textarea")) el.disabled = !ver;
+    });
+    if (boton) boton.textContent = modo === "pendiente" ? "Anotar pendiente" : "Guardar";
+    const etiqueta = document.getElementById("etiqueta-titulo");
+    if (etiqueta) etiqueta.textContent = (modo === "pendiente" ? "¿Qué hay que hacer?" : "¿Qué se hizo?") + " *";
+  };
+  radios.forEach((r) => r.addEventListener("change", aplicar));
+  aplicar();
+})();

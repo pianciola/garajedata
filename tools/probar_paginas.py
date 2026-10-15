@@ -364,6 +364,54 @@ cfoto.post("/cuenta", data={"accion": "borrar", "actual": "clave-123", "confirma
 if os.path.exists(archivos.ruta(foto_disco)):
     fallas.append("al borrar la cuenta la foto de perfil quedó en el disco")
 
+# Pendientes («Lo tengo que hacer»): se anotan a futuro, aparecen en la ficha y el calendario,
+# no se pueden tocar desde otra cuenta y se cierran al registrar que se hicieron.
+from datetime import timedelta as _td  # noqa: E402
+_enero = (date.today() + _td(days=90)).isoformat()
+esperar("pendiente sin fecha ni km", c.post("/vehiculo/3/registro/nuevo", data={"modo": "pendiente", "titulo": "Aceite"}), 200)
+esperar("pendiente con fecha pasada", c.post("/vehiculo/3/registro/nuevo", data={
+    "modo": "pendiente", "titulo": "Aceite", "pend_fecha": "2020-01-01"}), 200)
+esperar("pendiente", c.post("/vehiculo/3/registro/nuevo", data={
+    "modo": "pendiente", "titulo": "Cambio de aceite (pendiente)", "categoria": "fluidos", "pend_fecha": _enero,
+    "fecha": "2099-01-01", "costo": "999"}), 302)
+with sqlite3.connect(DB) as db:
+    pend = db.execute("SELECT id, fecha, categoria FROM pendientes WHERE titulo = 'Cambio de aceite (pendiente)'").fetchone()
+    n_regs_antes = db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id = 3").fetchone()[0]
+if not pend or pend[1:] != (_enero, "fluidos"):
+    fallas.append(f"el pendiente no se guardó bien: {pend}")
+else:
+    if "Cambio de aceite (pendiente)" not in c.get("/vehiculo/3").get_data(as_text=True):
+        fallas.append("el pendiente no aparece en la ficha")
+    mes = _enero[:7]
+    if "Cambio de aceite (pendiente)" not in c.get(f"/calendario?mes={mes}").get_data(as_text=True):
+        fallas.append("el pendiente no aparece en el calendario")
+    otra_p = app.test_client()
+    otra_p.post("/registro", data={"usuario": "ajena-pend", "clave": "clave-123", "clave2": "clave-123", "acepto": "1"})
+    esperar("«ya lo hice» de otra cuenta", otra_p.post(f"/pendiente/{pend[0]}/hecho"), 404)
+    esperar("borrar pendiente de otra cuenta", otra_p.post(f"/pendiente/{pend[0]}/borrar"), 404)
+    html = esperar("ya lo hice", c.post(f"/pendiente/{pend[0]}/hecho"), 200).get_data(as_text=True)
+    if f'name="pendiente" value="{pend[0]}"' not in html or "Cambio de aceite (pendiente)" not in html:
+        fallas.append("«Ya lo hice» no abre el registro con los datos del pendiente")
+    esperar("registrar el pendiente hecho", c.post("/vehiculo/3/registro/nuevo", data={
+        "titulo": "Cambio de aceite (pendiente)", "categoria": "fluidos", "fecha": date.today().isoformat(),
+        "costo": "50.000", "pendiente": str(pend[0])}), 302)
+    with sqlite3.connect(DB) as db:
+        if db.execute("SELECT 1 FROM pendientes WHERE id = ?", (pend[0],)).fetchone():
+            fallas.append("el pendiente no se cerró al registrarlo")
+        if db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id = 3").fetchone()[0] != n_regs_antes + 1:
+            fallas.append("al cerrar el pendiente no quedó el registro en la bitácora")
+c.post("/vehiculo/3/registro/nuevo", data={"modo": "pendiente", "titulo": "Rotar cubiertas", "pend_km": "999.999"})
+with sqlite3.connect(DB) as db:
+    pid2 = db.execute("SELECT id FROM pendientes WHERE titulo = 'Rotar cubiertas'").fetchone()
+if not pid2:
+    fallas.append("no se pudo anotar un pendiente solo por kilometraje")
+else:
+    esperar("borrar pendiente", c.post(f"/pendiente/{pid2[0]}/borrar"), 302)
+    with sqlite3.connect(DB) as db:
+        if db.execute("SELECT 1 FROM pendientes WHERE id = ?", (pid2[0],)).fetchone():
+            fallas.append("el pendiente no se borró")
+esperar("pendiente inexistente", c.post("/pendiente/999999/hecho"), 404)
+
 # Créditos en su propia página (pública), enlazada desde el pie; el pie ya no lista los modelos
 r = esperar("créditos", app.test_client().get("/creditos"), 200).get_data(as_text=True)
 if "Comrade1280" not in r or "car-logos-dataset" not in r or "Open Font License" not in r:

@@ -127,7 +127,21 @@
           {%- if rec.faltan_dias is not none %} {{ rec.faltan_dias }} días{% endif %}
         {% endif %}
       </span>
+      {% if rec.pendiente %}
+      <div class="pendiente-acciones">
+        <span class="tag-est" title="Lo anotaste como «Lo tengo que hacer»">pendiente</span>
+        {% if can_edit %}
+        <form method="post" action="{{ url_for('pendiente_hecho', pid=rec.pendiente) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-primary btn-xs" type="submit">✓ Ya lo hice</button>
+        </form>
+        <form method="post" action="{{ url_for('pendiente_borrar', pid=rec.pendiente) }}" data-confirmar="¿Borrar este pendiente?"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <button class="link-danger" type="submit">Borrar</button>
+        </form>
+        {% endif %}
+      </div>
+      {% else %}
       <div class="revbar" aria-hidden="true">{% for n in range(20) %}<span class="{{ 'on' if n < (rec.progreso * 20)|round(0, 'ceil') }}"></span>{% endfor %}</div>
+      {% endif %}
     </li>
     {% endfor %}
     {% for p in plan if p.estado != 'sin_dato' %}

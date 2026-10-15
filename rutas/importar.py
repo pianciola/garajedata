@@ -117,6 +117,17 @@ def importar_zip(contenido):
                         fd["cada_meses"] = None
                     db.execute("INSERT OR REPLACE INTO documentos (vehiculo_id, tipo, vence, cada_meses, detalle) VALUES (?, ?, ?, ?, ?)",
                                (vid, fd["tipo"], fd.get("vence"), fd.get("cada_meses"), (fd.get("detalle") or "")[:120]))
+                for p in (v.get("pendientes") or [])[:200]:
+                    if not isinstance(p, dict) or not isinstance(p.get("titulo"), str) or not p["titulo"].strip():
+                        continue
+                    km_p = valor(p.get("km"), "int")
+                    fecha_p = valor(p.get("fecha"), "fecha")
+                    if not (km_p or fecha_p):
+                        continue
+                    db.execute("INSERT INTO pendientes (vehiculo_id, titulo, categoria, fecha, km, detalle, creado) "
+                               "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                               (vid, p["titulo"].strip()[:120], categoria_valida(p.get("categoria")), fecha_p, km_p,
+                                (valor(p.get("detalle"), "txt") or None), datetime.now().isoformat(timespec="seconds")))
                 foto_vieja = v.get("foto_id")
                 for a in v.get("archivos") or []:
                     if not isinstance(a, dict) or not isinstance(a.get("en_el_zip"), str):
