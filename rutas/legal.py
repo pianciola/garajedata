@@ -26,3 +26,8 @@ def terminos():
 @app.route("/privacidad")
 def privacidad():
     return pagina_legal("privacidad")
+
+
+@app.route("/creditos")
+def creditos():
+    return render_template("creditos.html", modelos=creditos_modelos())

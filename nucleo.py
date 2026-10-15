@@ -235,6 +235,8 @@ def init_db():
             db.execute("ALTER TABLE usuarios ADD COLUMN codigo TEXT")
         if "cal_token" not in cols_usuarios:
             db.execute("ALTER TABLE usuarios ADD COLUMN cal_token TEXT")
+        if "foto" not in cols_usuarios:
+            db.execute("ALTER TABLE usuarios ADD COLUMN foto TEXT")
         if "usuario_id" not in columnas:
             db.execute("ALTER TABLE vehiculos ADD COLUMN usuario_id INTEGER "
                        "REFERENCES usuarios(id) ON DELETE CASCADE")
@@ -326,7 +328,7 @@ app.jinja_env.globals["url_absoluta"] = url_absoluta
 
 # Páginas que pueden aparecer en buscadores; el resto (todo lo que es de una cuenta, links compartidos,
 # calendarios y archivos) se marca «noindex».
-PUBLICAS = {"index", "login", "registrarse", "recuperar", "terminos", "privacidad", "static", "robots", "sitemap"}
+PUBLICAS = {"index", "login", "registrarse", "recuperar", "terminos", "privacidad", "creditos", "static", "robots", "sitemap"}
 
 
 RESPALDO_HECHO = {"dia": None}
@@ -351,7 +353,7 @@ def cargar_usuario():
     uid = session.get("uid")
     g.usuario = None
     if uid is not None:
-        g.usuario = get_db().execute("SELECT id, usuario FROM usuarios WHERE id = ?",
+        g.usuario = get_db().execute("SELECT id, usuario, foto FROM usuarios WHERE id = ?",
                                      (uid,)).fetchone()
         if g.usuario is None:
             session.clear()

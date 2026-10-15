@@ -98,6 +98,36 @@ def guardar(archivo, usados, solo_imagen=False):
     return en_disco, mime, len(datos), nombre
 
 
+LADO_AVATAR = 320  # px de la foto de perfil (cuadrada)
+
+
+def guardar_avatar(archivo):
+    """Foto de perfil: solo imágenes; se recorta cuadrada al centro, se achica y se guarda en JPEG
+    sin metadatos. Devuelve el nombre en disco. Lanza ValueError con un mensaje para el usuario."""
+    datos = archivo.read(MAX_BYTES + 1)
+    if not datos:
+        raise ValueError("Elegí una foto.")
+    if len(datos) > MAX_BYTES:
+        raise ValueError("La foto pesa más de 10 MB.")
+    tipo = tipo_de(datos)
+    if tipo is None or tipo[0] == "application/pdf":
+        raise ValueError("La foto de perfil tiene que ser una imagen JPG, PNG o WEBP.")
+    if Image is None:
+        raise ValueError("Ahora no se pueden procesar fotos. Probá más tarde.")
+    try:
+        img = ImageOps.exif_transpose(Image.open(io.BytesIO(datos)))
+        img = ImageOps.fit(img.convert("RGB"), (LADO_AVATAR, LADO_AVATAR), centering=(0.5, 0.4))
+        salida = io.BytesIO()
+        img.save(salida, "JPEG", quality=85, optimize=True)
+    except Exception:
+        raise ValueError("La imagen no se pudo leer.")
+    os.makedirs(CARPETA, exist_ok=True)
+    en_disco = "avatar_" + secrets.token_hex(16) + ".jpg"
+    with open(os.path.join(CARPETA, en_disco), "wb") as f:
+        f.write(salida.getvalue())
+    return en_disco
+
+
 def ruta(en_disco):
     return os.path.join(CARPETA, os.path.basename(en_disco))
 

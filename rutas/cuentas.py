@@ -103,6 +103,39 @@ def recuperar():
     return render_template("recuperar.html", nombre=nombre)
 
 
+@app.post("/cuenta/foto")
+@requiere_login
+def cuenta_foto():
+    """Sube o quita la foto de perfil (la ve solo su dueño: en la barra y en Mi cuenta)."""
+    db = get_db()
+    anterior = g.usuario["foto"]
+    if request.form.get("accion") == "quitar":
+        nueva = None
+        flash("Foto de perfil quitada.", "ok")
+    else:
+        try:
+            nueva = archivos.guardar_avatar(request.files.get("foto") or io.BytesIO(b""))
+        except ValueError as e:
+            flash(str(e), "error")
+            return redirect(url_for("cuenta"))
+        flash("Foto de perfil actualizada.", "ok")
+    db.execute("UPDATE usuarios SET foto = ? WHERE id = ?", (nueva, g.usuario["id"]))
+    db.commit()
+    if anterior:
+        archivos.borrar([anterior])
+    return redirect(url_for("cuenta"))
+
+
+@app.get("/cuenta/foto")
+@requiere_login
+def cuenta_foto_ver():
+    if not g.usuario["foto"] or not os.path.isfile(archivos.ruta(g.usuario["foto"])):
+        abort(404)
+    resp = send_file(archivos.ruta(g.usuario["foto"]), mimetype="image/jpeg")
+    resp.headers["Cache-Control"] = "private, max-age=86400"
+    return resp
+
+
 @app.route("/cuenta", methods=["GET", "POST"])
 @requiere_login
 def cuenta():
@@ -118,6 +151,8 @@ def cuenta():
                 nombres = [r[0] for r in db.execute(
                     "SELECT a.archivo FROM archivos a JOIN vehiculos v ON v.id = a.vehiculo_id "
                     "WHERE v.usuario_id = ?", (u["id"],))]
+                if u["foto"]:
+                    nombres.append(u["foto"])
                 db.execute("DELETE FROM vehiculos WHERE usuario_id = ?", (u["id"],))
                 db.execute("DELETE FROM usuarios WHERE id = ?", (u["id"],))
                 db.commit()

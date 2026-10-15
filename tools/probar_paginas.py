@@ -330,6 +330,52 @@ if "noindex" not in c.get("/vehiculo/3").headers.get("X-Robots-Tag", ""):
     fallas.append("una página privada no tiene noindex")
 esperar("og.png", app.test_client().get("/static/img/og.jpg"), 200)
 
+# Foto de perfil: se sube recortada, la ve solo su dueño, se rechazan PDF y basura, y se borra al quitarla
+from PIL import Image as _Img  # noqa: E402
+import archivos  # noqa: E402
+_b = io.BytesIO()
+_Img.new("RGB", (900, 600), (200, 30, 30)).save(_b, "PNG")
+cfoto = app.test_client()
+cfoto.post("/registro", data={"usuario": "confoto", "clave": "clave-123", "clave2": "clave-123", "acepto": "1"})
+esperar("subir foto de perfil", cfoto.post("/cuenta/foto", data={"foto": (io.BytesIO(_b.getvalue()), "yo.png")},
+                                           content_type="multipart/form-data"), 302)
+with sqlite3.connect(DB) as db:
+    foto_disco = db.execute("SELECT foto FROM usuarios WHERE usuario = 'confoto'").fetchone()[0]
+r = esperar("ver foto de perfil", cfoto.get("/cuenta/foto"), 200)
+if r.mimetype != "image/jpeg" or _Img.open(io.BytesIO(r.data)).size != (320, 320):
+    fallas.append("la foto de perfil no quedó cuadrada de 320 px en JPEG")
+r.close()  # en Windows un archivo abierto no se puede borrar
+if "/cuenta/foto?v=" not in cfoto.get("/").get_data(as_text=True):
+    fallas.append("la foto de perfil no aparece en la barra")
+esperar("foto de perfil sin sesión", app.test_client().get("/cuenta/foto"), 302)
+esperar("foto de perfil de otro (sin foto propia)", c.get("/cuenta/foto"), 404)
+for malo, nombre in ((b"%PDF-1.4 hola", "x.pdf"), (b"no es imagen", "x.jpg"), (b"", "vacio.png")):
+    cfoto.post("/cuenta/foto", data={"foto": (io.BytesIO(malo), nombre)}, content_type="multipart/form-data")
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT foto FROM usuarios WHERE usuario = 'confoto'").fetchone()[0] != foto_disco:
+        fallas.append("un archivo inválido reemplazó la foto de perfil")
+esperar("quitar foto de perfil", cfoto.post("/cuenta/foto", data={"accion": "quitar"}), 302)
+if os.path.exists(archivos.ruta(foto_disco)):
+    fallas.append("al quitar la foto de perfil el archivo quedó en el disco")
+cfoto.post("/cuenta/foto", data={"foto": (io.BytesIO(_b.getvalue()), "yo.png")}, content_type="multipart/form-data")
+with sqlite3.connect(DB) as db:
+    foto_disco = db.execute("SELECT foto FROM usuarios WHERE usuario = 'confoto'").fetchone()[0]
+cfoto.post("/cuenta", data={"accion": "borrar", "actual": "clave-123", "confirmar": "confoto"})
+if os.path.exists(archivos.ruta(foto_disco)):
+    fallas.append("al borrar la cuenta la foto de perfil quedó en el disco")
+
+# Créditos en su propia página (pública), enlazada desde el pie; el pie ya no lista los modelos
+r = esperar("créditos", app.test_client().get("/creditos"), 200).get_data(as_text=True)
+if "Comrade1280" not in r or "car-logos-dataset" not in r or "Open Font License" not in r:
+    fallas.append("a la página de créditos le falta alguna fuente")
+pie = app.test_client().get("/terminos").get_data(as_text=True)
+if 'href="/creditos"' not in pie or "Modelos 3D:" in pie:
+    fallas.append("el pie no enlaza a Créditos o sigue mostrando los modelos")
+# Botón flotante: la página marca su botón principal y el flotante arranca oculto
+html = c.get("/vehiculo/3").get_data(as_text=True)
+if "data-registro-principal" not in html or "carga-flotante carga-oculta" not in html:
+    fallas.append("el botón flotante no sabe cuál es el botón principal de la ficha")
+
 # Contraseña: mínimo 8
 esperar("clave de 7", app.test_client().post("/registro", data={"usuario": "corta7", "clave": "1234567", "clave2": "1234567", "acepto": "1"}), 200)
 

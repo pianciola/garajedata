@@ -1,7 +1,7 @@
 """Archivos para buscadores: robots.txt y sitemap.xml (solo las páginas públicas)."""
 from nucleo import *  # noqa: F401,F403
 
-PAGINAS_SITEMAP = ("index", "registrarse", "login", "terminos", "privacidad")
+PAGINAS_SITEMAP = ("index", "registrarse", "login", "terminos", "privacidad", "creditos")
 
 
 @app.route("/robots.txt")
@@ -13,6 +13,7 @@ def robots():
         "Allow: /login",
         "Allow: /terminos",
         "Allow: /privacidad",
+        "Allow: /creditos",
         "Allow: /static/",
         # Todo lo demás es de una cuenta, links compartidos o calendarios: no se indexa.
         "Disallow: /",

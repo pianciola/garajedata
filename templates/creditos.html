@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Créditos{% endblock %}
+{% block descripcion %}Fuentes y licencias de los modelos 3D, logos, tipografías y programas que usa GarajeData.{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('index') }}"><svg class="back-flecha" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Inicio</span></a>
+<section class="card form-card creditos">
+  <div class="eyebrow">Fuentes y licencias</div>
+  <h1>Créditos</h1>
+  <p class="muted">GarajeData se apoya en el trabajo de otras personas. Gracias a todas.</p>
+
+  <h2>Modelos 3D de los autos</h2>
+  <ul>
+    {% for c in modelos %}
+    <li>{% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.credito }}</a>{% else %}{{ c.credito }}{% endif %}.
+      Licencia <a href="https://creativecommons.org/licenses/by/4.0/deed.es" target="_blank" rel="noopener">Creative Commons Atribución 4.0</a>; se adaptaron (recorte y color de la pintura).</li>
+    {% else %}
+    <li>Modelos propios.</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Logos de las marcas</h2>
+  <ul>
+    <li>Imágenes del proyecto <a href="https://github.com/filippofilip95/car-logos-dataset" target="_blank" rel="noopener">car-logos-dataset</a> (licencia MIT).</li>
+    <li>Las marcas y sus logos pertenecen a sus respectivos dueños. Se muestran solo para identificar el vehículo de cada usuario; GarajeData no tiene relación con ninguna automotriz.</li>
+  </ul>
+
+  <h2>Tipografías</h2>
+  <ul>
+    <li><b>Saira Condensed</b>, de Omnibus-Type (SIL Open Font License 1.1).</li>
+    <li><b>Inter</b>, de Rasmus Andersson (SIL Open Font License 1.1).</li>
+  </ul>
+
+  <h2>Programas</h2>
+  <ul>
+    <li><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> para el visor 3D (licencia MIT).</li>
+    <li>Flask, SQLite y Pillow del lado del servidor.</li>
+  </ul>
+</section>
+{% endblock %}

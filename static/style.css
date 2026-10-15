@@ -1581,7 +1581,8 @@ body::after { opacity: .12; }
 .historial-cabeza > a { font-size: .85rem; }
 .historial-cabeza .eyebrow { margin-bottom: 6px; }
 .carga-flotante { display: none; }
-.carga-flotante.carga-oculta { visibility: hidden; pointer-events: none; }
+.carga-flotante.carga-oculta { opacity: 0; transform: translate(-50%, 16px) !important; pointer-events: none; }
+.carga-flotante { transition: opacity .2s, transform .2s; }
 .gasto-resumen { padding: 26px; margin-bottom: 18px; background: linear-gradient(120deg,rgb(var(--accent-rgb) / .065),transparent),var(--surface); }
 .comparacion-mes { display: flex; flex-wrap: wrap; gap: 24px 60px; margin: 22px 0; }
 .comparacion-mes span { display: block; color: var(--muted); font-size: .8rem; }
@@ -1672,3 +1673,27 @@ body::after { opacity: .12; }
 .car-menu-lista form { margin: 4px 0 0; padding-top: 4px; border-top: 1px solid var(--border); }
 .car-menu-borrar { color: var(--danger) !important; }
 .car-menu-borrar:hover { background: color-mix(in srgb, var(--danger) 14%, transparent) !important; }
+
+/* ---------- foto de perfil ---------- */
+.user-foto { object-fit: cover; padding: 0; background: var(--surface-3); }
+.perfil { display: flex; align-items: center; gap: 18px; margin-bottom: 4px; }
+.perfil-foto {
+  flex: none; width: 84px; height: 84px; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+  background: var(--accent); color: var(--on-accent); font-family: var(--display); font-weight: 800; font-size: 2.4rem;
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px rgb(var(--accent-rgb) / .55);
+}
+.perfil-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.perfil-datos { min-width: 0; }
+.perfil-datos h1 { overflow-wrap: anywhere; }
+.perfil-acciones { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.perfil-acciones form { margin: 0; }
+.perfil-subir { position: relative; cursor: pointer; }
+.perfil-subir input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.perfil-quitar { font-size: .88rem; }
+@media (max-width: 520px) { .perfil { gap: 14px; } .perfil-foto { width: 68px; height: 68px; font-size: 2rem; } }
+
+/* ---------- créditos ---------- */
+.creditos h2 { margin: 22px 0 8px; font-size: 1.25rem; }
+.creditos ul { margin: 0; padding-left: 20px; color: var(--muted); line-height: 1.6; }
+.creditos li + li { margin-top: 4px; }
+.creditos b { color: var(--text); }

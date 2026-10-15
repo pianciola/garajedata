@@ -10,7 +10,7 @@ document.addEventListener("click", (e) => {
 // Formularios que se envían solos al cambiar un desplegable (por ejemplo, el mes del calendario).
 document.addEventListener("change", (e) => {
   const form = e.target.closest("form[data-autoenviar]");
-  if (form && e.target.matches("select")) form.submit();
+  if (form && (e.target.matches("select") || (e.target.type === "file" && e.target.files.length))) form.submit();
 });
 document.querySelectorAll("form[data-autoenviar] [data-sin-js]").forEach((b) => { b.hidden = true; });
 

@@ -3,8 +3,31 @@
 {% block content %}
 <a class="back" href="{{ url_for('index') }}"><svg class="back-flecha" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Mis vehículos</span></a>
 <section class="card form-card cuenta">
-  <div class="eyebrow">Mi cuenta</div>
-  <h1>{{ usuario.usuario }}</h1>
+  <div class="perfil">
+    <div class="perfil-foto">
+      {% if usuario.foto %}<img src="{{ url_for('cuenta_foto_ver', v=usuario.foto[7:15]) }}" alt="Tu foto de perfil" width="84" height="84">
+      {% else %}<span aria-hidden="true">{{ usuario.usuario[:1]|upper }}</span>{% endif %}
+    </div>
+    <div class="perfil-datos">
+      <div class="eyebrow">Mi cuenta</div>
+      <h1>{{ usuario.usuario }}</h1>
+      <div class="perfil-acciones">
+        <form method="post" action="{{ url_for('cuenta_foto') }}" enctype="multipart/form-data" data-autoenviar><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <label class="btn btn-ghost btn-sm perfil-subir">
+            <input type="file" name="foto" accept="image/jpeg,image/png,image/webp" required>
+            📷 {{ 'Cambiar foto' if usuario.foto else 'Poner foto de perfil' }}
+          </label>
+          <button class="btn btn-ghost btn-sm" type="submit" data-sin-js>Subir</button>
+        </form>
+        {% if usuario.foto %}
+        <form method="post" action="{{ url_for('cuenta_foto') }}" data-confirmar="¿Quitar tu foto de perfil?"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <input type="hidden" name="accion" value="quitar">
+          <button class="link-danger perfil-quitar" type="submit">Quitar</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
   <div class="tabs" role="tablist" aria-label="Secciones de la cuenta">
     <button class="tab activa" type="button" role="tab" id="tab-seguridad" aria-controls="panel-seguridad" aria-selected="true" data-tab="seguridad">🔒 Seguridad</button>
