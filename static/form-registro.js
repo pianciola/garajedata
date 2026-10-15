@@ -7,6 +7,14 @@
     ["combustible", ["carga de nafta", "carga de combustible", "carga de gnc", "carga de diesel", "cargar nafta"]],
     ["reparacion", ["arreglo", "reparacion", "reparar", "perdida", "fuga", "rectific", "soldad", "chapa",
                     "choque", "abolladura", "falla", "ruido", "electricidad", "cortocircuito", "repar"]],
+    ["seguro", ["seguro", "poliza"]],
+    ["patente", ["patente", "impuesto automotor"]],
+    ["vtv", ["vtv", "rto", "itv", "revision tecnica", "inspeccion tecnica"]],
+    ["estacionamiento", ["estacionamiento", "cochera", "parking"]],
+    ["peajes", ["peaje", "telepase"]],
+    ["multas", ["multa", "infraccion"]],
+    ["tramites", ["transferencia", "tramite", "gestoria", "certificacion de firma", "informe de dominio"]],
+    ["lavado", ["lavado", "limpieza", "pulido", "detailing", "encerado"]],
     ["accesorios", ["accesorio", "alfombra", "cubre", "funda", "estereo", "stereo", "radio", "parlante",
                     "portaequipaje", "barras de techo", "camara", "sensor de estacionamiento", "alarma",
                     "enganche", "gancho", "matafuego", "baliza", "cargador", "soporte", "cobertor", "lona",
@@ -16,7 +24,7 @@
                       "intercooler", "spoiler", "aleron", "suspension regulable", "led", "xenon",
                       "downpipe", "llantas deportivas"]],
     // Controles inconfundibles, antes de las piezas ("presión de neumáticos" es un control).
-    ["control", ["vtv", "itv", "alineacion", "balanceo", "rotacion", "diagnostico", "escaneo", "presion"]],
+    ["control", ["alineacion", "balanceo", "rotacion", "diagnostico", "escaneo", "presion"]],
     ["fluidos", ["aceite", "refrigerante", "anticongelante", "liquido", "fluido", "atf", "valvulina",
                  "agua destilada", "lavaparabrisas", "aditivo", "gas del aire", "carga de aire"]],
     ["piezas", ["pastilla", "disco", "correa", "distribucion", "bujia", "bateria", "neumatico", "cubierta",
@@ -26,15 +34,13 @@
                 "sensor", "inyector", "bobina", "alternador", "burro", "arranque", "escape", "silenciador",
                 "manguera", "junta", "llanta", "espejo", "optica", "cerradura", "bocina"]],
     ["control", ["service", "revision", "inspeccion", "control", "chequeo", "verificacion"]],
-    ["otro", ["lavado", "limpieza", "pulido", "patente", "seguro", "multa", "estacionamiento", "peaje",
-              "transferencia", "cochera"]],
   ];
 
   const norm = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   function detectar(texto) {
     const t = norm(texto);
     for (const [categoria, palabras] of REGLAS) {
-      if (palabras.some((p) => t.includes(p))) return categoria;
+      if (palabras.some((p) => ['vtv', 'rto', 'itv'].includes(p) ? t.split(/\W+/).includes(p) : t.includes(p))) return categoria;
     }
     return null;
   }

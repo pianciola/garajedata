@@ -6,15 +6,18 @@
   <h1>{{ 'Editar registro' if r.id else 'Nuevo registro' }}</h1>
   <form method="post" class="form" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     <fieldset>
-      <legend>Tipo de trabajo</legend>
+      <legend>Tipo de trabajo o gasto</legend>
+      {% for grupo, claves in GRUPOS_CATEGORIAS %}
+      <p class="categoria-grupo">{{ grupo }}</p>
       <div class="cat-picker">
-        {% for key, label in CATEGORIAS.items() %}
+        {% for key in claves %}
         <label class="cat-option cat-{{ key }}">
           <input type="radio" name="categoria" value="{{ key }}" {% if r.categoria == key %}checked{% endif %}>
-          <span>{{ label }}</span>
+          <span>{{ CATEGORIAS[key] }}</span>
         </label>
         {% endfor %}
       </div>
+      {% endfor %}
     </fieldset>
 
     <label class="field">

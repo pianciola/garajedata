@@ -1612,3 +1612,17 @@ body::after { opacity: .12; }
   .cartel { bottom: 90px; }
 }
 @media print { .carga-flotante { display: none !important; } }
+
+.grupo-rapidos legend { margin-bottom: 10px; }
+.servicio-atajo { padding: 14px 16px; background: var(--accent-soft); border-left: 2px solid var(--accent); border-radius: 8px; }
+.rapido-otro { max-width: 220px; }
+.categoria-grupo { color: var(--muted); font-size: .8rem; margin: 16px 0 8px; }
+.cat-lavado, .badge-lavado, .chip-lavado { --cat: #50c8d5; }
+.cat-seguro, .badge-seguro, .chip-seguro { --cat: #8d9dff; }
+.cat-patente, .badge-patente, .chip-patente { --cat: #d7ab66; }
+.cat-vtv, .badge-vtv, .chip-vtv { --cat: #68c78e; }
+.cat-estacionamiento, .badge-estacionamiento, .chip-estacionamiento { --cat: #7db4de; }
+.cat-peajes, .badge-peajes, .chip-peajes { --cat: #b4a0db; }
+.cat-multas, .badge-multas, .chip-multas { --cat: #f38e85; }
+.cat-tramites, .badge-tramites, .chip-tramites { --cat: #c8a2c5; }
+.chip-lavado, .chip-seguro, .chip-patente, .chip-vtv, .chip-estacionamiento, .chip-peajes, .chip-multas, .chip-tramites { border-left: 3px solid var(--cat); }

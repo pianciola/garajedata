@@ -7,7 +7,7 @@ crea su cuenta y ve solo sus vehículos.
 ## Funciones
 
 - Resumen de controles y vencimientos pendientes con acceso directo desde el inicio.
-- Carga rápida (`/cargar`) de services, combustible, aceite, neumáticos, reparaciones y otros gastos; formulario completo para adjuntos y próximos controles.
+- Carga rápida (`/cargar`) organizada en Mantenimiento y cuidado, y Gastos y papeles: services, combustible, neumáticos, reparaciones, accesorios, lavado, seguro, patente, VTV/RTO, estacionamiento, peajes, multas y trámites. Aceite y filtro es un atajo dentro de Service; Otro gasto queda al final. Las categorías también están en el formulario completo, filtros y estadísticas.
 - Perfiles con imagen destacada y secciones desplegables; acceso móvil que acompaña el scroll.
 - Gastos del mes frente al mismo tramo del anterior, importes faltantes y costo por km con lecturas fechadas y crecientes.
 - Marca SVG en `static/img/logo.svg` y `logo-completo.svg` (letras en curvas). El paquete `exports/garajedata-marca.zip` incluye SVG, PNG de 4096 px y marca completa de 6000 px de ancho. Para regenerar: `tools/exportar_marca.py` (fonttools y brotli) y `tools/exportar_rasters.cjs` (sharp). Son herramientas de diseño, no dependencias del servidor.

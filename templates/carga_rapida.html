@@ -13,9 +13,19 @@
         {% for auto in vehiculos %}<option value="{{ auto.id }}" {{ 'selected' if auto.id == elegido or (not elegido and vehiculos|length == 1) }}>{{ nombre_auto(auto) }}{{ ' · ' ~ auto.patente if auto.patente }}</option>{% endfor %}
       </select>
     </label>
-    <fieldset><legend>¿Qué querés anotar?</legend><div class="rapidos-picker">
-      {% for key, item in rapidos.items() %}<label class="rapido-opcion"><input type="radio" name="tipo" value="{{ key }}" required {{ 'checked' if request.form.get('tipo', 'service') == key }}><span>{{ item[0] }}</span></label>{% endfor %}
+    {% set tipo = request.form.get('tipo', 'service') %}
+    {% for grupo, claves in grupos_rapidos %}
+    <fieldset class="grupo-rapidos"><legend>{{ grupo }}</legend><div class="rapidos-picker">
+      {% for key in claves %}<label class="rapido-opcion"><input type="radio" name="tipo" value="{{ key }}" required {{ 'checked' if tipo == key or (tipo == 'aceite' and key == 'service') }}><span>{{ rapidos[key][0] }}</span></label>{% endfor %}
     </div></fieldset>
+    {% if loop.first %}
+    <label class="field servicio-atajo" id="servicio-atajo"><span>Dentro de Service</span>
+      <select name="servicio"><option value="general">Service general</option><option value="aceite" {{ 'selected' if request.form.get('servicio') == 'aceite' or tipo == 'aceite' }}>Cambio de aceite y filtro</option></select>
+      <small class="muted">Este atajo se aplica al elegir Service.</small>
+    </label>
+    {% endif %}
+    {% endfor %}
+    <label class="rapido-opcion rapido-otro"><input type="radio" name="tipo" value="otro" required {{ 'checked' if tipo == 'otro' }}><span>Otro gasto</span></label>
     <label class="field"><span>Descripción <small class="optional">(opcional)</small></span><input name="titulo" maxlength="120" value="{{ request.form.get('titulo', '') }}" placeholder="Ej: carga de nafta en la ruta"></label>
     <div class="row">
       <label class="field"><span>Fecha</span><input type="date" name="fecha" required min="{{ lim.desde }}" max="{{ hoy }}" value="{{ request.form.get('fecha', hoy) }}"></label>
@@ -28,3 +38,4 @@
   {% if v or vehiculos|length == 1 %}<a href="{{ url_for('registro_nuevo', vid=v.id if v else vehiculos[0].id) }}">Abrir formulario completo →</a>{% else %}<p class="muted small">Entrá al perfil del auto y elegí «Registro completo».</p>{% endif %}
 </section>
 {% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='carga-rapida.js') }}"></script>{% endblock %}

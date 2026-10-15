@@ -7,8 +7,22 @@ RAPIDOS = {
     "aceite": ("Cambio de aceite y filtro", "fluidos"),
     "neumaticos": ("Neumáticos", "piezas"),
     "reparacion": ("Reparación", "reparacion"),
+    "accesorios": ("Accesorios", "accesorios"),
+    "lavado": ("Lavado y estética", "lavado"),
+    "seguro": ("Seguro", "seguro"),
+    "patente": ("Patente", "patente"),
+    "vtv": ("VTV / RTO", "vtv"),
+    "estacionamiento": ("Estacionamiento y cochera", "estacionamiento"),
+    "peajes": ("Peajes", "peajes"),
+    "multas": ("Multas", "multas"),
+    "tramites": ("Trámites y transferencias", "tramites"),
     "otro": ("Otro gasto", "otro"),
 }
+
+GRUPOS_RAPIDOS = (
+    ("Mantenimiento y cuidado", ("service", "combustible", "neumaticos", "reparacion", "accesorios", "lavado")),
+    ("Gastos y papeles", ("seguro", "patente", "vtv", "estacionamiento", "peajes", "multas", "tramites")),
+)
 
 
 @app.route("/cargar", methods=["GET", "POST"])
@@ -30,6 +44,8 @@ def carga_rapida():
             flash("Revisá el importe del gasto.", "error")
         else:
             titulo, categoria = RAPIDOS[request.form["tipo"]]
+            if request.form["tipo"] == "service" and request.form.get("servicio") == "aceite":
+                titulo, categoria = RAPIDOS["aceite"]
             d = datos_registro_form()
             d.update(vehiculo_id=v["id"], titulo=d["titulo"] or titulo, categoria=categoria)
             get_db().execute("""INSERT INTO registros
@@ -38,7 +54,7 @@ def carga_rapida():
             get_db().commit()
             flash("Listo, guardado en la bitácora.", "ok")
             return redirect(url_for("vehiculo", vid=v["id"]))
-    return render_template("carga_rapida.html", vehiculos=vehiculos, v=v, rapidos=RAPIDOS,
+    return render_template("carga_rapida.html", vehiculos=vehiculos, v=v, rapidos=RAPIDOS, grupos_rapidos=GRUPOS_RAPIDOS,
                            hoy=date.today().isoformat(), elegido=elegido)
 
 

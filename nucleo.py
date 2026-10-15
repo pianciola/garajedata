@@ -67,8 +67,22 @@ CATEGORIAS = {
     "accesorios": "Cambio de accesorios",
     "reparacion": "Reparación",
     "modificacion": "Modificación",
+    "lavado": "Lavado y estética",
+    "seguro": "Seguro",
+    "patente": "Patente",
+    "vtv": "VTV / RTO",
+    "estacionamiento": "Estacionamiento y cochera",
+    "peajes": "Peajes",
+    "multas": "Multas",
+    "tramites": "Trámites y transferencias",
     "otro": "Otro",
 }
+
+GRUPOS_CATEGORIAS = (
+    ("Mantenimiento y cuidado", ("control", "combustible", "fluidos", "piezas", "reparacion", "accesorios", "modificacion", "lavado")),
+    ("Gastos y papeles", ("seguro", "patente", "vtv", "estacionamiento", "peajes", "multas", "tramites")),
+    ("Otro", ("otro",)),
+)
 
 TRANSMISIONES = {"manual": "Manual", "automatica": "Automática"}
 COMBUSTIBLES = {"nafta": "Nafta", "diesel": "Diésel", "gnc": "GNC + nafta",
@@ -349,7 +363,7 @@ def requiere_login(view):
 def inject_globals():
     return {"csrf_token": csrf_token, "lim": limites_fecha(), "csp_nonce": g.get("csp_nonce", ""),
             "can_edit": g.get("usuario") is not None, "usuario": g.get("usuario"),
-            "CATEGORIAS": CATEGORIAS,
+            "CATEGORIAS": CATEGORIAS, "GRUPOS_CATEGORIAS": GRUPOS_CATEGORIAS,
             "CARROCERIAS": CARROCERIAS, "COLORES": COLORES, "TRANSMISIONES": TRANSMISIONES,
             "COMBUSTIBLES": COMBUSTIBLES, "FRENOS": FRENOS, "USOS": USOS, "HECHO_POR": HECHO_POR,
             "DOCUMENTOS": DOCUMENTOS, "REPETICIONES": REPETICIONES, "BOVEDA": archivos.BOVEDA,
