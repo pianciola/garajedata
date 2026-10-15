@@ -61,6 +61,29 @@ esperar("alta completa", c.post("/vehiculo/nuevo", data={
     "marca": "ford", "modelo": "focus", "version": "MK1", "anio": "2006", "patente": "abc123",
     "km_inicial": "129.500", "carroceria": "hatchback", "color": "#c0262d", "transmision": "manual"}), 302)
 
+# Versión de equipamiento: se guarda aparte de la generación y aparece en el nombre
+esperar("alta con versión", c.post("/vehiculo/nuevo", data={
+    "marca": "chevrolet", "modelo": "cruze 5", "version": "J400 (2ª gen.)", "equipamiento": "LTZ", "carroceria": "hatchback"}), 302)
+with sqlite3.connect(DB) as db:
+    vid_eq = db.execute("SELECT id, equipamiento, version FROM vehiculos WHERE modelo = 'Cruze 5' ORDER BY id DESC").fetchone()
+if not vid_eq or vid_eq[1:] != ("LTZ", "J400 (2ª gen.)"):
+    fallas.append(f"la versión de equipamiento no se guardó aparte: {vid_eq}")
+elif "Chevrolet Cruze 5 J400 (2ª gen.) LTZ" not in c.get(f"/vehiculo/{vid_eq[0]}").get_data(as_text=True):
+    fallas.append("la versión de equipamiento no aparece en el nombre del auto")
+if '"equipamientos"' not in c.get("/vehiculo/nuevo").get_data(as_text=True) or 'id="combo-equipamiento"' not in c.get("/vehiculo/nuevo").get_data(as_text=True):
+    fallas.append("el formulario no ofrece las versiones de equipamiento")
+# Un dato viejo con la versión en el campo de generación («Ghia») pasa solo al campo nuevo; «MK1» se queda.
+with sqlite3.connect(DB) as db:
+    viejo = db.execute("INSERT INTO vehiculos (usuario_id, nombre, marca, modelo, version) VALUES (1, '', 'Ford', 'Focus', 'ghia')").lastrowid
+    gen = db.execute("INSERT INTO vehiculos (usuario_id, nombre, marca, modelo, version) VALUES (1, '', 'Ford', 'Focus', 'MK1')").lastrowid
+nucleo.init_db()
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT equipamiento, version FROM vehiculos WHERE id = ?", (viejo,)).fetchone() != ("Ghia", None):
+        fallas.append("la versión vieja «Ghia» no pasó al campo nuevo")
+    if db.execute("SELECT equipamiento, version FROM vehiculos WHERE id = ?", (gen,)).fetchone() != (None, "MK1"):
+        fallas.append("la generación «MK1» se movió por error")
+    db.execute("DELETE FROM vehiculos WHERE id IN (?, ?, ?)", (viejo, gen, vid_eq[0] if vid_eq else -1))
+
 # Registros: nuevo, con datos, con error de validación
 for vid in (2, 3):
     esperar(f"form registro nuevo v{vid}", c.get(f"/vehiculo/{vid}/registro/nuevo"), 200)

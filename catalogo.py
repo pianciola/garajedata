@@ -188,6 +188,65 @@ VERSIONES = {
                    "Vento": ["A5", "A6", "A7"], "Amarok": ["1ª gen.", "Restyling (V6)", "2ª gen."],
                    "Suran": ["Fase 1", "Fase 2"], "Fox": ["Fase 1", "Fase 2", "Fase 3"]},
 }
+# Versiones de equipamiento que se vendieron en Argentina (sugerencias: el campo acepta cualquier texto).
+# Abarcan varias generaciones; los modelos que comparten versiones van juntos separados por "|".
+EQUIPAMIENTOS = {
+    "Chevrolet": {"Cruze|Cruze 5": ["LS", "LT", "LTZ", "LTZ+", "Premier", "RS"],
+                  "Onix|Onix Plus": ["Joy", "LS", "LT", "LTZ", "Premier", "RS"],
+                  "Prisma": ["Joy", "LS", "LT", "LTZ"], "Agile": ["LS", "LT", "LTZ"], "Sonic": ["LS", "LT", "LTZ"],
+                  "Corsa|Classic": ["GL", "GLS", "Wind", "Spirit", "LS", "LT"],
+                  "S10": ["LS", "LT", "LTZ", "High Country", "Z71"], "Tracker": ["LS", "LT", "LTZ", "Premier", "RS"],
+                  "Spin": ["LS", "LT", "LTZ", "Activ", "Premier"], "Meriva": ["GL", "GLS", "GL Plus"]},
+    "Ford": {"Focus|Focus Sedán": ["Ambiente", "Trend", "Ghia", "Exe", "Titanium", "SE", "SE Plus", "ST"],
+             "Fiesta|Fiesta Sedán": ["Ambiente", "Edge", "Trend", "Titanium", "S", "SE", "ST"],
+             "Ka|Ka+": ["Fly", "Viral", "Tattoo", "S", "SE", "SEL", "Freestyle"],
+             "EcoSport": ["XL", "XLS", "XLT", "Freestyle", "Titanium", "Storm", "SE"],
+             "Ranger": ["XL", "XLS", "XLT", "Limited", "Wildtrak", "Raptor"],
+             "Territory": ["Trend", "SEL", "Titanium"], "Kuga": ["SE", "Titanium"]},
+    "Volkswagen": {"Gol": ["Power", "Dub", "Country", "Trendline", "Comfortline", "Highline"],
+                   "Gol Trend|Voyage": ["Trendline", "Comfortline", "Highline", "Pacific", "Sportline"],
+                   "Golf": ["Trendline", "Comfortline", "Highline", "GTI", "R"],
+                   "Polo": ["Trendline", "Comfortline", "Highline", "Track", "GTS"],
+                   "Vento": ["Advance", "Luxury", "Sportline", "Comfortline", "Highline", "GLI"],
+                   "Virtus": ["Trendline", "Comfortline", "Highline", "Exclusive", "GTS"],
+                   "T-Cross": ["Trendline", "Comfortline", "Highline", "Hero"], "Taos": ["Comfortline", "Highline", "Hero"],
+                   "Nivus": ["Comfortline", "Highline", "Hero"],
+                   "Amarok": ["Startline", "Trendline", "Comfortline", "Highline", "Extreme", "Black Style"],
+                   "Suran": ["Trendline", "Comfortline", "Highline", "Track", "Cross"],
+                   "Fox": ["Trendline", "Comfortline", "Highline", "Sportline", "Route"],
+                   "Up!": ["Take", "Move", "High", "Cross"], "Saveiro": ["Power", "Trendline", "Highline", "Cross"]},
+    "Toyota": {"Corolla": ["XLi", "XEi", "SEG", "GR-Sport", "HV"], "Corolla Cross": ["XLi", "XEi", "SEG", "GR-Sport"],
+               "Etios|Etios Sedán": ["X", "XS", "XLS", "Platinum"], "Yaris|Yaris Sedán": ["XS", "XLS", "S"],
+               "Hilux": ["DX", "SR", "SRV", "SRX", "GR-Sport", "Conquest"],
+               "SW4": ["SR", "SRV", "SRX", "Diamond", "GR-Sport"], "RAV4": ["TX", "VX", "Limited"]},
+    "Fiat": {"Palio|Siena|Palio Weekend": ["Fire", "EL", "ELX", "HLX", "Attractive", "Essence", "Adventure"],
+             "Cronos": ["Drive", "Like", "Precision", "S-Design"], "Argo": ["Drive", "Precision", "HGT", "Trekking"],
+             "Uno": ["Fire", "Way", "Attractive", "Sporting", "Evo"], "Mobi": ["Easy", "Like", "Way", "Trekking"],
+             "Toro": ["Freedom", "Volcano", "Ultra", "Ranch"],
+             "Strada": ["Working", "Adventure", "Endurance", "Freedom", "Volcano", "Ranch"],
+             "500": ["Pop", "Lounge", "Cult", "Abarth"], "Pulse": ["Drive", "Audace", "Impetus", "Abarth"]},
+    "Peugeot": {"206": ["XR", "XS", "XT", "GTI"], "207": ["XR", "XS", "XT", "GTi"],
+                "208": ["Like", "Active", "Allure", "Feline", "GT", "GTi"], "2008": ["Active", "Allure", "Feline", "GT", "Sport"],
+                "308": ["Active", "Allure", "Feline", "GT"], "408": ["Allure", "Feline", "Sport"],
+                "3008": ["Active", "Allure", "Feline", "GT"]},
+    "Renault": {"Clio": ["Authentique", "Expression", "Privilège", "Mío", "Dynamique"],
+                "Sandero|Logan": ["Authentique", "Expression", "Pack", "Privilège", "Life", "Zen", "Intens"],
+                "Sandero Stepway": ["Expression", "Privilège", "Zen", "Intens"],
+                "Duster": ["Expression", "Dynamique", "Privilège", "Zen", "Intens", "Iconic"],
+                "Kangoo": ["Authentique", "Confort", "Zen", "Stepway"], "Kwid": ["Life", "Zen", "Intens", "Outsider", "Iconic"],
+                "Mégane": ["Expression", "Dynamique", "Privilège", "Luxe", "GT", "RS"],
+                "Fluence": ["Expression", "Dynamique", "Privilège", "Luxe", "GT"], "Captur": ["Life", "Zen", "Intens"]},
+    "Honda": {"Civic": ["LX", "EX", "EXL", "EXS", "Si", "Type R"], "Fit": ["LX", "EX", "EXL"], "City": ["LX", "EX", "EXL"],
+              "HR-V": ["LX", "EX", "EXL", "Touring"], "CR-V": ["LX", "EX", "EXL"]},
+    "Nissan": {"March": ["Active", "Sense", "Advance", "SR"], "Versa": ["Sense", "Advance", "Exclusive", "SR"],
+               "Sentra": ["Sense", "Advance", "Exclusive", "SR"], "Kicks": ["Sense", "Advance", "Exclusive", "SR"],
+               "Frontier": ["S", "SE", "XE", "LE", "Pro-4X", "Platinum"]},
+    "Jeep": {"Renegade": ["Sport", "Longitude", "Limited", "Trailhawk", "Serie S"],
+             "Compass": ["Sport", "Longitude", "Limited", "Trailhawk", "Serie S"]},
+    "Citroën": {"C3": ["Live", "Feel", "Shine", "Exclusive"], "C4|C4 Lounge": ["Tendance", "Exclusive", "Live", "Feel", "Shine"],
+                "C4 Cactus": ["Live", "Feel", "Shine", "Noir"]},
+}
+
 # Siempre se ofrecen, además de las específicas del modelo.
 VERSIONES_GENERICAS = ["Pre-restyling (fase 1)", "Restyling (fase 2)"]
 
@@ -247,6 +306,14 @@ def tema_marca(marca):
             "origen": f"Marca {origen}" + (f" · fundada en {anio}" if anio else "")}
 
 
+def equipamientos_de(marca, modelo):
+    """Versiones de equipamiento conocidas de un modelo (para sugerirlas y para ordenar datos viejos)."""
+    for clave, lista in EQUIPAMIENTOS.get(canon_marca(marca), {}).items():
+        if _norm(modelo) in (_norm(m) for m in clave.split("|")):
+            return lista
+    return []
+
+
 def catalogo_js():
     """Datos para el formulario: {marca: {logo, oscuro, modelos: [[modelo, carrocería], ...],
     versiones: {modelo: [...]}}} y las versiones genéricas."""
@@ -255,6 +322,7 @@ def catalogo_js():
         modelos = sorted(((m, tipo) for tipo, lista in MODELOS.get(marca, {}).items() for m in lista),
                          key=lambda x: x[0].lower())
         versiones = {m: v for clave, v in VERSIONES.get(marca, {}).items() for m in clave.split("|")}
+        equipamientos = {m: v for clave, v in EQUIPAMIENTOS.get(marca, {}).items() for m in clave.split("|")}
         datos[marca] = {"logo": LOGO_URL.format(slug), "oscuro": slug in LOGOS_OSCUROS,
-                        "modelos": [list(x) for x in modelos], "versiones": versiones}
+                        "modelos": [list(x) for x in modelos], "versiones": versiones, "equipamientos": equipamientos}
     return {"marcas": datos, "versionesGenericas": VERSIONES_GENERICAS}

@@ -20,7 +20,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import archivos
 import respaldos
-from catalogo import canon_marca, canon_modelo, catalogo_js, logo_marca, logo_oscuro, tema_marca
+from catalogo import canon_marca, canon_modelo, catalogo_js, equipamientos_de, logo_marca, logo_oscuro, tema_marca
 from mantenimiento import (KM_MES_MAX, DOCUMENTOS, REPETICION_SUGERIDA, REPETICIONES, USOS, km_estimado,
                            km_por_mes, plan_mantenimiento, promedio_medido, sumar_meses, vencimientos)
 
@@ -202,7 +202,7 @@ def close_db(exc):
 
 # Columnas agregadas a vehiculos después de la primera versión.
 COLUMNAS_NUEVAS = {
-    "carroceria": "TEXT", "color": "TEXT", "version": "TEXT", "transmision": "TEXT",
+    "carroceria": "TEXT", "color": "TEXT", "version": "TEXT", "equipamiento": "TEXT", "transmision": "TEXT",
     "motor": "TEXT", "combustible": "TEXT", "tanque": "REAL", "codigo_pintura": "TEXT",
     "vin": "TEXT", "bujias": "TEXT", "aceite": "TEXT", "aceite_litros": "REAL",
     "refrigerante": "TEXT", "frenos": "TEXT", "neumaticos": "TEXT", "presion_del": "TEXT",
@@ -253,6 +253,14 @@ def init_db():
             m = canon_marca(marca)
             db.execute("UPDATE vehiculos SET marca = ?, modelo = ? WHERE id = ?",
                        (m, canon_modelo(m, modelo), vid))
+        # Antes había un solo campo «Versión / fase»: si ahí se anotó la versión de equipamiento
+        # (LTZ, Ghia, Highline…), pasa al campo nuevo y la generación queda vacía.
+        for vid, marca, modelo, version in db.execute(
+                "SELECT id, marca, modelo, version FROM vehiculos WHERE COALESCE(equipamiento, '') = '' "
+                "AND COALESCE(version, '') <> ''").fetchall():
+            conocida = next((e for e in equipamientos_de(marca, modelo) if e.lower() == version.strip().lower()), None)
+            if conocida:
+                db.execute("UPDATE vehiculos SET equipamiento = ?, version = NULL WHERE id = ?", (conocida, vid))
 
 
 init_db()
@@ -435,14 +443,14 @@ def ficha_tecnica(v):
 
 def nombre_auto(v):
     """Nombre a mostrar: el apodo, o marca + modelo si no tiene."""
-    return (v["nombre"] or " ".join(x for x in (v["marca"], v["modelo"], v["version"]) if x)
+    return (v["nombre"] or " ".join(x for x in (v["marca"], v["modelo"], v["version"], v["equipamiento"]) if x)
             or "Mi vehículo")
 
 
 def detalle_auto(v):
     """Línea corta bajo el nombre: solo lo que el título no dice ya (año, carrocería, caja)."""
     titulo = nombre_auto(v).lower()
-    partes = [x for x in (v["marca"], v["modelo"], v["version"]) if x and x.lower() not in titulo]
+    partes = [x for x in (v["marca"], v["modelo"], v["version"], v["equipamiento"]) if x and x.lower() not in titulo]
     partes.append(str(v["anio"]) if v["anio"] else None)
     carroceria = CARROCERIAS.get(v["carroceria"])
     if carroceria and carroceria.lower() not in titulo:
@@ -612,6 +620,7 @@ def datos_vehiculo_form():
         uso = None
     return {
         "version": texto("version", 60),
+        "equipamiento": texto("equipamiento", 40),
         "transmision": transmision if transmision in TRANSMISIONES else None,
         "carroceria": carroceria if carroceria in CARROCERIAS else "sedan",
         "color": color,
@@ -799,7 +808,7 @@ def validar_clave(clave, clave2):
 
 # ---------------------------------------------------------------- rutas: vehículos
 
-CAMPOS_VEHICULO = ["imagen_modo", "km_mes", "foto_x", "foto_y", "foto_zoom", "foto_ajuste", "nombre", "marca", "modelo", "version", "anio", "patente", "km_inicial", "notas",
+CAMPOS_VEHICULO = ["imagen_modo", "km_mes", "foto_x", "foto_y", "foto_zoom", "foto_ajuste", "nombre", "marca", "modelo", "version", "equipamiento", "anio", "patente", "km_inicial", "notas",
                    "carroceria", "color", "transmision", "motor", "combustible", "tanque",
                    "codigo_pintura", "vin", "bujias", "aceite", "aceite_litros", "refrigerante",
                    "frenos", "neumaticos", "presion_del", "presion_tras", "uso"]

@@ -133,7 +133,7 @@
     },
   });
 
-  // Versión: las del modelo elegido más las genéricas (pre-restyling / restyling).
+  // Generación: las del modelo elegido más las genéricas (pre-restyling / restyling).
   const inputModelo = document.getElementById("modelo");
   combo(document.getElementById("combo-version"), {
     opciones: () => {
@@ -141,6 +141,15 @@
       const versiones = m ? (CATALOGO[m].versiones[inputModelo.value] || []) : [];
       return [...versiones, ...versionesGenericas].map((valor) => ({ valor }));
     },
+  });
+
+  // Versión de equipamiento (LT, LTZ, Ghia…): las conocidas del modelo; se puede escribir cualquier otra.
+  combo(document.getElementById("combo-equipamiento"), {
+    opciones: () => {
+      const m = marcaDe(inputMarca.value);
+      return (m ? (CATALOGO[m].equipamientos[inputModelo.value] || []) : []).map((valor) => ({ valor }));
+    },
+    vacio: "Escribí la versión (la que figura en la tapa del baúl o en los papeles)",
   });
 
   // Color

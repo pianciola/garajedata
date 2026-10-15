@@ -59,12 +59,23 @@
           <ul class="combo-list" id="lista-modelo" role="listbox" hidden></ul>
         </div>
       </div>
+    </div>
+    <div class="row">
       <div class="field">
-        <label for="version"><span>Versión / fase</span></label>
+        <label for="equipamiento"><span>Versión</span></label>
+        <div class="combo" id="combo-equipamiento">
+          <input id="equipamiento" name="equipamiento" maxlength="40" autocomplete="off" value="{{ (v.equipamiento or '') if v else '' }}"
+                 placeholder="Ej: LTZ, Ghia, Highline…" role="combobox" aria-expanded="false" aria-controls="lista-equipamiento">
+          <button type="button" class="combo-toggle" tabindex="-1" aria-label="Ver versiones">▾</button>
+          <ul class="combo-list" id="lista-equipamiento" role="listbox" hidden></ul>
+        </div>
+      </div>
+      <div class="field">
+        <label for="version"><span>Generación <small class="optional">(opcional)</small></span></label>
         <div class="combo" id="combo-version">
           <input id="version" name="version" maxlength="60" autocomplete="off" value="{{ (v.version or '') if v else '' }}"
                  placeholder="Ej: MK1, restyling…" role="combobox" aria-expanded="false" aria-controls="lista-version">
-          <button type="button" class="combo-toggle" tabindex="-1" aria-label="Ver versiones">▾</button>
+          <button type="button" class="combo-toggle" tabindex="-1" aria-label="Ver generaciones">▾</button>
           <ul class="combo-list" id="lista-version" role="listbox" hidden></ul>
         </div>
       </div>
