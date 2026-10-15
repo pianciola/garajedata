@@ -19,6 +19,30 @@
   // Oculto por el usuario solo mientras sea el mismo consejo del día.
   ocultar(guardado() === caja.dataset.i);
 
+  // Datos ya vistos en este navegador: «Otro» los saltea hasta haberlos visto todos.
+  const VISTOS = "garaje-consejos-vistos";
+  const vistos = new Set((() => { try { return JSON.parse(localStorage.getItem(VISTOS)) || []; } catch { return []; } })());
+  const marcarVisto = (i) => {
+    vistos.add(+i);
+    try { localStorage.setItem(VISTOS, JSON.stringify([...vistos])); } catch { /* sin almacenamiento */ }
+  };
+  if (!caja.hidden) marcarVisto(caja.dataset.i);
+
+  // Busca el próximo dato no visto, de a tandas. Si ya se vieron todos, vuelve a empezar.
+  const buscarNuevo = async (desde) => {
+    for (let vuelta = 0; vuelta < 15; vuelta++) {
+      const r = await fetch("/consejos/" + desde, { credentials: "same-origin" });
+      if (!r.ok) throw new Error();
+      const tanda = await r.json();
+      const nuevo = tanda.find((c) => !vistos.has(c.i));
+      if (nuevo) return nuevo;
+      desde += tanda.length;
+    }
+    vistos.clear();
+    const r = await fetch("/consejos/" + desde, { credentials: "same-origin" });
+    return (await r.json())[0];
+  };
+
   document.getElementById("consejo-cerrar").addEventListener("click", async () => {
     guardar(caja.dataset.i);
     caja.classList.add("consejo-cerrando");
@@ -30,6 +54,7 @@
   chip.addEventListener("click", () => {
     guardar(null);
     ocultar(false);
+    marcarVisto(caja.dataset.i);
     animar(caja, "consejo-abriendo", 700);
   });
 
@@ -40,10 +65,9 @@
     caja.classList.remove("consejo-entra");
     caja.classList.add("consejo-sale");
     try {
-      const [r] = await Promise.all([fetch("/consejo/" + salto, { credentials: "same-origin" }), esperar(180)]);
-      if (!r.ok) throw new Error();
-      const c = await r.json();
-      caja.dataset.salto = salto;
+      const [c] = await Promise.all([buscarNuevo(salto), esperar(180)]);
+      caja.dataset.salto = c.salto;
+      marcarVisto(c.i);
       caja.className = "consejo consejo-" + c.clave;
       document.getElementById("consejo-cat").textContent = c.categoria;
       document.getElementById("consejo-num").textContent = "#" + String(c.i + 1).padStart(2, "0");

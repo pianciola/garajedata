@@ -348,6 +348,10 @@ r = esperar("otro consejo", c.get("/consejo/3"), 200)
 if not r.get_json().get("texto"):
     fallas.append("el consejo de /consejo/N viene vacío")
 esperar("consejo enorme", c.get("/consejo/99999999999999999999"), 200)
+tanda = esperar("tanda de consejos", c.get("/consejos/5"), 200).get_json()
+if len(tanda) != 40 or tanda[0]["salto"] != 5 or len({t["i"] for t in tanda}) != 40:
+    fallas.append("la tanda de /consejos/N no trae 40 consejos distintos")
+esperar("tanda enorme", c.get("/consejos/99999999999999999999"), 200)
 import consejos  # noqa: E402
 textos = [x[1] for x in consejos.CONSEJOS]
 if len(set(textos)) != len(textos) or any(x[0] not in consejos.CATEGORIAS for x in consejos.CONSEJOS) or any(len(t) > 260 for t in textos):

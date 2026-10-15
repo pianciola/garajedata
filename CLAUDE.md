@@ -41,7 +41,7 @@ python app.py                  # local en http://127.0.0.1:5000
 - Chrome: el comando tipeado en la consola de PythonAnywhere a veces no corre (pantalla vieja); repetirlo y revisar la hora.
 - Capturas locales: Edge headless; no baja de ~500 px de ancho (usar iframe).
 - Logo propio: `static/img/logo-icono.png`, macro `templates/_logo.html`. Logos de marcas: `static/img/marcas/` (locales, sin CDN).
-- «Dato de garaje» del día (debajo de los autos): lista en `consejos.py` (118 entradas, ponderadas por categoría: consejos, datos curiosos y papeles). **Cada consejo es una responsabilidad**: verificar que sea cierto, que no dependa de una norma que pueda cambiar y que no invite a nada riesgoso.
+- «Dato de garaje» del día (debajo de los autos): lista en `consejos.py` (500 entradas, ponderadas por categoría: consejos, datos curiosos y papeles). «Otro» saltea los ya vistos (localStorage + `/consejos/<desde>`). **Cada consejo es una responsabilidad**: verificar que sea cierto, que no dependa de una norma que pueda cambiar y que no invite a nada riesgoso.
 - Recuperar una cuenta: código de recuperación (se puede bajar como .txt) o importar la copia .zip de «Mis datos» (`rutas/importar.py`, valida todo como una subida normal).
 - SEO: `meta description`/Open Graph en `base.html` (imagen `static/img/og.jpg`), `robots.txt` y `sitemap.xml` en `rutas/sitio.py`; lo privado lleva `X-Robots-Tag: noindex`. Capturas de la portada en `static/img/muestra/`.
 - Contraseñas: mínimo 8 caracteres (las cuentas viejas con 6 siguen entrando).

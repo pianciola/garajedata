@@ -14,6 +14,19 @@ def consejo_json(salto):
     return resp
 
 
+@app.route("/consejos/<int:desde>")
+def consejos_tanda(desde):
+    """Los próximos 40 consejos desde el lugar «desde»: el navegador elige el primero que no haya visto."""
+    desde = min(desde, 10_000)
+    tanda = []
+    for salto in range(desde, desde + 40):
+        i, categoria, texto = consejo_del_dia(salto=salto)
+        tanda.append({"salto": salto, "i": i, "categoria": CATEGORIAS_CONSEJO[categoria], "clave": categoria, "texto": texto})
+    resp = jsonify(tanda)
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
 @app.route("/")
 def index():
     if g.usuario is None:
