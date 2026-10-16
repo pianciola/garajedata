@@ -122,6 +122,12 @@ h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: .02em; }
 }
 .brand:hover { text-decoration: none; }
 .brand b { color: #e3262b; } /* el rojo de GarajeData no cambia con la marca del auto */
+.brand-beta {
+  flex: none; padding: 3px 7px; border: 1px solid rgb(227 38 43 / .4); border-radius: 5px;
+  background: rgb(227 38 43 / .09); color: #f2a0a3;
+  font-family: "Inter", system-ui, sans-serif; font-size: .62rem; font-weight: 700; font-style: normal;
+  line-height: 1.2; letter-spacing: .1em;
+}
 .brand-mark { flex: none; display: block; filter: drop-shadow(0 2px 6px rgba(227, 38, 43, .35)); transition: transform .2s ease, filter .2s ease; }
 .brand:hover .brand-mark { transform: scale(1.08); filter: drop-shadow(0 3px 9px rgba(227, 38, 43, .55)); }
 
@@ -1454,6 +1460,9 @@ a.cal-dia:hover { border-color: var(--accent); background: #20242a; text-decorat
 .agenda-pie { margin-top: 18px; }
 @media print { .nav-cal, .cal-flecha, .cal-hoy { display: none !important; } }@media (max-width: 520px) {
   .topbar nav { gap: 6px; }
+  .brand { gap: 4px; font-size: 1rem; }
+  .brand-mark { width: 28px; height: 28px; }
+  .brand-beta { padding: 3px 4px; font-size: .5rem; }
   .user-nombre { display: none; }
   .user-chip { gap: 6px; padding: 4px 8px 4px 4px; }
 }@media (max-width: 360px) { .brand span { display: none; } }.visually-hidden { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
