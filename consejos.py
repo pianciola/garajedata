@@ -17,6 +17,7 @@ CATEGORIAS = {
     "ahorro": "Ahorro",
     "datos": "Curiosidad",
     "documentos": "Papeles",
+    "motos": "Motos",
 }
 
 CONSEJOS = [
@@ -528,6 +529,123 @@ CONSEJOS = [
     ("documentos", "Anotá en la bitácora el número de póliza y el teléfono de asistencia del seguro: en una emergencia los tenés a mano."),
     ("documentos", "Una bitácora con los kilómetros y las fechas de cada service le da confianza al comprador de que el cuentakilómetros no fue adulterado."),
 ]
+
+
+# Redacción propia; fuentes por bloque en /creditos#datos-motos (revisión: 16/10/2026).
+# Se agregan al final para conservar los identificadores de los 500 datos existentes.
+DATOS_MOTO = [
+    # 1–10: Michelin, Motorcycle tyre pressure guide.
+    "En la moto, medí la presión con los neumáticos fríos: al rodar, el aire se calienta.",
+    "La presión recomendada para tu moto está en su manual; no hay un valor universal.",
+    "No desinfles un neumático caliente de la moto para llevarlo al valor indicado en frío.",
+    "Llevar acompañante o equipaje puede cambiar la presión indicada para tu moto: consultá el manual.",
+    "Después de medir la presión de la moto, volvé a colocar los tapones de las válvulas.",
+    "Un neumático de moto desinflado puede dañarse internamente, aunque por fuera parezca sano.",
+    "Antes de un viaje largo en moto, revisá la presión de las dos ruedas.",
+    "La presión de los neumáticos influye en cómo dobla y frena la moto.",
+    "Las presiones de circuito no son una referencia para usar tu moto en la calle.",
+    "Aunque los neumáticos de tu moto tengan nitrógeno, también necesitan controles periódicos de presión.",
+    # 11–20: Michelin, How to read the motorcycle tyre size.
+    "En un neumático de moto 180/55, el 180 indica el ancho nominal en milímetros.",
+    "En una cubierta de moto 180/55, el 55 expresa la altura del perfil como porcentaje del ancho.",
+    "El 17 de una cubierta de moto 180/55 R17 indica el diámetro de la llanta en pulgadas.",
+    "La letra R en la medida de un neumático de moto identifica una construcción radial.",
+    "La marca M/C en un neumático indica que está destinado a motocicletas.",
+    "El índice de carga de una cubierta de moto es un código: no representa directamente los kilos.",
+    "La letra del índice de velocidad del neumático no es una velocidad recomendada para circular en moto.",
+    "En medidas de neumáticos de moto, la letra B identifica una construcción diagonal cinturada.",
+    "Un guion en ciertas medidas de cubiertas de moto identifica una construcción diagonal.",
+    "Las medidas antiguas en pulgadas y las métricas de las cubiertas de moto usan nomenclaturas distintas.",
+    # 21–30: MSF, T-CLOCS Inspection Checklist.
+    "Antes de salir en moto, comprobá que el acelerador vuelva libremente al soltarlo, con el motor apagado.",
+    "Los cables de la moto no deben tironearse ni quedar atrapados al girar el manubrio.",
+    "Una maneta de moto doblada o agrietada merece revisión, aunque todavía se mueva.",
+    "Probá que la luz de freno de tu moto se encienda al accionar cada mando por separado.",
+    "Revisá los cuatro giros de la moto: que funcione uno no garantiza que funcione el resto.",
+    "Ajustá los espejos sentado en tu posición habitual de manejo de la moto.",
+    "Una manguera de la moto con grietas, roces o pérdidas necesita revisión.",
+    "Los resortes de la pata lateral mantienen el apoyo recogido: revisá su estado en la moto.",
+    "Una llanta de moto golpeada o con grietas necesita evaluación profesional.",
+    "Las correas de transmisión de moto no se lubrican como las cadenas.",
+    # 31–40: Honda, Motorcycle maintenance / Brakes.
+    "Una maneta de freno esponjosa en la moto puede indicar un problema hidráulico: hacela revisar antes de circular.",
+    "Una pérdida de líquido de frenos en la moto requiere atención; rellenar no arregla la causa.",
+    "Si la moto vibra al frenar, pedí una revisión del sistema antes de seguir usándola.",
+    "Las pastillas de freno de la moto tienen límites de desgaste: no esperes al roce de metal.",
+    "El líquido de frenos de la moto tiene un intervalo de recambio indicado por el fabricante.",
+    "El purgado de frenos de la moto debe hacerlo alguien capacitado y con el procedimiento correcto.",
+    "Si el freno de tu moto pierde respuesta, no sigas circulando: buscá asistencia.",
+    "En una moto con embrague hidráulico, también corresponde controlar su líquido según el manual.",
+    "Una pérdida de aceite por los retenes de la horquilla de la moto afecta la suspensión.",
+    "La luz delantera de la moto necesita estar bien orientada, además de encender.",
+    # 41–50: Honda CBF125M 2021, Maintenance Fundamentals y mantenimiento.
+    "La holgura de la cadena de tu moto se mide como indica su manual; no debe quedar completamente tirante.",
+    "Una cadena de moto con retenes necesita limpiadores y lubricantes compatibles con esos retenes.",
+    "En la cadena de la moto, evitá cepillos de alambre: pueden dañar los retenes.",
+    "No limpies la cadena de la moto con nafta: usá un producto compatible indicado por el fabricante.",
+    "El exceso de lubricante de cadena puede salpicar otras partes de la moto.",
+    "Al lubricar la cadena de la moto, evitá contaminar neumáticos y frenos.",
+    "La lluvia y el lavado pueden exigir atención adicional a la cadena de tu moto, según el manual.",
+    "Para trabajar cerca de la cadena de la moto, apagá el motor y evitá cualquier posibilidad de arranque.",
+    "El aceite de tu moto debe cumplir la viscosidad y las especificaciones que pide su fabricante.",
+    "La forma de medir el nivel de aceite cambia entre motos: seguí el procedimiento de tu modelo.",
+    # 51–60: Honda, Cleaning your motorcycle.
+    "Esperá a que el motor y el escape de la moto se enfríen antes de lavarla.",
+    "Para lavar la moto, usá productos compatibles con sus pinturas, metales y plásticos.",
+    "Enjuagá la tierra suelta de la moto antes de pasar un paño o una esponja.",
+    "No dirijas chorros de agua a presión hacia componentes eléctricos de la moto.",
+    "Al lavar la moto, evitá meter agua por la salida del escape.",
+    "Los limpiadores abrasivos pueden marcar los plásticos y las superficies pintadas de la moto.",
+    "Enjuagá bien el jabón de la moto: los residuos pueden afectar los acabados.",
+    "No apliques ceras ni abrillantadores sobre los neumáticos o frenos de la moto.",
+    "Después de lavar la moto, la respuesta de los frenos puede cambiar; comprobala antes de circular.",
+    "El líquido de frenos puede dañar la pintura y los plásticos de la moto: evitá derrames.",
+    # 61–70: Shoei, How to Maintain Helmet.
+    "Para limpiar el visor del casco de moto, seguí sus instrucciones: algunos productos dañan el plástico.",
+    "Los solventes y derivados del petróleo pueden deteriorar las partes plásticas del casco de moto.",
+    "Un visor muy rayado puede dificultar la visión con lluvia o reflejos: evaluá su reemplazo.",
+    "Las tomas de aire del casco de moto también juntan suciedad y requieren limpieza cuidadosa.",
+    "No todos los interiores de casco se desmontan: consultá el manual antes de sacar las almohadillas.",
+    "El interior fijo del casco puede requerir limpieza con paño, en vez de sumergirlo.",
+    "Las almohadillas del casco de moto cortadas o deterioradas necesitan reemplazo compatible.",
+    "El material absorbente del casco de moto es sensible al calor y a los solventes.",
+    "No uses un casco de moto cuyo revestimiento absorbente se haya despegado o se mueva.",
+    "La limpieza periódica del casco de moto también ayuda a detectar daños y piezas deterioradas.",
+    # 71–80: Yuasa, Motorcycle Battery Charging Guide / Battery Charging While Riding.
+    "Que la batería de tu moto diga sin mantenimiento no significa que nunca necesite carga.",
+    "Los viajes muy cortos en moto pueden no reponer toda la energía consumida al arrancar.",
+    "Una batería de moto descargada a fondo puede necesitar un cargador externo, aunque el motor vuelva a arrancar.",
+    "El cargador debe ser compatible con el tipo, la tensión y la capacidad de la batería de tu moto.",
+    "Si dejás la moto parada mucho tiempo, controlá la batería y seguí sus indicaciones de almacenamiento.",
+    "Una conexión floja en la batería de la moto puede parecer una batería agotada.",
+    "El sistema de carga de la moto no entrega la misma energía en todas las condiciones de funcionamiento.",
+    "Una batería de moto que no admite carga necesita diagnóstico; insistir con el cargador no siempre la recupera.",
+    "El mantenimiento de la batería de la moto depende también de cuánto y cómo la usás.",
+    "Una prueba de capacidad puede ayudar a decidir si la batería de tu moto necesita carga o reemplazo.",
+    # 81–90: MSF, Motorcycle Operator Manual (sin trasladar normas de EE. UU.).
+    "En moto, el casco debe quedar correctamente ajustado y abrochado, incluso en recorridos cortos.",
+    "El parabrisas de la moto no reemplaza al visor o a la protección ocular adecuada.",
+    "Para circular en moto con poca luz, evitá visores oscuros que reduzcan la visibilidad.",
+    "Los guantes de moto ayudan a proteger las manos y a mantener un buen agarre.",
+    "El calzado para andar en moto debería proteger los tobillos y tener suela antideslizante.",
+    "En moto, guardá los cordones sueltos para que no se enganchen en los mandos.",
+    "La ropa reflectante ayuda a que otros conductores vean a quien circula en moto.",
+    "El cansancio reduce la atención al manejar una moto: planificá descansos.",
+    "Un acompañante cambia el comportamiento de la moto; usá solo plazas y apoyapiés previstos por el fabricante.",
+    "Antes de usar una moto que no conocés, familiarizate con sus controles en un entorno seguro.",
+    # 91–100: organización del historial; funciones propias de GarajeData.
+    "Anotá la fecha y el kilometraje de cada service de tu moto para consultar después su historial.",
+    "Guardá el código de la bujía que lleva tu moto en la ficha técnica.",
+    "Anotá la medida de los neumáticos de tu moto: el delantero y el trasero pueden ser diferentes.",
+    "En la bitácora de la moto, registrá qué aceite usaron y cuánto cargaron en cada cambio.",
+    "Si cambiás la transmisión de la moto, anotá cuáles fueron las piezas reemplazadas.",
+    "Adjuntá la factura del service de la moto al registro correspondiente para encontrarla fácilmente.",
+    "En tu moto, podés programar el próximo control por fecha o kilometraje según su manual.",
+    "Anotá como pendiente una revisión de tu moto que todavía no hiciste, sin confundirla con un trabajo terminado.",
+    "Registrá por separado las cargas de combustible y las reparaciones de la moto para distinguir los gastos.",
+    "Antes de vender la moto, revisá su libro de servicio: muestra los trabajos que dejaste registrados.",
+]
+CONSEJOS += [("motos", texto) for texto in DATOS_MOTO]
 
 
 def ordenados():

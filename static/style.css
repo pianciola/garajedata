@@ -1216,6 +1216,7 @@ button:not(.btn):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .consejo[hidden] { display: none; }
 .consejo-limpieza { --cc: #22b8cf; } .consejo-vial { --cc: #f5a524; } .consejo-seguridad { --cc: #e3262b; }
 .consejo-mantenimiento { --cc: #7c5cff; } .consejo-ahorro { --cc: #2ec27e; } .consejo-datos { --cc: #5b8def; } .consejo-documentos { --cc: #98a2b3; }
+.consejo-motos { --cc: #f4b860; }
 
 .consejo-cabeza { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .consejo-tag {

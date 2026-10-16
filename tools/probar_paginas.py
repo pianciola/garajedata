@@ -518,6 +518,8 @@ if len(tanda) != 40 or tanda[0]["salto"] != 5 or len({t["i"] for t in tanda}) !=
 esperar("tanda enorme", c.get("/consejos/99999999999999999999"), 200)
 import consejos  # noqa: E402
 textos = [x[1] for x in consejos.CONSEJOS]
+if len(consejos.DATOS_MOTO) != 100 or sum(cat == "motos" for cat, _ in consejos.CONSEJOS) != 100:
+    fallas.append("deben existir exactamente 100 datos de motos")
 if len(set(textos)) != len(textos) or any(x[0] not in consejos.CATEGORIAS for x in consejos.CONSEJOS) or any(len(t) > 260 for t in textos):
     fallas.append("la lista de consejos tiene repetidos, categorías inválidas o textos muy largos")
 vistos = {consejos.consejo_del_dia(date(2026, 1, 1) + timedelta(days=n))[0] for n in range(len(textos))}
