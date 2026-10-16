@@ -1752,6 +1752,10 @@ body::after { opacity: .12; }
   display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
   background: #0e1013; transition: border-color .15s, background .15s;
 }
+.datos-garaje-opciones { border: 0; margin: 0; padding: 0; min-width: 0; }
+.datos-garaje-opciones legend { font-weight: 600; margin-bottom: 4px; }
+.datos-garaje-grilla { grid-template-columns: 1fr; }
+@media (min-width: 640px) { .datos-garaje-grilla { grid-template-columns: repeat(3, 1fr); } }
 .modo-opcion b { font-family: var(--display); font-size: 1.05rem; letter-spacing: .04em; text-transform: uppercase; }
 .modo-opcion small { color: var(--muted); font-size: .78rem; }
 .modo-opcion:hover span { background: var(--surface-2); }

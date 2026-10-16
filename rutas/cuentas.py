@@ -1,4 +1,5 @@
 """Cuentas: registro, ingreso, recuperación y ajustes."""
+from consejos import PREFERENCIAS_DATOS
 from nucleo import *  # noqa: F401,F403
 
 
@@ -137,6 +138,21 @@ def cuenta_foto_ver():
     return resp
 
 
+@app.post("/cuenta/datos-garaje")
+@requiere_login
+def cuenta_datos_garaje():
+    """Qué datos de garaje ve la cuenta: todos, o sin los de moto, o sin los de auto."""
+    elegido = request.form.get("datos", "")
+    if elegido not in PREFERENCIAS_DATOS:
+        flash("Elegí una de las opciones de la lista.", "error")
+    else:
+        db = get_db()
+        db.execute("UPDATE usuarios SET datos_garaje = ? WHERE id = ?", (elegido, g.usuario["id"]))
+        db.commit()
+        flash("Preferencia guardada.", "ok")
+    return redirect(url_for("cuenta") + "#preferencias")
+
+
 @app.route("/cuenta", methods=["GET", "POST"])
 @requiere_login
 def cuenta():
@@ -177,7 +193,8 @@ def cuenta():
                 flash("Contraseña cambiada.", "ok")
                 return redirect(url_for("cuenta"))
     cal = get_db().execute("SELECT cal_token FROM usuarios WHERE id = ?", (g.usuario["id"],)).fetchone()[0]
-    return render_template("cuenta.html", cal_link=url_absoluta("calendario", token=cal) if cal else None)
+    return render_template("cuenta.html", cal_link=url_absoluta("calendario", token=cal) if cal else None,
+                           preferencias=PREFERENCIAS_DATOS, pref_datos=g.usuario["datos_garaje"])
 
 
 @app.route("/cuenta/codigo")

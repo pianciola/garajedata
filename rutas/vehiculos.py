@@ -1,14 +1,20 @@
 """Lista de vehículos, ficha, alta, edición, documentación."""
 from flask import jsonify
 
-from consejos import CATEGORIAS as CATEGORIAS_CONSEJO, consejo_del_dia
+from consejos import CATEGORIAS as CATEGORIAS_CONSEJO, PREFERENCIAS_DATOS, consejo_del_dia
 from nucleo import *  # noqa: F401,F403
+
+
+def preferencia_datos():
+    """Qué datos de garaje quiere ver la cuenta conectada (todos, si no hay cuenta)."""
+    pref = g.usuario["datos_garaje"] if g.usuario else None
+    return pref if pref in PREFERENCIAS_DATOS else "todos"
 
 
 @app.route("/consejo/<int:salto>")
 def consejo_json(salto):
     """Otro consejo (el de hoy desplazado «salto» lugares), para el botón «Otro» del inicio."""
-    i, categoria, texto = consejo_del_dia(salto=min(salto, 10_000))
+    i, categoria, texto = consejo_del_dia(salto=min(salto, 10_000), preferencia=preferencia_datos())
     resp = jsonify({"i": i, "categoria": CATEGORIAS_CONSEJO[categoria], "clave": categoria, "texto": texto})
     resp.headers["Cache-Control"] = "no-store"
     return resp
@@ -20,7 +26,7 @@ def consejos_tanda(desde):
     desde = min(desde, 10_000)
     tanda = []
     for salto in range(desde, desde + 40):
-        i, categoria, texto = consejo_del_dia(salto=salto)
+        i, categoria, texto = consejo_del_dia(salto=salto, preferencia=preferencia_datos())
         tanda.append({"salto": salto, "i": i, "categoria": CATEGORIAS_CONSEJO[categoria], "clave": categoria, "texto": texto})
     resp = jsonify(tanda)
     resp.headers["Cache-Control"] = "no-store"
@@ -47,8 +53,8 @@ def index():
         proximos[v["id"]] = proximo_control(v, a)
         cartel += lista_avisos(v, a, con_nombre=len(vehiculos) > 1)
     cartel.sort(key=lambda x: x["estado"] != "vencido")
-    i, categoria, texto = consejo_del_dia()
-    consejo = {"i": i, "clave": categoria, "categoria": CATEGORIAS_CONSEJO[categoria], "texto": texto}
+    i, categoria, texto = consejo_del_dia(preferencia=preferencia_datos())
+    consejo ={"i": i, "clave": categoria, "categoria": CATEGORIAS_CONSEJO[categoria], "texto": texto}
     return render_template("index.html", vehiculos=vehiculos, alertas=alertas, cartel=[], proximos=proximos,
                            pendientes=cartel, consejo=consejo,
                            vencidos=sum(p["estado"] == "vencido" for p in cartel))

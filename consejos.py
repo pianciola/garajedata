@@ -671,10 +671,32 @@ def ordenados():
 
 _ORDEN = ordenados()
 
+# Preferencia de cada cuenta: qué datos de garaje ve (se elige en Mi cuenta → Preferencias).
+# «De moto» son los de la categoría Motos; el resto es de auto o aplica a cualquier vehículo.
+PREFERENCIAS_DATOS = {
+    "todos": "Todos",
+    "sin_moto": "Ocultar los de moto",
+    "sin_auto": "Ocultar los de auto",
+}
 
-def consejo_del_dia(hoy=None, salto=0):
-    """(índice, categoría, texto): el consejo de hoy; salto=1,2… da los siguientes («ver otro»)."""
+
+def _permitido(categoria, preferencia):
+    if preferencia == "sin_moto":
+        return categoria != "motos"
+    if preferencia == "sin_auto":
+        return categoria == "motos"
+    return True
+
+
+# Mismo orden que _ORDEN, pero sin los consejos que la cuenta decidió ocultar.
+_ORDEN_POR = {pref: [i for i in _ORDEN if _permitido(CONSEJOS[i][0], pref)] for pref in PREFERENCIAS_DATOS}
+
+
+def consejo_del_dia(hoy=None, salto=0, preferencia="todos"):
+    """(índice, categoría, texto): el consejo de hoy; salto=1,2… da los siguientes («ver otro»).
+    «preferencia» filtra los datos que la cuenta no quiere ver."""
     hoy = hoy or date.today()
-    pos = (hoy.toordinal() + salto) % len(_ORDEN)
-    i = _ORDEN[pos]
+    orden = _ORDEN_POR.get(preferencia, _ORDEN_POR["todos"])
+    pos = (hoy.toordinal() + salto) % len(orden)
+    i = orden[pos]
     return i, CONSEJOS[i][0], CONSEJOS[i][1]

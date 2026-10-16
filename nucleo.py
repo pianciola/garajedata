@@ -258,6 +258,8 @@ def init_db():
             db.execute("ALTER TABLE usuarios ADD COLUMN admin INTEGER NOT NULL DEFAULT 0")
         if "actividad" not in cols_usuarios:
             db.execute("ALTER TABLE usuarios ADD COLUMN actividad TEXT")
+        if "datos_garaje" not in cols_usuarios:
+            db.execute("ALTER TABLE usuarios ADD COLUMN datos_garaje TEXT NOT NULL DEFAULT 'todos'")
         if "usuario_id" not in columnas:
             db.execute("ALTER TABLE vehiculos ADD COLUMN usuario_id INTEGER "
                        "REFERENCES usuarios(id) ON DELETE CASCADE")
@@ -378,7 +380,7 @@ def cargar_usuario():
         if isinstance(sid, str):
             token = hashlib.sha256(sid.encode()).hexdigest()
             g.usuario = get_db().execute(
-                "SELECT u.id, u.usuario, u.foto, u.admin, u.actividad FROM usuarios u JOIN sesiones s ON s.usuario_id = u.id "
+                "SELECT u.id, u.usuario, u.foto, u.admin, u.actividad, u.datos_garaje FROM usuarios u JOIN sesiones s ON s.usuario_id = u.id "
                 "WHERE u.id = ? AND s.token = ? AND s.vence > ?", (uid, token, time.time())).fetchone()
         if g.usuario is None:
             session.clear()

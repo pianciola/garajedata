@@ -146,7 +146,8 @@ PRIVACIDAD = {
           "**Datos de la cuenta:** el nombre de usuario que elige la persona y su contraseña, que se guarda **cifrada** (no es posible "
           "leerla). Lo mismo ocurre con el código de recuperación, que se guarda cifrado y se muestra una sola vez. Conviene elegir "
           "un nombre de usuario que no revele quién sos. Si la persona sube una **foto de perfil** (opcional), se guarda "
-          "recortada y sin metadatos (como la ubicación), la ve solo ella y se borra al quitarla o al borrar la cuenta.",
+          "recortada y sin metadatos (como la ubicación), la ve solo ella y se borra al quitarla o al borrar la cuenta. "
+          "También se guarda su **preferencia de datos de garaje** (ver todos los consejos, o no ver los de moto o los de auto).",
           "**Datos que carga el usuario:** autos y motos (marca, modelo, patente, VIN, color, kilometraje, cilindrada opcional de la moto y ficha técnica), registros de "
           "mantenimiento y gastos, incluido combustible (fechas, costos, quién hizo el trabajo y notas), vencimientos de documentos y los archivos que sube "
           "(fotos del auto, facturas y documentos de la bóveda, como la cédula o el seguro). Estos datos pueden ser personales "

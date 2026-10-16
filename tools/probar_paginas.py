@@ -516,6 +516,29 @@ tanda = esperar("tanda de consejos", c.get("/consejos/5"), 200).get_json()
 if len(tanda) != 40 or tanda[0]["salto"] != 5 or len({t["i"] for t in tanda}) != 40:
     fallas.append("la tanda de /consejos/N no trae 40 consejos distintos")
 esperar("tanda enorme", c.get("/consejos/99999999999999999999"), 200)
+# Preferencia de datos de garaje: Mi cuenta → Preferencias filtra consejos, «Otro» y el del día
+tok = re.search(r'name="csrf" value="([^"]+)"', c.get("/cuenta").get_data(as_text=True)).group(1)
+app.config["CSRF_APAGADO"] = False
+esperar("preferencia sin csrf", c.post("/cuenta/datos-garaje", data={"datos": "sin_moto"}), 400)
+app.config["CSRF_APAGADO"] = True
+esperar("preferencia inválida", c.post("/cuenta/datos-garaje", data={"csrf": tok, "datos": "todo-mal"}), 302)
+for pref, cumple in (("sin_moto", lambda k: k != "motos"), ("sin_auto", lambda k: k == "motos")):
+    esperar("guardar " + pref, c.post("/cuenta/datos-garaje", data={"csrf": tok, "datos": pref}), 302)
+    tanda_p = c.get("/consejos/5").get_json()
+    if len(tanda_p) != 40 or len({t["i"] for t in tanda_p}) != 40 or not all(cumple(t["clave"]) for t in tanda_p):
+        fallas.append(f"la preferencia {pref} deja pasar consejos ocultos en /consejos")
+    if not all(cumple(c.get(f"/consejo/{n}").get_json()["clave"]) for n in range(0, 30)):
+        fallas.append(f"la preferencia {pref} deja pasar consejos ocultos en /consejo/N")
+    html_p = c.get("/").get_data(as_text=True)
+    if f'value="{pref}" checked' not in c.get("/cuenta").get_data(as_text=True):
+        fallas.append(f"Mi cuenta no marca la preferencia {pref}")
+    if pref == "sin_auto" and 'class="consejo consejo-motos"' not in html_p:
+        fallas.append("con «Ocultar los de auto» no aparece un dato de moto en el inicio")
+    if pref == "sin_moto" and 'class="consejo consejo-motos"' in html_p:
+        fallas.append("con «Ocultar los de moto» aparece un dato de moto en el inicio")
+esperar("preferencia vuelta a todos", c.post("/cuenta/datos-garaje", data={"csrf": tok, "datos": "todos"}), 302)
+if len(c.get("/consejos/5").get_json()) != 40:
+    fallas.append("al volver a «Todos» no se recuperan los consejos")
 import consejos  # noqa: E402
 textos = [x[1] for x in consejos.CONSEJOS]
 if len(consejos.DATOS_MOTO) != 100 or sum(cat == "motos" for cat, _ in consejos.CONSEJOS) != 100:

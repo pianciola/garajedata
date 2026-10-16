@@ -32,6 +32,7 @@
   {% if usuario.admin %}<a class="btn btn-ghost btn-sm admin-acceso" href="{{ url_for('admin') }}">🛠️ Panel de administración</a>{% endif %}
   <div class="tabs" role="tablist" aria-label="Secciones de la cuenta">
     <button class="tab activa" type="button" role="tab" id="tab-seguridad" aria-controls="panel-seguridad" aria-selected="true" data-tab="seguridad">🔒 Seguridad</button>
+    <button class="tab" type="button" role="tab" id="tab-preferencias" aria-controls="panel-preferencias" aria-selected="false" data-tab="preferencias">⚙️ Preferencias</button>
     <button class="tab" type="button" role="tab" id="tab-calendario" aria-controls="panel-calendario" aria-selected="false" data-tab="calendario">🔄 Sincronizar</button>
     <button class="tab" type="button" role="tab" id="tab-datos" aria-controls="panel-datos" aria-selected="false" data-tab="datos">📦 Mis datos</button>
   </div>
@@ -68,6 +69,22 @@
         <div class="form-actions"><button class="btn btn-ghost" type="submit">Generar código nuevo</button></div>
       </form>
     </details>
+  </div>
+
+  <div class="panel-tab" id="panel-preferencias" role="tabpanel" aria-labelledby="tab-preferencias" data-panel="preferencias">
+    <form method="post" action="{{ url_for('cuenta_datos_garaje') }}" class="form auth-form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <fieldset class="datos-garaje-opciones">
+        <legend>Datos de garaje</legend>
+        <p class="muted small">Son los consejos de la parte de abajo de «Mis vehículos». Los de moto son los de la categoría Motos; el resto es de auto o sirve para cualquier vehículo.</p>
+        <div class="modo-registro datos-garaje-grilla">
+          {% for valor, texto in preferencias.items() %}
+          <label class="modo-opcion"><input type="radio" name="datos" value="{{ valor }}" {% if pref_datos == valor %}checked{% endif %}>
+            <span><b>{{ texto }}</b><small>{% if valor == 'todos' %}Autos y motos{% elif valor == 'sin_moto' %}Quedan los de auto{% else %}Quedan solo los de moto{% endif %}</small></span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div class="form-actions"><button class="btn btn-primary" type="submit">Guardar</button></div>
+    </form>
   </div>
 
   <div class="panel-tab" id="panel-calendario" role="tabpanel" aria-labelledby="tab-calendario" data-panel="calendario">
