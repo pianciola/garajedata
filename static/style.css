@@ -1290,7 +1290,10 @@ html { scroll-padding-top: 84px; }
 .landing-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 36px; align-items: center; margin: 10px 0 56px; }
 .landing-hero h1 { font-size: clamp(2.1rem, 4.6vw, 3.4rem); line-height: 1.02; }
 .landing-bajada { color: var(--muted); font-size: 1.08rem; line-height: 1.6; margin: 14px 0 22px; max-width: 52ch; }
-.landing-sellos { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: .9rem; }
+.landing-sellos { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 10px 16px; color: var(--text); font-size: .85rem; line-height: 1.4; }
+.landing-sellos li { display: inline-flex; align-items: center; gap: 7px; }
+.landing-sellos svg { flex: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.landing-sellos svg circle { fill: rgb(var(--accent-rgb) / .1); stroke: rgb(var(--accent-rgb) / .3); stroke-width: 1; }
 .landing-captura { margin: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #0c0d10;
   box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 255, 255, .03); transform: perspective(1400px) rotateY(-6deg); }
 .landing-captura img, .landing-galeria img { display: block; width: 100%; height: auto; }
@@ -1311,8 +1314,6 @@ html { scroll-padding-top: 84px; }
 .landing-faq summary::after { content: "+"; color: var(--accent); font-weight: 700; }
 .landing-faq details[open] summary::after { content: "–"; }
 .landing-faq details p { margin: 10px 0 0; color: var(--muted); line-height: 1.6; max-width: 75ch; }
-.landing-cierre { text-align: center; padding: 34px 20px; margin-bottom: 20px; }
-.landing-cierre p { margin: 6px 0 18px; }
 @media (max-width: 860px) {
   .landing-hero { grid-template-columns: 1fr; gap: 26px; margin-bottom: 40px; }
   .landing-captura { transform: none; }

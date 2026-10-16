@@ -11,8 +11,10 @@
       <a class="btn btn-primary" href="{{ url_for('registrarse') }}">Crear cuenta gratis</a>
       <a class="btn btn-ghost" href="{{ url_for('login') }}">Ya tengo cuenta</a>
     </div>
-    <ul class="landing-sellos">
-      <li>✔ Gratis</li><li>✔ Sin email ni datos personales</li><li>✔ Sin publicidad</li><li>✔ Celu y compu</li>
+    <ul class="landing-sellos" aria-label="Ventajas de GarajeData">
+      {% for beneficio in ('Sin email', 'Sin publicidad', 'Tus datos son tuyos') %}
+      <li><svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9"/><path d="m6 10 2.5 2.5L14 7"/></svg><span>{{ beneficio }}</span></li>
+      {% endfor %}
     </ul>
   </div>
   <figure class="landing-captura">
@@ -53,9 +55,4 @@
   <details><summary>¿Funciona en el celular?</summary><p>Sí, y se puede instalar como app desde el navegador («Agregar a la pantalla de inicio»).</p></details>
 </section>
 
-<section class="landing-cierre card">
-  <h2>Empezá a llevar la bitácora hoy</h2>
-  <p class="muted">Te lleva un minuto: usuario, contraseña y listo.</p>
-  <a class="btn btn-primary" href="{{ url_for('registrarse') }}">Crear cuenta gratis</a>
-</section>
 {% endblock %}
