@@ -7,7 +7,7 @@
   <div class="elegir-auto">
     {% for auto in vehiculos %}
     <a class="elegir-auto-btn" href="{{ url_for('registro_nuevo', vid=auto.id) }}">
-      {% if logo_marca(auto.marca) %}<img class="brand-logo{{ " logo-oscuro" if logo_oscuro(auto.marca) }}" src="{{ logo_marca(auto.marca) }}" alt="">{% endif %}
+      {% if logo_marca(auto.marca, auto.carroceria) %}<img class="brand-logo{{ " logo-oscuro" if logo_oscuro(auto.marca, auto.carroceria) }}" src="{{ logo_marca(auto.marca, auto.carroceria) }}" alt="">{% endif %}
       <strong>{{ nombre_auto(auto) }}</strong>
       {% if auto.patente %}<small>{{ auto.patente }}</small>{% endif %}
     </a>

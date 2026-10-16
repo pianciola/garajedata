@@ -204,18 +204,18 @@ main.wrap { padding-top: 30px; padding-bottom: 48px; min-height: calc(100vh - 15
 .plate b { display: block; font-weight: inherit; letter-spacing: .08em; }
 
 /* Mercosur (2016-hoy, "AB 123 CD"): franja azul, letras negras en relieve. */
-.plate-mercosur {
+.plate-mercosur, .plate-moto-mercosur {
   background: #fdfdfd linear-gradient(180deg, #fff, #eef0f2);
   border: .14em solid #1d1f22; border-radius: .42em; padding: 1.02em .32em .2em;
 }
-.plate-mercosur::before {
+.plate-mercosur::before, .plate-moto-mercosur::before {
   content: "REPÚBLICA ARGENTINA"; position: absolute; left: 0; right: 0; top: 0; height: 1.9em;
   font-size: .5em; line-height: 2.1em; text-align: center; color: #fff; font-weight: 600; letter-spacing: .04em;
   padding: 0 2.6em 0 3.3em; box-sizing: border-box; white-space: nowrap; overflow: hidden;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 30'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='30' cy='5' r='1.6'/%3E%3Ccircle cx='22' cy='9' r='1.3'/%3E%3Ccircle cx='37' cy='9' r='1.3'/%3E%3Ccircle cx='31' cy='13' r='1'/%3E%3C/g%3E%3Cpath d='M12 17q18-9 36 0' stroke='%23fff' stroke-width='1.2' fill='none'/%3E%3Ctext x='30' y='27' fill='%23fff' font-family='Arial' font-size='8.5' text-anchor='middle'%3EMERCOSUR%3C/text%3E%3C/svg%3E") no-repeat .45em 55% / auto 1.35em, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' rx='2' fill='%23fff'/%3E%3Crect width='30' height='6.6' rx='2' fill='%2374acdf'/%3E%3Crect y='13.4' width='30' height='6.6' rx='2' fill='%2374acdf'/%3E%3Crect y='5' width='30' height='2' fill='%2374acdf'/%3E%3Crect y='13' width='30' height='2' fill='%2374acdf'/%3E%3Ccircle cx='15' cy='10' r='2' fill='%23f2b705'/%3E%3C/svg%3E") no-repeat right .55em top 55% / auto 1.05em, #12449b;
   border-radius: .5em .5em 0 0;
 }
-.plate-mercosur::after {
+.plate-mercosur::after, .plate-moto-mercosur::after {
   content: ""; position: absolute; inset: .02em 22% .05em;
   background:
     linear-gradient(#d5d8dc, #d5d8dc) left top / 1.3em .13em no-repeat,
@@ -224,21 +224,21 @@ main.wrap { padding-top: 30px; padding-bottom: 48px; min-height: calc(100vh - 15
     linear-gradient(#d5d8dc, #d5d8dc) right bottom / 1.3em .2em no-repeat;
   pointer-events: none;
 }
-.plate-mercosur b {
+.plate-mercosur b, .plate-moto-mercosur b {
   font-size: 1.6em; letter-spacing: .03em; word-spacing: .05em; color: #1c1d20; padding: .02em .12em 0;
   text-shadow: 0 1px 0 rgba(255, 255, 255, .9), 0 -1px 0 rgba(0, 0, 0, .35), 0 2px 2px rgba(0, 0, 0, .18);
 }
 
 /* Vieja (1995-2016, "ABC 123"): chapa blanca, ARGENTINA celeste y panel negro con letras en relieve. */
-.plate-vieja {
+.plate-vieja, .plate-moto-vieja {
   background: #f3f4f5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 26'%3E%3Cpath d='M5 23C1 19 1 12 5 8M19 23c4-4 4-11 0-15' stroke='%23577f2f' stroke-width='1.8' fill='none'/%3E%3Ccircle cx='12' cy='4' r='3' fill='%23f2b705'/%3E%3Cellipse cx='12' cy='15' rx='6.5' ry='8' fill='%23fff' stroke='%23444' stroke-width='.8'/%3E%3Cpath d='M5.5 15a6.5 8 0 0 1 13 0z' fill='%2374acdf'/%3E%3Cpath d='M8 16l2 3 2-1 2 1 2-3' stroke='%23c62' stroke-width='1' fill='none'/%3E%3C/svg%3E") no-repeat .4em .17em / auto .7em;
   border: 1px solid #c2c6cb; border-radius: .48em; padding: 1.06em .3em .42em;
 }
-.plate-vieja::before {
+.plate-vieja::before, .plate-moto-vieja::before {
   content: "ARGENTINA"; position: absolute; left: 0; right: 0; top: .2em;
   font-size: .54em; text-align: center; color: #45a4d6; font-weight: 600; letter-spacing: .05em;
 }
-.plate-vieja::after {
+.plate-vieja::after, .plate-moto-vieja::after {
   content: ""; position: absolute; inset: .32em 14% .12em;
   background:
     linear-gradient(#c7cbd0, #c7cbd0) left top / .85em .2em no-repeat,
@@ -247,12 +247,23 @@ main.wrap { padding-top: 30px; padding-bottom: 48px; min-height: calc(100vh - 15
     linear-gradient(#c7cbd0, #c7cbd0) right bottom / 1.2em .2em no-repeat;
   pointer-events: none;
 }
-.plate-vieja b {
+.plate-vieja b, .plate-moto-vieja b {
   font-size: 1.6em; font-weight: 600; letter-spacing: .06em; word-spacing: .12em;
   background: #0c0c0d; color: #e7e8ea; border-radius: .26em; padding: .06em .3em .02em;
   text-shadow: -1px -1px 0 rgba(255, 255, 255, .35), 1px 1px 1px #000;
   box-shadow: inset 0 0 0 1px #2a2b2e;
 }
+
+/* Motos: chapa de dos renglones, reservada al tipo Moto. */
+.plate-moto-mercosur, .plate-moto-vieja { width: 6.4em; box-sizing: border-box; text-align: center; }
+.plate-moto-mercosur { padding: .95em .24em .25em; }
+.plate-moto-mercosur::before { font-size: .34em; height: 2.5em; line-height: 2.5em; padding: 0 2.8em 0 3.3em; }
+.plate-moto-mercosur::after { display: none; }
+.plate-moto-mercosur b { font-size: 2.15em; line-height: .93; letter-spacing: .025em; padding: .04em 0 0; white-space: pre; }
+.plate-moto-vieja { padding: 1.14em .17em .32em; background-size: auto .9em; background-position: .22em .14em; border: .1em solid #b7bdc3; }
+.plate-moto-vieja::before { font-size: .72em; top: .2em; padding-left: .9em; letter-spacing: .015em; }
+.plate-moto-vieja::after { inset: .1em 13% .08em; background: linear-gradient(#111, #111) left top / 1em .14em no-repeat, linear-gradient(#111, #111) right top / 1em .14em no-repeat, linear-gradient(#111, #111) left bottom / 1em .14em no-repeat, linear-gradient(#111, #111) right bottom / 1em .14em no-repeat; }
+.plate-moto-vieja b { font-size: 2.35em; line-height: .9; letter-spacing: .035em; padding: .05em 0; border-radius: .12em; white-space: pre; }
 
 .flash {
   padding: 12px 16px; margin-bottom: 18px; font-weight: 600;
@@ -823,6 +834,7 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
   .libro-resumen div, .ficha-grid div { background: #f4f5f7; }
   .badge { color: #111; border: 1px solid var(--cat); background: none; }
   .brand-logo.logo-oscuro { filter: none; }
+  .brand-logo:is([src$="/motos/honda.svg"], [src$="/motos/benelli.svg"], [src$="/motos/motomel.png"], [src$="/motos/zanella.png"]) { filter: brightness(0); }
   .plate { box-shadow: none; }
   /* Sin esto el navegador no imprime los fondos (casilla «Gráficos de fondo» apagada, que es
      lo normal): la patente vieja quedaba con letras claras sobre papel blanco, invisibles. */

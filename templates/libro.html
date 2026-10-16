@@ -49,11 +49,11 @@
   <section class="libro-auto">
     <div class="libro-auto-info">
       <div class="title-main">
-        {% if logo_marca(v.marca) %}<img class="brand-logo brand-logo-lg{{ " logo-oscuro" if logo_oscuro(v.marca) }}" src="{{ logo_marca(v.marca) }}" alt="{{ v.marca }}">{% endif %}
+        {% if logo_marca(v.marca, v.carroceria) %}<img class="brand-logo brand-logo-lg{{ " logo-oscuro" if logo_oscuro(v.marca, v.carroceria) }}" src="{{ logo_marca(v.marca, v.carroceria) }}" alt="{{ v.marca }}">{% endif %}
         <h1>{{ nombre_auto(v) }}</h1>
       </div>
       <p class="muted">{{ [v.marca, v.modelo, v.version, v.anio, CARROCERIAS.get(v.carroceria), TRANSMISIONES.get(v.transmision)]|select|join(' · ') }}</p>
-      {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}" data-s="patente"><b>{{ pt[1] }}</b></span>{% endif %}
+      {% if v.patente %}{% set pt = patente_info(v.patente, v.carroceria) %}<span class="plate plate-{{ pt[0] }}" data-s="patente"><b>{{ pt[1] }}</b></span>{% endif %}
     </div>
     <div class="libro-imagen{{ '' if es_foto else ' no-print' }}" data-s="imagen">
       {{ vista(v, 'libro-car', url_archivo(v.foto_id) if v.foto_id else none, true) }}

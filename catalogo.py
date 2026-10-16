@@ -260,6 +260,14 @@ def _norm(texto):
 _SLUGS = {_norm(k): v for k, v in MARCAS.items()}
 MARCAS_MOTO = ("Bajaj", "Benelli", "BMW", "Corven", "Gilera", "Honda", "Kawasaki", "KTM",
                "Kymco", "Motomel", "Royal Enfield", "Suzuki", "Yamaha", "Zanella")
+LOGOS_MOTO = {
+    "Bajaj": "motos/bajaj.svg", "Benelli": "motos/benelli.svg", "BMW": "bmw.png",
+    "Corven": "motos/corven.jpg", "Gilera": "motos/gilera.png", "Honda": "motos/honda.svg",
+    "Kawasaki": "motos/kawasaki.jpg", "KTM": "motos/ktm.jpg", "Kymco": "motos/kymco.png",
+    "Motomel": "motos/motomel.png", "Royal Enfield": "motos/royal-enfield.webp", "Suzuki": "suzuki.png",
+    "Yamaha": "motos/yamaha.svg", "Zanella": "motos/zanella.png",
+}
+LOGOS_MOTO_OSCUROS = set()
 _MARCAS = {_norm(k): k for k in (*MARCAS, *MARCAS_MOTO)}
 
 
@@ -277,16 +285,22 @@ def canon_modelo(marca, modelo):
     return (modelo or "").strip()
 
 
-def logo_marca(marca):
+def logo_marca(marca, carroceria=None):
+    nombre = canon_marca(marca)
+    if carroceria == "moto" or _norm(marca) not in _SLUGS:
+        archivo = LOGOS_MOTO.get(nombre)
+        return "/static/img/marcas/" + archivo if archivo else None
     slug = _SLUGS.get(_norm(marca))
     return LOGO_URL.format(slug) if slug else None
 
 
-def logo_oscuro(marca):
+def logo_oscuro(marca, carroceria=None):
+    if carroceria == "moto" or _norm(marca) not in _SLUGS:
+        return canon_marca(marca) in LOGOS_MOTO_OSCUROS
     return _SLUGS.get(_norm(marca)) in LOGOS_OSCUROS
 
 
-def tema_marca(marca):
+def tema_marca(marca, carroceria=None):
     """Colores y datos de la marca para «vestir» las páginas de ese vehículo; None si no está en el catálogo."""
     marca = _MARCAS.get(_norm(marca))
     if marca not in TEMAS:
@@ -303,8 +317,8 @@ def tema_marca(marca):
     texto = "#0e1014" if luz > 0.3 else "#fff"  # sobre colores claros (dorado, plata, amarillo) va texto oscuro
     estilo = (f"--accent: {color}; --accent-hover: #{claro[0]:02x}{claro[1]:02x}{claro[2]:02x}; "
               f"--accent-rgb: {r} {g} {b}; --accent-soft: rgb({r} {g} {b} / .12); --on-accent: {texto};")
-    logo = logo_marca(marca)
-    return {"marca": marca, "color": color, "estilo": estilo, "logo": logo, "logo_oscuro": logo_oscuro(marca),
+    logo = logo_marca(marca, carroceria)
+    return {"marca": marca, "color": color, "estilo": estilo, "logo": logo, "logo_oscuro": logo_oscuro(marca, carroceria),
             "origen": f"Marca {origen}" + (f" · fundada en {anio}" if anio else "")}
 
 
@@ -327,4 +341,5 @@ def catalogo_js():
         equipamientos = {m: v for clave, v in EQUIPAMIENTOS.get(marca, {}).items() for m in clave.split("|")}
         datos[marca] = {"logo": LOGO_URL.format(slug), "oscuro": slug in LOGOS_OSCUROS,
                         "modelos": [list(x) for x in modelos], "versiones": versiones, "equipamientos": equipamientos}
-    return {"marcas": datos, "marcasMoto": MARCAS_MOTO, "versionesGenericas": VERSIONES_GENERICAS}
+    return {"marcas": datos, "marcasMoto": MARCAS_MOTO, "versionesGenericas": VERSIONES_GENERICAS,
+            "logosMoto": {m: {"logo": logo_marca(m, "moto"), "oscuro": logo_oscuro(m, "moto")} for m in MARCAS_MOTO}}

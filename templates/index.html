@@ -41,7 +41,7 @@
     <button type="button" class="btn btn-ghost" data-mover="-1" aria-label="Mover antes">◀ <span class="orden-txt">Antes</span></button>
     <button type="button" class="btn btn-ghost" data-mover="1" aria-label="Mover después"><span class="orden-txt">Después</span> ▶</button>
   </div>
-  {% set tema = tema_marca(v.marca) %}
+  {% set tema = tema_marca(v.marca, v.carroceria) %}
   <div class="car-card-wrap">
   <a class="card car-card{{ ' car-card-tema' if tema }}" href="{{ url_for('vehiculo', vid=v.id) }}"{% if tema %} style="{{ tema.estilo }}"{% endif %}>
     {% set al = alertas.get(v.id) %}
@@ -53,10 +53,10 @@
     {{ vista(v, foto_url=url_for('archivo', aid=v.foto_id) if v.foto_id else none) }}
     <div class="car-card-head">
       <div>
-        <h2 class="name-logo">{% if logo_marca(v.marca) %}<img class="brand-logo{{ " logo-oscuro" if logo_oscuro(v.marca) }}" src="{{ logo_marca(v.marca) }}" alt="{{ v.marca }}" loading="lazy">{% endif %}{{ nombre_auto(v) }}</h2>
+        <h2 class="name-logo">{% if logo_marca(v.marca, v.carroceria) %}<img class="brand-logo{{ " logo-oscuro" if logo_oscuro(v.marca, v.carroceria) }}" src="{{ logo_marca(v.marca, v.carroceria) }}" alt="{{ v.marca }}" loading="lazy">{% endif %}{{ nombre_auto(v) }}</h2>
         {% set det = detalle_auto(v) %}{% if det %}<p class="muted">{{ det }}</p>{% endif %}
       </div>
-      {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
+      {% if v.patente %}{% set pt = patente_info(v.patente, v.carroceria) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
     </div>
     <dl class="mini-stats">
       <div><dt>Km</dt><dd>{{ [v.km_inicial or 0, v.max_km or 0, v.km_manual or 0]|max|miles }} km</dd></div>

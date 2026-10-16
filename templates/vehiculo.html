@@ -4,7 +4,7 @@
 <div class="perfil-auto perfil-entrando" data-perfil-auto>
   <div class="perfil-ambiente" aria-hidden="true"></div>
 {% from "_auto.html" import vista with context %}
-{% set tema = tema_marca(v.marca) %}
+{% set tema = tema_marca(v.marca, v.carroceria) %}
 <a class="back" href="{{ url_for('index') }}"><svg class="back-flecha" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Mis vehículos</span></a>
 
 <section class="hero hero-car{% if tema %} hero-tema{{ ' hero-tema-oscuro' if tema.logo_oscuro }}{% endif %}"{% if tema %} style="--marca-logo: url('{{ tema.logo }}')"{% endif %}>
@@ -17,10 +17,10 @@
     {% endif %}
     <div class="title-row">
       <div class="title-main">
-        {% if logo_marca(v.marca) %}<img class="brand-logo brand-logo-lg{{ " logo-oscuro" if logo_oscuro(v.marca) }}" src="{{ logo_marca(v.marca) }}" alt="{{ v.marca }}">{% endif %}
+        {% if logo_marca(v.marca, v.carroceria) %}<img class="brand-logo brand-logo-lg{{ " logo-oscuro" if logo_oscuro(v.marca, v.carroceria) }}" src="{{ logo_marca(v.marca, v.carroceria) }}" alt="{{ v.marca }}">{% endif %}
         <h1>{{ nombre_auto(v) }}</h1>
       </div>
-      {% if v.patente %}{% set pt = patente_info(v.patente) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
+      {% if v.patente %}{% set pt = patente_info(v.patente, v.carroceria) %}<span class="plate plate-{{ pt[0] }}"><b>{{ pt[1] }}</b></span>{% endif %}
     </div>
     {% set det = detalle_auto(v) %}{% if det %}<p class="muted">{{ det }}</p>{% endif %}
     {% if v.notas %}<p class="notes">{{ v.notas }}</p>{% endif %}

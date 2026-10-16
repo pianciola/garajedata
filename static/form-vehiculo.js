@@ -1,6 +1,6 @@
 // Formulario de vehículo: desplegables de marca (con logo) y modelo, y selector de color.
 (() => {
-  const { marcas: CATALOGO, marcasMoto = [], versionesGenericas } = JSON.parse(document.getElementById("catalogo").textContent);
+  const { marcas: CATALOGO, marcasMoto = [], logosMoto = {}, versionesGenericas } = JSON.parse(document.getElementById("catalogo").textContent);
   const MARCAS = [...new Set([...Object.keys(CATALOGO), ...marcasMoto])];
   const esMoto = () => document.querySelector('input[name=carroceria]:checked')?.value === 'moto';
   const norm = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
@@ -101,17 +101,18 @@
   const rootMarca = document.getElementById("combo-marca");
   const logo = rootMarca.querySelector(".combo-logo");
   const inputMarca = combo(rootMarca, {
-    opciones: () => (esMoto() ? marcasMoto : Object.keys(CATALOGO)).map((m) => ({ valor: m, logo: esMoto() ? null : CATALOGO[m]?.logo, oscuro: CATALOGO[m]?.oscuro })),
+    opciones: () => (esMoto() ? marcasMoto : Object.keys(CATALOGO)).map((m) => ({ valor: m, ...(esMoto() ? logosMoto[m] : CATALOGO[m]) })),
     vacio: "Escribí la marca de tu vehículo",
   });
   function actualizarLogo() {
     const m = marcaDe(inputMarca.value);
-    const conLogo = !esMoto() && !!CATALOGO[m]?.logo;
+    const info = esMoto() ? logosMoto[m] : CATALOGO[m];
+    const conLogo = !!info?.logo;
     logo.hidden = !conLogo;
     rootMarca.classList.toggle("has-logo", conLogo);
     if (conLogo) {
-      logo.src = CATALOGO[m].logo;
-      logo.classList.toggle("logo-oscuro", CATALOGO[m].oscuro);
+      logo.src = info.logo;
+      logo.classList.toggle("logo-oscuro", info.oscuro);
     }
   }
   inputMarca.addEventListener("input", actualizarLogo);

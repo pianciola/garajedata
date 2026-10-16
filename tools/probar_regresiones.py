@@ -166,4 +166,31 @@ assert importadora.get(f"/vehiculo/{vid_moto}").status_code == 404
 assert importadora.post("/cuenta/importar", data={"copia": (io.BytesIO(exportado), "copia.zip")}).status_code == 302
 with sqlite3.connect(os.environ["DB_PATH"]) as db:
     assert db.execute("SELECT COUNT(*) FROM vehiculos WHERE carroceria='moto' AND modelo='Moto editada'").fetchone()[0] == 2
+from nucleo import patente_info
+for patente, tipo, texto in (("a12 3bcd", "moto-mercosur", "A12\n3BCD"),
+                              ("234 abc", "moto-vieja", "234\nABC")):
+    assert patente_info(patente, "moto") == (tipo, texto)
+    for carroceria in (None, "sedan", "hatchback", "pickup", "suv"):
+        assert not patente_info(patente, carroceria)[0].startswith("moto-")
+    with sqlite3.connect(os.environ["DB_PATH"]) as db:
+        db.execute("UPDATE vehiculos SET patente=? WHERE id IN (1,?)", (patente, vid_moto))
+    for ruta in ("/", f"/vehiculo/{vid_moto}", f"/vehiculo/{vid_moto}/libro"):
+        html = c.get(ruta).get_data(as_text=True)
+        assert f'plate-{tipo}' in html and texto in html
+    for ruta in ("/vehiculo/1", "/vehiculo/1/libro"):
+        assert 'class="plate plate-moto-' not in c.get(ruta).get_data(as_text=True)
+assert patente_info("ABC123", "sedan") == ("vieja", "ABC 123")
+assert patente_info("AB123CD", "sedan") == ("mercosur", "AB 123 CD")
+from catalogo import MARCAS_MOTO, logo_marca, catalogo_js
+for marca in MARCAS_MOTO:
+    url = logo_marca(marca, "moto")
+    assert url and c.get(url).status_code == 200, marca
+    assert catalogo_js()["logosMoto"][marca]["logo"] == url
+assert logo_marca("Honda", "moto").endswith("motos/honda.svg")
+assert logo_marca("Honda", "sedan").endswith("marcas/honda.png")
+with sqlite3.connect(os.environ["DB_PATH"]) as db:
+    db.execute("UPDATE vehiculos SET marca='Honda' WHERE id IN (1,?)", (vid_moto,))
+for ruta in ("/", "/registro/nuevo", f"/vehiculo/{vid_moto}", f"/vehiculo/{vid_moto}/libro"):
+    assert "marcas/motos/honda.svg" in c.get(ruta).get_data(as_text=True)
+assert "marcas/motos/honda.svg" not in c.get("/vehiculo/1").get_data(as_text=True)
 print("REGRESIONES OK")

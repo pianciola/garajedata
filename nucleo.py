@@ -463,10 +463,13 @@ def creditos_modelos():
     return creditos
 
 
-def patente_info(patente):
+def patente_info(patente, carroceria=None):
     """Formato de la patente: ("vieja", "ALF 749") para las de 6 caracteres (1995-2016),
     ("mercosur", "AB 123 CD") para las de 7, o ("otra", tal cual) si no coincide."""
     p = re.sub(r"[^A-Z0-9]", "", (patente or "").upper())
+    if carroceria == "moto" and len(p) in (6, 7):
+        tipo = "moto-mercosur" if len(p) == 7 else "moto-vieja"
+        return tipo, f"{p[:3]}\n{p[3:]}"
     if re.fullmatch(r"[A-Z]{3}\d{3}", p):
         return "vieja", f"{p[:3]} {p[3:]}"
     if re.fullmatch(r"[A-Z]{2}\d{3}[A-Z]{2}", p):
