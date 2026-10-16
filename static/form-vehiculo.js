@@ -1,7 +1,8 @@
 // Formulario de vehículo: desplegables de marca (con logo) y modelo, y selector de color.
 (() => {
-  const { marcas: CATALOGO, versionesGenericas } = JSON.parse(document.getElementById("catalogo").textContent);
-  const MARCAS = Object.keys(CATALOGO);
+  const { marcas: CATALOGO, marcasMoto = [], versionesGenericas } = JSON.parse(document.getElementById("catalogo").textContent);
+  const MARCAS = [...new Set([...Object.keys(CATALOGO), ...marcasMoto])];
+  const esMoto = () => document.querySelector('input[name=carroceria]:checked')?.value === 'moto';
   const norm = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
   const marcaDe = (t) => MARCAS.find((m) => norm(m) === norm(t));
 
@@ -47,7 +48,7 @@
       if (!items.length) {
         const li = document.createElement("li");
         li.className = "combo-empty";
-        li.textContent = todas.length ? "Sin coincidencias: se guarda como lo escribiste" : vacio;
+        li.textContent = todas.length ? "Sin coincidencias: se guarda como lo escribiste" : (typeof vacio === "function" ? vacio() : vacio);
         list.appendChild(li);
       }
       activo = -1;
@@ -100,13 +101,15 @@
   const rootMarca = document.getElementById("combo-marca");
   const logo = rootMarca.querySelector(".combo-logo");
   const inputMarca = combo(rootMarca, {
-    opciones: () => MARCAS.map((m) => ({ valor: m, logo: CATALOGO[m].logo, oscuro: CATALOGO[m].oscuro })),
+    opciones: () => (esMoto() ? marcasMoto : Object.keys(CATALOGO)).map((m) => ({ valor: m, logo: esMoto() ? null : CATALOGO[m]?.logo, oscuro: CATALOGO[m]?.oscuro })),
+    vacio: "Escribí la marca de tu vehículo",
   });
   function actualizarLogo() {
     const m = marcaDe(inputMarca.value);
-    logo.hidden = !m;
-    rootMarca.classList.toggle("has-logo", !!m);
-    if (m) {
+    const conLogo = !esMoto() && !!CATALOGO[m]?.logo;
+    logo.hidden = !conLogo;
+    rootMarca.classList.toggle("has-logo", conLogo);
+    if (conLogo) {
       logo.src = CATALOGO[m].logo;
       logo.classList.toggle("logo-oscuro", CATALOGO[m].oscuro);
     }
@@ -121,9 +124,9 @@
   combo(document.getElementById("combo-modelo"), {
     opciones: () => {
       const m = marcaDe(inputMarca.value);
-      return m ? CATALOGO[m].modelos.map(([valor, tipo]) => ({ valor, tipo, detalle: NOMBRES_CARROCERIA[tipo] })) : [];
+      return !esMoto() && CATALOGO[m] ? CATALOGO[m].modelos.map(([valor, tipo]) => ({ valor, tipo, detalle: NOMBRES_CARROCERIA[tipo] })) : [];
     },
-    vacio: "Elegí primero una marca de la lista, o escribí el modelo",
+    vacio: () => esMoto() ? "Escribí el modelo de tu moto" : "Elegí primero una marca de la lista, o escribí el modelo",
     alElegir: (o) => {
       const radio = document.querySelector(`input[name=carroceria][value="${o.tipo}"]`);
       if (radio && !radio.checked) {
@@ -138,7 +141,8 @@
   combo(document.getElementById("combo-version"), {
     opciones: () => {
       const m = marcaDe(inputMarca.value);
-      const versiones = m ? (CATALOGO[m].versiones[inputModelo.value] || []) : [];
+      if (esMoto()) return [];
+      const versiones = CATALOGO[m] ? (CATALOGO[m].versiones[inputModelo.value] || []) : [];
       return [...versiones, ...versionesGenericas].map((valor) => ({ valor }));
     },
   });
@@ -147,10 +151,24 @@
   combo(document.getElementById("combo-equipamiento"), {
     opciones: () => {
       const m = marcaDe(inputMarca.value);
-      return (m ? (CATALOGO[m].equipamientos[inputModelo.value] || []) : []).map((valor) => ({ valor }));
+      return (!esMoto() && CATALOGO[m] ? (CATALOGO[m].equipamientos[inputModelo.value] || []) : []).map((valor) => ({ valor }));
     },
-    vacio: "Escribí la versión (la que figura en la tapa del baúl o en los papeles)",
+    vacio: "Escribí la versión que figura en los papeles",
   });
+
+  function actualizarTipo() {
+    const moto = esMoto();
+    actualizarLogo();
+    document.getElementById("plan-auto").hidden = moto;
+    document.getElementById("nota-plan-moto").hidden = !moto;
+    document.querySelectorAll('#plan-auto input').forEach((i) => { i.disabled = moto; });
+    inputModelo.placeholder = moto ? "Escribí el modelo de tu moto" : "Elegí o escribí el modelo";
+    document.getElementById("equipamiento").placeholder = moto ? "Versión (opcional)" : "Ej: LTZ, Ghia, Highline…";
+    document.getElementById("version").placeholder = moto ? "Generación (opcional)" : "Ej: MK1, restyling…";
+    document.querySelector('input[name=motor]').placeholder = moto ? "Ej: 150 cc" : "Ej: 1.6 16v Zetec, 2.0 TDI…";
+  }
+  document.querySelectorAll('input[name=carroceria]').forEach((i) => i.addEventListener("change", actualizarTipo));
+  actualizarTipo();
 
   // Color
   const colorInput = document.getElementById("color");

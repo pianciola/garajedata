@@ -258,7 +258,9 @@ def _norm(texto):
 
 
 _SLUGS = {_norm(k): v for k, v in MARCAS.items()}
-_MARCAS = {_norm(k): k for k in MARCAS}
+MARCAS_MOTO = ("Bajaj", "Benelli", "BMW", "Corven", "Gilera", "Honda", "Kawasaki", "KTM",
+               "Kymco", "Motomel", "Royal Enfield", "Suzuki", "Yamaha", "Zanella")
+_MARCAS = {_norm(k): k for k in (*MARCAS, *MARCAS_MOTO)}
 
 
 def canon_marca(marca):
@@ -325,4 +327,4 @@ def catalogo_js():
         equipamientos = {m: v for clave, v in EQUIPAMIENTOS.get(marca, {}).items() for m in clave.split("|")}
         datos[marca] = {"logo": LOGO_URL.format(slug), "oscuro": slug in LOGOS_OSCUROS,
                         "modelos": [list(x) for x in modelos], "versiones": versiones, "equipamientos": equipamientos}
-    return {"marcas": datos, "versionesGenericas": VERSIONES_GENERICAS}
+    return {"marcas": datos, "marcasMoto": MARCAS_MOTO, "versionesGenericas": VERSIONES_GENERICAS}

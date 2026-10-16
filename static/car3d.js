@@ -18,10 +18,10 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 
 const BASE = new URL("models/", import.meta.url);
-const LARGOS = { hatchback: 4.0, sedan: 4.6, rural: 4.7, coupe: 4.5, suv: 4.6, pickup: 5.3, utilitario: 4.6 };
+const LARGOS = { moto: 2.1, hatchback: 4.0, sedan: 4.6, rural: 4.7, coupe: 4.5, suv: 4.6, pickup: 5.3, utilitario: 4.6 };
 const NOMBRES = {
   hatchback: "Hatchback", sedan: "Sedán", rural: "Rural / Familiar", coupe: "Coupé",
-  suv: "SUV / Todoterreno", pickup: "Pick-up", utilitario: "Utilitario / Furgón",
+  suv: "SUV / Todoterreno", pickup: "Pick-up", utilitario: "Utilitario / Furgón", moto: "Moto",
 };
 const PAINT_RE = /paint|body|carpaint|exterior|coat|lack|karosserie|carroceria|shell|color|colour/i;
 const NOT_PAINT_RE = /glass|window|windshield|tire|tyre|rubber|chrome|light|lamp|interior|rim|wheel|plastic|mirror|plate|logo|grill|seat|black|trim|brake|caliper|disc|carbon|engine|under|shadow/i;
@@ -36,7 +36,63 @@ const getConfig = () => (configPromise ??= fetch(new URL("modelos.json", BASE))
 
 // Un archivo se descarga una sola vez aunque haya varias tarjetas.
 const archivos = {};
+let modeloMoto;
+// Moto genérica creada con geometría propia: no requiere descargas ni modelos externos.
+function crearMoto() {
+  const grupo = new THREE.Group();
+  const material = (name, color, metalness = 0) => {
+    const m = new THREE.MeshStandardMaterial({ color, metalness, roughness: metalness ? 0.32 : 0.65 });
+    m.name = name;
+    return m;
+  };
+  const pintura = material("moto_paint", 0xffffff, 0.35);
+  const metal = material("engine_metal", 0xaab1ba, 0.8);
+  const oscuro = material("black_frame", 0x24272b, 0.4);
+  const goma = material("rubber_tire", 0x111214);
+  const asiento = material("seat", 0x202126);
+  const agregar = (geo, mat, x, y, z = 0) => {
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); grupo.add(m); return m;
+  };
+  const barra = (a, b, radio = 0.025, mat = metal) => {
+    const desde = new THREE.Vector3(...a), hasta = new THREE.Vector3(...b);
+    const dir = hasta.clone().sub(desde);
+    const m = agregar(new THREE.CylinderGeometry(radio, radio, dir.length(), 10), mat, 0, 0);
+    m.position.copy(desde.add(hasta).multiplyScalar(0.5));
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+  };
+  for (const x of [-0.68, 0.68]) {
+    agregar(new THREE.TorusGeometry(0.27, 0.065, 12, 32), goma, x, 0.335);
+    agregar(new THREE.TorusGeometry(0.225, 0.02, 8, 28), metal, x, 0.335);
+    for (let i = 0; i < 8; i++) {
+      const ang = i * Math.PI / 4;
+      barra([x, 0.335, 0], [x + Math.cos(ang) * 0.22, 0.335 + Math.sin(ang) * 0.22, 0], 0.009);
+    }
+    const eje = agregar(new THREE.CylinderGeometry(0.07, 0.07, 0.18, 16), metal, x, 0.335);
+    eje.rotation.x = Math.PI / 2;
+  }
+  barra([-0.68, 0.335, 0], [-0.18, 0.52, 0], 0.035, oscuro);
+  barra([-0.18, 0.52, 0], [0.32, 0.95, 0], 0.035, oscuro);
+  barra([0.32, 0.95, 0], [-0.52, 0.85, 0], 0.035, oscuro);
+  barra([-0.52, 0.85, 0], [-0.18, 0.52, 0], 0.035, oscuro);
+  for (const z of [-0.11, 0.11]) {
+    barra([0.68, 0.335, z], [0.38, 1.12, z], 0.028);
+    barra([-0.68, 0.335, z], [-0.47, 0.83, z], 0.025);
+  }
+  agregar(new THREE.BoxGeometry(0.37, 0.32, 0.32), metal, -0.02, 0.57);
+  for (let y = 0.49; y < 0.7; y += 0.04) agregar(new THREE.BoxGeometry(0.4, 0.018, 0.34), oscuro, -0.02, y);
+  const tanque = agregar(new THREE.SphereGeometry(1, 24, 16), pintura, 0.08, 0.96);
+  tanque.scale.set(0.33, 0.19, 0.2);
+  agregar(new THREE.BoxGeometry(0.62, 0.11, 0.3), asiento, -0.42, 0.98);
+  agregar(new THREE.BoxGeometry(0.32, 0.09, 0.27), pintura, -0.64, 0.88);
+  barra([0.38, 1.12, 0], [0.35, 1.24, 0]);
+  barra([0.35, 1.24, -0.35], [0.35, 1.24, 0.35], 0.025, oscuro);
+  agregar(new THREE.SphereGeometry(0.1, 16, 12), material("headlight", 0xfff1c4), 0.51, 1.06);
+  barra([-0.6, 0.28, 0.22], [0.13, 0.32, 0.22], 0.045);
+  agregar(new THREE.BoxGeometry(0.06, 0.07, 0.18), material("taillight", 0xd52430), -0.82, 0.87);
+  return grupo;
+}
 async function loadModel(type) {
+  if (type === "moto") return { src: modeloMoto ??= crearMoto(), cfg: { pintura: ["moto_paint"] } };
   const cfg = (await getConfig())[type] || {};
   const file = cfg.archivo || `${type}.glb`;
   archivos[file] ??= loader.loadAsync(new URL(file, BASE).href);
@@ -195,7 +251,7 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   el.appendChild(renderer.domElement);
   renderer.domElement.setAttribute("role", "img");
-  renderer.domElement.setAttribute("aria-label", `Modelo 3D de un auto (${NOMBRES[type] || type})`);
+  renderer.domElement.setAttribute("aria-label", `Modelo 3D de un vehículo (${NOMBRES[type] || type})`);
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -248,6 +304,7 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
 
   async function setType(t) {
     const mio = ++pedido;
+    el.dataset.type = t;
     el.classList.add("car-stage-loading");
     el.classList.remove("car-stage-missing");
     try {
@@ -259,7 +316,7 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
       car.rotation.y = rot;
       scene.add(car);
       frame();
-      renderer.domElement.setAttribute("aria-label", `Modelo 3D de un auto (${NOMBRES[t] || t})`);
+      renderer.domElement.setAttribute("aria-label", `Modelo 3D de un vehículo (${NOMBRES[t] || t})`);
       el.classList.add("car-listo");
     } catch (err) {
       if (mio !== pedido) return;

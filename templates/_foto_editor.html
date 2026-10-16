@@ -8,13 +8,13 @@
 {% set completa = v and v.foto_ajuste == 'completa' %}
 <div class="foto-editor" data-foto-editor {% if stage3d %}data-stage3d="{{ stage3d }}"{% endif %}>
   <div class="car-stage car-stage-form car-photo{{ ' foto-completa' if completa }}" data-ed="stage" style="--fx: {{ fx }}%; --fy: {{ fy }}%; --fz: {{ fz / 100 }}" {% if modo != 'foto' %}hidden{% endif %}>
-    <img data-ed="img" alt="Tu foto del auto" draggable="false" {% if v and v.foto_id %}src="{{ url_for('archivo', aid=v.foto_id) }}"{% endif %}>
-    <span class="foto-vacia" data-ed="vacia" {% if v and v.foto_id %}hidden{% endif %}>Elegí una foto de tu auto</span>
+    <img data-ed="img" alt="Tu foto del vehículo" draggable="false" {% if v and v.foto_id %}src="{{ url_for('archivo', aid=v.foto_id) }}"{% endif %}>
+    <span class="foto-vacia" data-ed="vacia" {% if v and v.foto_id %}hidden{% endif %}>Elegí una foto de tu vehículo</span>
   </div>
-  {% if not stage3d %}<p class="muted small foto-aviso3d" data-ed="aviso3d" {% if modo == 'foto' %}hidden{% endif %}>Se muestra el modelo 3D de tu carrocería y color. Elegí «Mi foto» para usar una foto propia.</p>{% endif %}
+  {% if not stage3d %}<p class="muted small foto-aviso3d" data-ed="aviso3d" {% if modo == 'foto' %}hidden{% endif %}>Se muestra un modelo 3D del tipo y color de tu vehículo. Elegí «Mi foto» para usar una foto propia.</p>{% endif %}
 
   <fieldset>
-    <legend>Imagen del auto</legend>
+    <legend>Imagen del vehículo</legend>
     <div class="trans-picker">
       <label class="body-option"><input type="radio" name="imagen_modo" value="3d" {% if modo != 'foto' %}checked{% endif %}><span>Modelo 3D</span></label>
       <label class="body-option"><input type="radio" name="imagen_modo" value="foto" {% if modo == 'foto' %}checked{% endif %}><span>Mi foto</span></label>
@@ -24,7 +24,7 @@
         <input type="file" name="foto" data-ed="archivo" accept="image/jpeg,image/png,image/webp">
         <span>📷 {{ 'Cambiar la foto' if v and v.foto_id else 'Elegir una foto' }}</span>
       </label>
-      <p class="muted small">JPG, PNG o WEBP. Se achica sola. Queda mejor una foto horizontal del auto.</p>
+      <p class="muted small">JPG, PNG o WEBP. Se achica sola. Queda mejor una foto horizontal del vehículo.</p>
       <div class="foto-ajuste">
         <div class="foto-ajuste-titulo">
           <strong>Ajustar la foto</strong>

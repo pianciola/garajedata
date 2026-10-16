@@ -108,6 +108,7 @@ FRENOS = ["DOT 3", "DOT 4", "DOT 5.1"]
 HECHO_POR = {"taller": "Taller / mecánico", "yo": "Hecho por mí", "otro": "Otro"}
 
 CARROCERIAS = {
+    "moto": "Moto",
     "hatchback": "Hatchback",
     "sedan": "Sedán",
     "rural": "Rural / Familiar",
@@ -677,7 +678,7 @@ def datos_vehiculo_form():
     carroceria = f.get("carroceria")
     marca = canon_marca(f.get("marca"))
     transmision = f.get("transmision")
-    uso = f.get("uso") if f.get("calcular_uso") and f.get("uso") in USOS else None
+    uso = f.get("uso") if carroceria != "moto" and f.get("calcular_uso") and f.get("uso") in USOS else None
     km_mes = to_int(f.get("km_mes"))
     if uso == "personalizado" and not (km_mes and 0 < km_mes <= KM_MES_MAX):
         flash(f"Para el plan de mantenimiento personalizado poné los km por mes (entre 1 y {KM_MES_MAX:,}"

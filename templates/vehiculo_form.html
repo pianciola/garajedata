@@ -15,7 +15,7 @@
     {% include "_foto_editor.html" %}
 
     <fieldset>
-      <legend>Tipo de carrocería</legend>
+      <legend>Tipo de vehículo</legend>
       <div class="body-picker">
         {% for key, label in CARROCERIAS.items() %}
         <label class="body-option">
@@ -156,7 +156,8 @@
     </details>
 
     {% set uso_actual = v.uso if v else none %}
-    <details class="section-box" {% if uso_actual %}open{% endif %}>
+    <p class="muted small" id="nota-plan-moto" {% if carr_actual != 'moto' %}hidden{% endif %}>Para tu moto, anotá los services y próximos controles según su manual. Podés programarlos por fecha o kilometraje desde Nuevo registro.</p>
+    <details class="section-box" id="plan-auto" {% if carr_actual == 'moto' %}hidden{% endif %} {% if uso_actual %}open{% endif %}>
       <summary><span>Plan de mantenimiento</span><small class="optional">opcional</small></summary>
       <div class="section-body">
         <label class="check">

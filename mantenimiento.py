@@ -124,6 +124,8 @@ def estado(dias, faltan_km=None, aviso_dias=30):
 def plan_mantenimiento(v, registros, hoy=None):
     """Para cada service del plan: último registro que lo menciona y cuándo toca
     el próximo, por km (estimados con el perfil de uso) o por tiempo."""
+    if "carroceria" in v.keys() and v["carroceria"] == "moto":
+        return []  # Los intervalos del plan son de autos; la moto usa los controles de su manual.
     kpm = km_por_mes(v)
     if not kpm:
         return []

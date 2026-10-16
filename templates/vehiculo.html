@@ -55,7 +55,7 @@
   </div>
   <div class="hero-visual">
     {{ vista(v, 'car-stage-hero', url_for('archivo', aid=v.foto_id) if v.foto_id else none, true) }}
-    <button class="foto-editar" type="button" id="abrir-foto" aria-label="Cambiar o ajustar la foto del auto" title="Cambiar o ajustar la foto">
+    <button class="foto-editar" type="button" id="abrir-foto" aria-label="Cambiar o ajustar la foto del vehículo" title="Cambiar o ajustar la foto">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>
     </button>
   </div>
@@ -63,7 +63,7 @@
 
 <dialog class="dialogo" id="dialogo-foto" aria-labelledby="dialogo-foto-titulo">
   <form method="post" action="{{ url_for('vehiculo_foto', vid=v.id) }}" enctype="multipart/form-data" class="form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
-    <h2 id="dialogo-foto-titulo">Foto del auto</h2>
+    <h2 id="dialogo-foto-titulo">Foto del vehículo</h2>
     {% include "_foto_editor.html" %}
     <div class="form-actions">
       <button class="btn btn-ghost" type="button" id="cerrar-foto">Cancelar</button>
@@ -82,7 +82,7 @@
     {% if v.uso and km_hoy > km_real %}<em class="odo-est" title="Calculado con tu perfil: {{ USOS[v.uso][0]|lower }}">≈ {{ km_hoy|miles }} km estimados hoy</em>{% endif %}
     {% if can_edit %}
     <form class="odo-form" method="post" action="{{ url_for('vehiculo_km', vid=v.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
-      <input name="km" class="num-miles" inputmode="numeric" autocomplete="off" placeholder="Km hoy" aria-label="Kilometraje actual del auto" maxlength="10">
+      <input name="km" class="num-miles" inputmode="numeric" autocomplete="off" placeholder="Km hoy" aria-label="Kilometraje actual del vehículo" maxlength="10">
       <button class="btn btn-ghost btn-xs" type="submit">Actualizar</button>
     </form>
     {% endif %}
@@ -255,7 +255,7 @@
 </div>
 
 
-<div class="historial-cabeza"><div><div class="eyebrow">La historia de tu auto</div><h2>Últimos trabajos y gastos</h2></div><a href="{{ url_for('estadisticas', vid=v.id) }}">Ver análisis de gastos →</a></div>
+<div class="historial-cabeza"><div><div class="eyebrow">La historia de {{ 'tu moto' if v.carroceria == 'moto' else 'tu auto' }}</div><h2>Últimos trabajos y gastos</h2></div><a href="{{ url_for('estadisticas', vid=v.id) }}">Ver análisis de gastos →</a></div>
 <section class="toolbar">
   <div class="chips">
     <a class="chip {% if not cat %}active{% endif %}" href="{{ url_for('vehiculo', vid=v.id, q=q or None) }}">Todos</a>

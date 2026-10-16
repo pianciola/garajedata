@@ -138,4 +138,32 @@ with Image.open(archivos.ruta("vieja.jpg")) as im:
     assert not im.getexif() and im.size == (100, 150)
 with sqlite3.connect(os.environ["DB_PATH"]) as db:
     assert db.execute("SELECT bytes FROM archivos WHERE archivo='vieja.jpg'").fetchone()[0] == Path(archivos.ruta("vieja.jpg")).stat().st_size
+# Motos: alta/edición, fotos, bitácora, controles, exportación y aislamiento de cuenta.
+r = c.post("/vehiculo/nuevo", data={"carroceria": "moto", "marca": "yamaha", "modelo": "Moto de prueba",
+                                   "km_inicial": "5000", "calcular_uso": "1", "uso": "promedio"})
+assert r.status_code == 302
+vid_moto = int(r.location.rsplit("/", 1)[1])
+with sqlite3.connect(os.environ["DB_PATH"]) as db:
+    assert db.execute("SELECT carroceria,marca,uso FROM vehiculos WHERE id=?", (vid_moto,)).fetchone() == ("moto", "Yamaha", None)
+assert c.post(f"/vehiculo/{vid_moto}/editar", data={"carroceria": "moto", "marca": "Yamaha", "modelo": "Moto editada", "color": "#c0262d"}).status_code == 302
+assert c.post(f"/vehiculo/{vid_moto}/registro/nuevo", data={"titulo": "Service según manual", "fecha": date.today().isoformat(), "prox_km": "7000"}).status_code == 302
+assert c.post(f"/vehiculo/{vid_moto}/registro/nuevo", data={"modo": "pendiente", "titulo": "Revisar cadena", "pend_km": "6500"}).status_code == 302
+for ruta in ("/", f"/vehiculo/{vid_moto}", f"/vehiculo/{vid_moto}/libro"):
+    html = c.get(ruta).get_data(as_text=True)
+    assert 'data-type="moto"' in html
+assert "Service según manual" in c.get(f"/vehiculo/{vid_moto}").get_data(as_text=True)
+assert c.post(f"/vehiculo/{vid_moto}/foto", data={"imagen_modo": "foto", "foto": (io.BytesIO(original), "moto.jpg")}).status_code == 302
+assert 'car-photo' in c.get(f"/vehiculo/{vid_moto}").get_data(as_text=True)
+with app.app_context():
+    from nucleo import get_db
+    from mantenimiento import plan_mantenimiento
+    v = get_db().execute("SELECT * FROM vehiculos WHERE id=?", (vid_moto,)).fetchone()
+    assert plan_mantenimiento(dict(v) | {"uso": "promedio"}, []) == []
+exportado = c.get("/cuenta/exportar").data
+importadora = app.test_client()
+assert importadora.post("/registro", data={"usuario": "moto_importada", "clave": "prueba-123", "clave2": "prueba-123", "acepto": "1"}).status_code == 302
+assert importadora.get(f"/vehiculo/{vid_moto}").status_code == 404
+assert importadora.post("/cuenta/importar", data={"copia": (io.BytesIO(exportado), "copia.zip")}).status_code == 302
+with sqlite3.connect(os.environ["DB_PATH"]) as db:
+    assert db.execute("SELECT COUNT(*) FROM vehiculos WHERE carroceria='moto' AND modelo='Moto editada'").fetchone()[0] == 2
 print("REGRESIONES OK")
