@@ -146,6 +146,22 @@ vid_moto = int(r.location.rsplit("/", 1)[1])
 with sqlite3.connect(os.environ["DB_PATH"]) as db:
     assert db.execute("SELECT carroceria,marca,uso FROM vehiculos WHERE id=?", (vid_moto,)).fetchone() == ("moto", "Yamaha", None)
 assert c.post(f"/vehiculo/{vid_moto}/editar", data={"carroceria": "moto", "marca": "Yamaha", "modelo": "Moto editada", "color": "#c0262d"}).status_code == 302
+assert c.post(f"/vehiculo/{vid_moto}/editar", data={"tipo_vehiculo": "moto", "carroceria": "sedan", "marca": "Yamaha", "modelo": "Moto editada", "cilindrada": "155"}).status_code == 302
+with sqlite3.connect(os.environ["DB_PATH"]) as db:
+    assert db.execute("SELECT carroceria,cilindrada FROM vehiculos WHERE id=?", (vid_moto,)).fetchone() == ("moto", 155)
+for ruta in (f"/vehiculo/{vid_moto}", f"/vehiculo/{vid_moto}/libro"):
+    assert "155 cc" in c.get(ruta).get_data(as_text=True)
+html = c.get(f"/vehiculo/{vid_moto}/editar").get_data(as_text=True)
+assert 'name="tipo_vehiculo" value="moto" checked' in html
+assert 'id="opciones-auto" hidden' in html
+assert 'name="cilindrada"' in html and 'value="155"' in html
+from nucleo import datos_vehiculo_form
+for valor in ("0", "-1", "10001", "nan", "abc", ""):
+    with app.test_request_context(method="POST", data={"tipo_vehiculo": "moto", "cilindrada": valor}):
+        assert datos_vehiculo_form()["cilindrada"] is None
+with app.test_request_context(method="POST", data={"tipo_vehiculo": "auto", "carroceria": "moto", "cilindrada": "155"}):
+    d = datos_vehiculo_form()
+    assert d["carroceria"] == "sedan" and d["cilindrada"] is None
 assert c.post(f"/vehiculo/{vid_moto}/registro/nuevo", data={"titulo": "Service según manual", "fecha": date.today().isoformat(), "prox_km": "7000"}).status_code == 302
 assert c.post(f"/vehiculo/{vid_moto}/registro/nuevo", data={"modo": "pendiente", "titulo": "Revisar cadena", "pend_km": "6500"}).status_code == 302
 for ruta in ("/", f"/vehiculo/{vid_moto}", f"/vehiculo/{vid_moto}/libro"):
@@ -166,6 +182,7 @@ assert importadora.get(f"/vehiculo/{vid_moto}").status_code == 404
 assert importadora.post("/cuenta/importar", data={"copia": (io.BytesIO(exportado), "copia.zip")}).status_code == 302
 with sqlite3.connect(os.environ["DB_PATH"]) as db:
     assert db.execute("SELECT COUNT(*) FROM vehiculos WHERE carroceria='moto' AND modelo='Moto editada'").fetchone()[0] == 2
+    assert db.execute("SELECT COUNT(*) FROM vehiculos WHERE carroceria='moto' AND cilindrada=155").fetchone()[0] == 2
 from nucleo import patente_info
 for patente, tipo, texto in (("a12 3bcd", "moto-mercosur", "A12\n3BCD"),
                               ("234 abc", "moto-vieja", "234\nABC")):

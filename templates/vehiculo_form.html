@@ -9,15 +9,27 @@
     {% set carr_actual = (v.carroceria if v else none) or 'sedan' %}
     {% set color_actual = (v.color if v else none) or COLOR_DEFAULT %}
     {% set modo = (v.imagen_modo if v and v.foto_id else none) or '3d' %}
+    <fieldset>
+      <legend>Tipo de vehículo</legend>
+      <div class="body-picker vehicle-kind-picker">
+        {% for key, label in [('auto', 'Auto'), ('moto', 'Moto')] %}
+        <label class="body-option">
+          <input type="radio" name="tipo_vehiculo" value="{{ key }}" {% if (carr_actual == 'moto') == (key == 'moto') %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
     <div class="car-stage car-stage-form" id="stage-3d" data-car3d data-interactive data-type="{{ carr_actual }}" data-color="{{ color_actual }}"
          data-type-from="input[name=carroceria]" data-color-from="input[name=color]" title="Arrastrá para girar" {% if modo == 'foto' %}hidden{% endif %}></div>
     {% set stage3d = "#stage-3d" %}
     {% include "_foto_editor.html" %}
 
-    <fieldset>
-      <legend>Tipo de vehículo</legend>
+    <label hidden><input type="radio" name="carroceria" value="moto" {% if carr_actual == 'moto' %}checked{% endif %}><span>Moto</span></label>
+    <fieldset id="opciones-auto" {% if carr_actual == 'moto' %}hidden{% endif %}>
+      <legend>Carrocería del auto</legend>
       <div class="body-picker">
-        {% for key, label in CARROCERIAS.items() %}
+        {% for key, label in CARROCERIAS.items() if key != 'moto' %}
         <label class="body-option">
           <input type="radio" name="carroceria" value="{{ key }}" {% if carr_actual == key %}checked{% endif %}>
           <span>{{ label }}</span>
@@ -25,6 +37,12 @@
         {% endfor %}
       </div>
     </fieldset>
+
+    <label class="field" id="cilindrada-moto" {% if carr_actual != 'moto' %}hidden{% endif %}>
+      <span>Cilindrada (cc) <small class="optional">(opcional)</small></span>
+      <input type="number" name="cilindrada" min="1" max="10000" step="1" inputmode="numeric" value="{{ (v.cilindrada or '') if v else '' }}" placeholder="Ej: 150">
+      <small class="muted">En motos eléctricas, dejá este campo vacío.</small>
+    </label>
 
     <fieldset>
       <legend>Color</legend>

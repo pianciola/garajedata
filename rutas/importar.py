@@ -12,7 +12,7 @@ MAX_REGISTROS = 5000
 
 # Columnas que se aceptan de cada tabla, con su tipo. Nada de ids, dueños, tokens ni fechas internas.
 COLS_VEHICULO = {c: "txt" for c in CAMPOS_VEHICULO}
-COLS_VEHICULO.update({c: "int" for c in ("anio", "km_inicial", "km_mes", "foto_x", "foto_y", "foto_zoom", "km_manual")})
+COLS_VEHICULO.update({c: "int" for c in ("anio", "cilindrada", "km_inicial", "km_mes", "foto_x", "foto_y", "foto_zoom", "km_manual")})
 COLS_VEHICULO.update({"tanque": "num", "aceite_litros": "num", "km_manual_fecha": "fecha"})
 COLS_REGISTRO = {"fecha": "fecha", "km": "int", "categoria": "txt", "titulo": "txt", "detalle": "txt", "costo": "num",
                  "taller": "txt", "hecho_por": "txt", "prox_km": "int", "prox_fecha": "fecha"}

@@ -509,6 +509,7 @@ input[type="date"] { color-scheme: dark; }
 
 .body-picker { display: flex; flex-wrap: wrap; gap: 8px; }
 .body-picker .body-option { flex: 1 1 auto; white-space: nowrap; }
+.vehicle-kind-picker .body-option { flex: 1 1 0; text-align: center; }
 .body-option { cursor: pointer; }
 .body-option input { position: absolute; opacity: 0; pointer-events: none; }
 .body-option span {

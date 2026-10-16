@@ -157,8 +157,14 @@
     vacio: "Escribí la versión que figura en los papeles",
   });
 
+  let carroceriaAuto = esMoto() ? "sedan" : document.querySelector('input[name=carroceria]:checked')?.value || "sedan";
   function actualizarTipo() {
     const moto = esMoto();
+    if (!moto) carroceriaAuto = document.querySelector('input[name=carroceria]:checked').value;
+    document.querySelector(`input[name=tipo_vehiculo][value="${moto ? 'moto' : 'auto'}"]`).checked = true;
+    document.getElementById("opciones-auto").hidden = moto;
+    document.getElementById("cilindrada-moto").hidden = !moto;
+    document.querySelector('input[name=cilindrada]').disabled = !moto;
     actualizarLogo();
     document.getElementById("plan-auto").hidden = moto;
     document.getElementById("nota-plan-moto").hidden = !moto;
@@ -166,9 +172,18 @@
     inputModelo.placeholder = moto ? "Escribí el modelo de tu moto" : "Elegí o escribí el modelo";
     document.getElementById("equipamiento").placeholder = moto ? "Versión (opcional)" : "Ej: LTZ, Ghia, Highline…";
     document.getElementById("version").placeholder = moto ? "Generación (opcional)" : "Ej: MK1, restyling…";
-    document.querySelector('input[name=motor]').placeholder = moto ? "Ej: 150 cc" : "Ej: 1.6 16v Zetec, 2.0 TDI…";
+    document.querySelector('input[name=motor]').placeholder = moto ? "Ej: monocilíndrico, 4 tiempos" : "Ej: 1.6 16v Zetec, 2.0 TDI…";
+    document.querySelector('input[name=patente]').placeholder = moto ? "A12 3BCD o 234 ABC" : "AB 123 CD";
+    document.querySelector('input[name=nombre]').placeholder = moto ? "Ej: La Yamaha" : "Ej: El Gol, el auto de papá";
   }
   document.querySelectorAll('input[name=carroceria]').forEach((i) => i.addEventListener("change", actualizarTipo));
+  document.querySelectorAll('input[name=tipo_vehiculo]').forEach((i) => i.addEventListener("change", () => {
+    const radio = document.querySelector(`input[name=carroceria][value="${i.value === 'moto' ? 'moto' : carroceriaAuto}"]`);
+    radio.checked = true;
+    document.querySelectorAll('.combo-list').forEach((list) => { list.hidden = true; });
+    document.querySelectorAll('[role=combobox]').forEach((input) => input.setAttribute("aria-expanded", "false"));
+    radio.dispatchEvent(new Event("change"));
+  }));
   actualizarTipo();
 
   // Color

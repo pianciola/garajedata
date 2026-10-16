@@ -220,7 +220,7 @@ def close_db(exc):
 # Columnas agregadas a vehiculos después de la primera versión.
 COLUMNAS_NUEVAS = {
     "carroceria": "TEXT", "color": "TEXT", "version": "TEXT", "equipamiento": "TEXT", "transmision": "TEXT",
-    "motor": "TEXT", "combustible": "TEXT", "tanque": "REAL", "codigo_pintura": "TEXT",
+    "motor": "TEXT", "cilindrada": "INTEGER", "combustible": "TEXT", "tanque": "REAL", "codigo_pintura": "TEXT",
     "vin": "TEXT", "bujias": "TEXT", "aceite": "TEXT", "aceite_litros": "REAL",
     "refrigerante": "TEXT", "frenos": "TEXT", "neumaticos": "TEXT", "presion_del": "TEXT",
     "presion_tras": "TEXT", "uso": "TEXT", "creado": "TEXT", "share_token": "TEXT",
@@ -482,7 +482,8 @@ def ficha_tecnica(v):
     litros = lambda n: f"{num(n)} L" if n else None  # noqa: E731
     aceite = " · ".join(x for x in (v["aceite"], litros(v["aceite_litros"]) and
                                      f"{litros(v['aceite_litros'])} con filtro") if x)
-    pares = [("Motor", v["motor"]), ("Combustible", COMBUSTIBLES.get(v["combustible"])),
+    pares = [("Cilindrada", f"{v['cilindrada']} cc" if v["carroceria"] == "moto" and v["cilindrada"] else None),
+             ("Motor", v["motor"]), ("Combustible", COMBUSTIBLES.get(v["combustible"])),
              ("Tanque", litros(v["tanque"])), ("Código de pintura", v["codigo_pintura"]),
              ("VIN", v["vin"]), ("Aceite", aceite), ("Bujías", v["bujias"]),
              ("Refrigerante", v["refrigerante"]), ("Líquido de frenos", v["frenos"]),
@@ -679,6 +680,11 @@ def datos_vehiculo_form():
     if not re.fullmatch(r"#[0-9a-f]{6}", color):
         color = COLOR_DEFAULT
     carroceria = f.get("carroceria")
+    if f.get("tipo_vehiculo") == "moto":
+        carroceria = "moto"
+    elif f.get("tipo_vehiculo") == "auto" and carroceria == "moto":
+        carroceria = "sedan"
+    cilindrada = to_int(f.get("cilindrada"))
     marca = canon_marca(f.get("marca"))
     transmision = f.get("transmision")
     uso = f.get("uso") if carroceria != "moto" and f.get("calcular_uso") and f.get("uso") in USOS else None
@@ -701,6 +707,7 @@ def datos_vehiculo_form():
         "km_inicial": to_int(f.get("km_inicial")),
         "notas": texto("notas", 4000),
         "motor": texto("motor", 60),
+        "cilindrada": cilindrada if carroceria == "moto" and cilindrada and 1 <= cilindrada <= 10000 else None,
         "combustible": f.get("combustible") if f.get("combustible") in COMBUSTIBLES else None,
         "tanque": to_float(f.get("tanque")),
         "codigo_pintura": texto("codigo_pintura", 30),
@@ -891,7 +898,7 @@ def validar_clave(clave, clave2):
 # ---------------------------------------------------------------- rutas: vehículos
 
 CAMPOS_VEHICULO = ["imagen_modo", "km_mes", "foto_x", "foto_y", "foto_zoom", "foto_ajuste", "nombre", "marca", "modelo", "version", "equipamiento", "anio", "patente", "km_inicial", "notas",
-                   "carroceria", "color", "transmision", "motor", "combustible", "tanque",
+                   "carroceria", "color", "transmision", "motor", "cilindrada", "combustible", "tanque",
                    "codigo_pintura", "vin", "bujias", "aceite", "aceite_litros", "refrigerante",
                    "frenos", "neumaticos", "presion_del", "presion_tras", "uso"]
 
