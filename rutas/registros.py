@@ -61,6 +61,7 @@ def pendiente_borrar(pid):
 @app.route("/registro/<int:rid>/editar", methods=["GET", "POST"])
 @requiere_login
 def registro_editar(rid):
+    chequear_id(rid)
     r = get_db().execute("SELECT * FROM registros WHERE id = ?", (rid,)).fetchone()
     if r is None:
         abort(404)
@@ -74,6 +75,7 @@ def registro_editar(rid):
 @app.route("/registro/<int:rid>/eliminar", methods=["POST"])
 @requiere_login
 def registro_eliminar(rid):
+    chequear_id(rid)
     r = get_db().execute("SELECT vehiculo_id FROM registros WHERE id = ?", (rid,)).fetchone()
     if r is None:
         abort(404)

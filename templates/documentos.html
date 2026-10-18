@@ -5,7 +5,7 @@
 <section class="card form-card">
   <div class="eyebrow">Documentación</div>
   <h1>Vencimientos</h1>
-  <p class="muted">Todo es opcional: completá solo lo que quieras que te avisemos. Los pagos mensuales avisan una semana antes; el resto, un mes antes.</p>
+  <p class="muted">Todo es opcional: completá solo lo que quieras que te avisemos. Los pagos mensuales avisan una semana antes; el resto, un mes antes. Podés cargar fechas ya vencidas: te las mostramos como vencidas hasta que las renueves.</p>
   <form method="post" class="form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
     {% for tipo, nombre in DOCUMENTOS.items() %}
     {% set d = docs.get(tipo) %}
@@ -14,7 +14,7 @@
       <div class="row">
         <label class="field">
           <span>{{ 'Próximo pago' if tipo in ('seguro_pago', 'patente') else 'Vence el' }}</span>
-          <input type="date" name="vence_{{ tipo }}" value="{{ d.vence if d and d.vence else '' }}" min="{{ lim.hace_un_anio }}" max="{{ lim.en_30_anios }}">
+          <input type="date" name="vence_{{ tipo }}" value="{{ d.vence if d and d.vence else '' }}" min="{{ lim.desde }}" max="{{ lim.en_30_anios }}">
         </label>
         <label class="field">
           <span>Se repite</span>

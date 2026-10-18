@@ -242,7 +242,7 @@ function dispose(obj) {
   });
 }
 
-export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = false } = {}) {
+export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = false, onVisible = null } = {}) {
   // En celulares la pantalla ya es muy densa: más resolución solo gasta batería.
   const dpr = window.devicePixelRatio || 1;
   const tactil = window.matchMedia("(pointer: coarse)").matches;
@@ -265,6 +265,8 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
   let car = null;
   let spinning = true;
   let pedido = 0;
+  let visible = false;
+  let muerto = false;
 
   let controls = null;
   if (interactive) {
@@ -309,7 +311,7 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
     el.classList.remove("car-stage-missing");
     try {
       const { src, cfg } = await loadModel(t);
-      if (mio !== pedido) return;
+      if (muerto || mio !== pedido) return;
       const rot = car ? car.rotation.y : -0.6;
       if (car) { scene.remove(car); dispose(car); }
       car = prepareCar(src, cfg, t, color);
@@ -319,7 +321,7 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
       renderer.domElement.setAttribute("aria-label", `Modelo 3D de un vehículo (${NOMBRES[t] || t})`);
       el.classList.add("car-listo");
     } catch (err) {
-      if (mio !== pedido) return;
+      if (muerto || mio !== pedido) return;
       console.warn(`Modelo 3D "${t}" no disponible:`, err);
       if (car) { scene.remove(car); dispose(car); car = null; }
       el.dataset.msg = `Vista 3D de ${NOMBRES[t] || t}: falta cargar el modelo`;
@@ -335,7 +337,8 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
   }
 
   setType(type);
-  new ResizeObserver(frame).observe(el);
+  const ro = new ResizeObserver(frame);
+  ro.observe(el);
 
   const clock = new THREE.Clock();
   const loop = () => {
@@ -345,38 +348,94 @@ export function mountCar(el, { type = "sedan", color = "#2e6fd8", interactive = 
     renderer.render(scene, camera);
   };
   // Solo animar cuando está a la vista.
-  new IntersectionObserver(([entry]) => {
-    renderer.setAnimationLoop(entry.isIntersecting ? loop : null);
+  const io = new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    renderer.setAnimationLoop(visible ? loop : null);
     clock.getDelta();
-  }).observe(el);
+    onVisible?.(visible);
+  });
+  io.observe(el);
 
-  return { setType, setColor };
+  return {
+    setType, setColor, visible: () => visible,
+    // Apaga el visor y libera la memoria de video (lo usa el tope de visores encendidos a la vez).
+    destroy() {
+      muerto = true;
+      pedido++;
+      io.disconnect();
+      ro.disconnect();
+      renderer.setAnimationLoop(null);
+      if (car) { scene.remove(car); dispose(car); car = null; }
+      pmrem.dispose();
+      renderer.forceContextLoss();  // libera el contexto de WebGL al instante
+      renderer.dispose();
+      renderer.domElement.remove();
+      el.classList.remove("car-listo", "car-stage-loading", "car-stage-missing");
+      delete el.dataset.msg;
+    },
+  };
 }
 
-// Montaje automático: <div data-car3d data-type="sedan" data-color="#hex">
-// Opcionales: data-interactive, data-type-from / data-color-from (selectores
-// de inputs que actualizan el modelo en vivo).
-// Cada visor arranca recién cuando está por aparecer en pantalla.
-function montar(el) {
-  let car;
+// Tope de visores encendidos a la vez: cada uno es un contexto de WebGL (memoria de video) y los
+// navegadores apagan los contextos más viejos cuando hay muchos; en el celular, además, gastan
+// batería. Al encender uno nuevo se apaga el más antiguo que ya no esté en pantalla y, si hace
+// falta, se vuelve a encender solo cuando baja el scroll.
+const MAX_VIVOS = 6;
+const vivos = new Map();  // elemento -> visor
+const esperando = [];     // elementos que quedaron sin lugar
+
+function apagar(el) {
+  const visor = vivos.get(el);
+  if (!visor) return;
+  vivos.delete(el);
+  el._carApi = null;
+  visor.destroy();
+  cerca.observe(el);  // puede volver a encenderse si se le libera un lugar
+  const siguiente = esperando.shift();
+  if (siguiente) encender(siguiente);
+}
+
+function encender(el) {
+  if (vivos.has(el) || el.classList.contains("car-stage-off")) return;
+  if (vivos.size >= MAX_VIVOS) {
+    for (const [otro, visor] of vivos) {
+      if (!visor.visible()) { apagar(otro); break; }
+    }
+  }
+  if (vivos.size >= MAX_VIVOS) {
+    if (!esperando.includes(el)) esperando.push(el);
+    return;
+  }
+  let visor;
   try {
-    car = mountCar(el, {
+    visor = mountCar(el, {
       type: el.dataset.type,
       color: el.dataset.color,
       interactive: "interactive" in el.dataset,
+      onVisible: (visible) => { if (!visible && esperando.length) apagar(el); },
     });
   } catch (err) {
     console.warn("No se pudo iniciar el visor 3D", err);
     el.classList.add("car-stage-off");
     return;
   }
+  el._carApi = visor;
+  vivos.set(el, visor);
+  enlazar(el);
+}
+
+// Los controles del formulario (tipo y color) se conectan una sola vez: si el visor se apaga y
+// se vuelve a encender, siguen apuntando al visor actual.
+function enlazar(el) {
+  if (el.dataset.enlazado) return;
+  el.dataset.enlazado = "1";
   if (el.dataset.typeFrom) {
     document.querySelectorAll(el.dataset.typeFrom).forEach((i) =>
-      i.addEventListener("change", () => i.checked !== false && car.setType(i.value)));
+      i.addEventListener("change", () => { if (i.checked !== false && el._carApi) el._carApi.setType(i.value); }));
   }
   if (el.dataset.colorFrom) {
     document.querySelectorAll(el.dataset.colorFrom).forEach((i) =>
-      i.addEventListener("input", () => car.setColor(i.value)));
+      i.addEventListener("input", () => { if (el._carApi) el._carApi.setColor(i.value); }));
   }
 }
 
@@ -384,7 +443,7 @@ const cerca = new IntersectionObserver((entradas) => {
   for (const e of entradas) {
     if (!e.isIntersecting) continue;
     cerca.unobserve(e.target);
-    montar(e.target);
+    encender(e.target);
   }
 }, { rootMargin: "300px 0px" });
 document.querySelectorAll("[data-car3d]").forEach((el) => cerca.observe(el));

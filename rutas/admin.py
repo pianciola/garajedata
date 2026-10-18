@@ -83,10 +83,18 @@ def admin():
     carpeta_resp = respaldos.carpeta_de(DB_PATH)
     copias = sorted(glob.glob(os.path.join(carpeta_resp, "bitacora-*.db")))
     subidos, n_subidos = tamanio_carpeta(archivos.CARPETA)
+    respaldos_bytes = sum(tamanio(c) for c in copias)
+    # El plan gratis de PythonAnywhere tiene 512 MB de disco para todo (código, base, archivos y
+    # respaldos): si el uso pasa del 80 % conviene bajar el cupo de las cuentas o MAX_USUARIOS.
+    cupo_mb = int(os.environ.get("CUPO_SITIO_MB", "512"))
+    usado_total = tamanio(DB_PATH) + subidos + respaldos_bytes
     sistema = {
         "base": tamanio(DB_PATH), "subidos": subidos, "n_subidos": n_subidos,
-        "respaldos": len(copias), "ultimo_respaldo": os.path.basename(copias[-1])[9:19] if copias else None,
+        "respaldos": len(copias), "respaldos_bytes": respaldos_bytes,
+        "ultimo_respaldo": os.path.basename(copias[-1])[9:19] if copias else None,
         "python": sys.version.split()[0],
+        "cupo_mb": cupo_mb, "usado_mb": usado_total / 1048576,
+        "alerta": usado_total > cupo_mb * 1048576 * 0.8,
     }
     return render_template("admin.html", totales=totales, semanas=semanas, tope=tope, usuarios=usuarios,
                            marcas=marcas, categorias=categorias, sistema=sistema, hoy=hoy)

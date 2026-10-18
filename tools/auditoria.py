@@ -499,6 +499,24 @@ for campo in CAMPOS_REG:
             culpables.add((f"registro.{campo}", valor[:12]))
 if culpables:
     hallazgo("ROMPE", "campos que causan error 500: " + ", ".join(f"{c}={v!r}" for c, v in sorted(culpables)))
+# Un kilometraje imposible ya guardado (copia vieja o error de tipeo en el formulario, que acepta
+# hasta 12 dígitos) no puede tumbar el inicio, la ficha ni el calendario con un desborde de fechas.
+# Se usa un vehículo nuevo: el de las pruebas ya pasó a otra cuenta en la sección de transferencias.
+r = ana.post("/vehiculo/nuevo", {"marca": "Fiat", "modelo": "Uno", "nombre": "Km imposible",
+                                 "calcular_uso": "1", "uso": "personalizado", "km_mes": "1"})
+assert r.status_code == 302, r.status_code
+VID_KM = int(r.headers["Location"].rstrip("/").split("/")[-1])
+ana.post(f"/vehiculo/{VID_KM}/registro/nuevo", {"titulo": "Cambio de aceite", "fecha": "2026-01-10", "km": "1000"})
+with sqlite3.connect(DB) as db:
+    db.execute("UPDATE vehiculos SET km_inicial = 999999999999 WHERE id = ?", (VID_KM,))
+for plantilla in ("/", "/vehiculo/{v}", "/calendario", "/vehiculo/{v}/libro", "/cal/{t}.ics"):
+    ruta = plantilla.format(v=VID_KM, t=CAL)
+    r = ana.get(ruta)
+    if r.status_code >= 400:
+        hallazgo("ROMPE", f"{ruta} con un kilometraje imposible guardado → {r.status_code}")
+with sqlite3.connect(DB) as db:
+    db.execute("PRAGMA foreign_keys = ON")  # para que el borrado se lleve sus registros
+    db.execute("DELETE FROM vehiculos WHERE id = ?", (VID_KM,))
 # después de todo eso las páginas deben seguir abriendo
 for p in paginas:
     r = ana.get(p)

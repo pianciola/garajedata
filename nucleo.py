@@ -22,8 +22,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import archivos
 import respaldos
 from catalogo import canon_marca, canon_modelo, catalogo_js, equipamientos_de, logo_marca, logo_oscuro, tema_marca
-from mantenimiento import (KM_MES_MAX, DOCUMENTOS, REPETICION_SUGERIDA, REPETICIONES, USOS, km_estimado,
-                           km_por_mes, plan_mantenimiento, promedio_medido, sumar_meses, vencimientos)
+from mantenimiento import (KM_MES_MAX, DOCUMENTOS, REPETICION_SUGERIDA, REPETICIONES, USOS, dias_por_km,
+                           km_estimado, km_por_mes, plan_mantenimiento, promedio_medido, sumar_meses,
+                           vencimientos)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("DB_PATH", os.path.join(BASE_DIR, "bitacora.db"))
@@ -106,6 +107,10 @@ COMBUSTIBLES = {"nafta": "Nafta", "diesel": "Diésel", "gnc": "GNC + nafta",
                 "hibrido": "Híbrido", "electrico": "Eléctrico"}
 FRENOS = ["DOT 3", "DOT 4", "DOT 5.1"]
 HECHO_POR = {"taller": "Taller / mecánico", "yo": "Hecho por mí", "otro": "Otro"}
+
+# Lo que se sale de estos límites es un error de tipeo, no un dato: se avisa y no se guarda.
+KM_MAX = 9_999_999
+ANIO_MIN, ANIO_MAX = 1900, 2100
 
 CARROCERIAS = {
     "moto": "Moto",
@@ -207,6 +212,9 @@ def get_db():
         g.db = sqlite3.connect(DB_PATH)
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
+        # Si otra conexión está escribiendo (por ejemplo, el respaldo diario), esperar en vez
+        # de fallar al toque con «database is locked».
+        g.db.execute("PRAGMA busy_timeout = 5000")
     return g.db
 
 
@@ -374,6 +382,9 @@ def respaldo_diario():
 @app.before_request
 def cargar_usuario():
     """Deja en g.usuario la cuenta de la sesión (None si no hay o ya no existe)."""
+    if request.endpoint == "static":  # los estáticos no dependen de quién entra
+        g.usuario = None
+        return
     uid, sid = session.get("uid"), session.get("sid")
     g.usuario = None
     if uid is not None:
@@ -408,6 +419,8 @@ def revisar_csrf():
 @app.before_request
 def anotar_actividad():
     """Último día en que se usó cada cuenta (una escritura por día como mucho), para el panel de administración."""
+    if request.endpoint == "static":
+        return
     u = g.get("usuario")
     hoy = date.today().isoformat()
     if u is not None and u["actividad"] != hoy:
@@ -569,8 +582,15 @@ def fecha(iso):
         return iso
 
 
+def chequear_id(valor):
+    """Un id por fuera del rango de SQLite no puede existir: es un «no encontrado», no un error interno."""
+    if not (isinstance(valor, int) and 0 <= valor <= 2 ** 63 - 1):
+        abort(404)
+
+
 def get_vehiculo(vid):
     """Vehículo de la cuenta actual; 404 si no existe o es de otra persona."""
+    chequear_id(vid)
     v = get_db().execute("SELECT * FROM vehiculos WHERE id = ? AND usuario_id = ?",
                          (vid, g.usuario["id"])).fetchone()
     if v is None:
@@ -729,6 +749,26 @@ def datos_vehiculo_form():
     }
 
 
+def error_numeros_vehiculo(d):
+    """Mensaje si el año o el kilometraje no pueden ser reales (un error de tipeo), o None.
+    Se revisa sobre lo ya parseado por datos_vehiculo_form()."""
+    if d["anio"] is not None and not ANIO_MIN <= d["anio"] <= ANIO_MAX:
+        return f"El año tiene que estar entre {ANIO_MIN} y {ANIO_MAX}."
+    if d["km_inicial"] is not None and d["km_inicial"] > KM_MAX:
+        return (f"El kilometraje {miles(d['km_inicial'])} km no parece real: "
+                f"revisalo (el máximo es {miles(KM_MAX)} km).")
+    return None
+
+
+def vehiculo_form_valores(d, v=None):
+    """Lo cargado en el formulario, con el formato del formulario del vehículo, para volver a
+    mostrarlo tal cual cuando hay un error (sin perder lo que escribió la persona)."""
+    valores = dict(d)
+    valores["id"] = v["id"] if v else None
+    valores["foto_id"] = v["foto_id"] if v else None
+    return valores
+
+
 def to_fecha(value, minimo=None, maximo=None):
     """Fecha ISO válida (AAAA-MM-DD) dentro del rango permitido, o None.
     Por defecto: desde 1980 hasta dentro de 30 años (un año 0001 no tiene sentido)."""
@@ -865,7 +905,9 @@ def iniciar_sesion(uid):
 
 def invalidar_sesiones(uid):
     """Cambiar o recuperar la contraseña cierra todas las sesiones anteriores."""
-    get_db().execute("DELETE FROM sesiones WHERE usuario_id = ?", (uid,))
+    db = get_db()
+    db.execute("DELETE FROM sesiones WHERE usuario_id = ?", (uid,))
+    db.commit()
 
 
 # Código de recuperación: reemplaza al email para recuperar la cuenta, así no se
@@ -929,7 +971,8 @@ def avisos(v, registros=None):
     km_hoy = max(km_actual(v), km_estimado(v, registros)) if v["uso"] else km_actual(v)
     return {"km_hoy": km_hoy,
             "recordatorios": calcular_recordatorios(v["id"], km_hoy),
-            "plan": plan_mantenimiento(v, registros),
+            # El mismo km que los recordatorios: si no, la ficha muestra dos «km de hoy» distintos.
+            "plan": plan_mantenimiento(v, registros, km_hoy=km_hoy),
             "documentos": vencimientos(documentos_de(v["id"]))}
 
 
@@ -984,7 +1027,7 @@ def proximo_control(v, a):
     candidatos = []  # (estado, días aproximados, título, detalle)
 
     def km_a_dias(km):
-        return km / kpm * 30.44
+        return dias_por_km(km, kpm)
 
     for rec in a["recordatorios"]:
         dias = [d for d in (rec["faltan_dias"],
@@ -1086,9 +1129,11 @@ def espacio_usado():
 
 def subir_archivos(vid, registro_id=None, categoria=None):
     """Guarda los archivos del campo "archivos" del formulario. Los que no se
-    pueden guardar se avisan con un mensaje y el resto sigue."""
+    pueden guardar se avisan con un mensaje y el resto sigue.
+    Devuelve los nombres en disco de los que se guardaron (para poder borrarlos si
+    después falla el commit: el llamador es quien confirma la transacción)."""
     usados = espacio_usado()
-    subidos = 0
+    guardados = []
     for f in request.files.getlist("archivos"):
         if not f or not f.filename:
             continue
@@ -1103,9 +1148,8 @@ def subir_archivos(vid, registro_id=None, categoria=None):
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (vid, registro_id, categoria, nombre, en_disco, mime, peso,
              datetime.now().isoformat(timespec="seconds")))
-        subidos += 1
-    get_db().commit()
-    return subidos
+        guardados.append(en_disco)
+    return guardados
 
 
 def enviar_archivo(a):
@@ -1120,6 +1164,7 @@ def enviar_archivo(a):
 
 
 def get_archivo(aid):
+    chequear_id(aid)
     a = get_db().execute("SELECT * FROM archivos WHERE id = ?", (aid,)).fetchone()
     if a is None:
         abort(404)
@@ -1158,6 +1203,8 @@ def guardar_pendiente(v):
     km_p = to_int(f.get("pend_km"))
     error = ("Indicá qué hay que hacer." if not titulo
              else "La fecha del pendiente tiene que ser de hoy en adelante." if f.get("pend_fecha") and not fecha_p
+             else f"El kilometraje {miles(km_p)} km no parece real (máximo {miles(KM_MAX)} km)."
+             if km_p is not None and km_p > KM_MAX
              else "Poné para cuándo (una fecha de hoy en adelante) o a qué kilometraje." if not (fecha_p or km_p)
              else None)
     if error:
@@ -1176,6 +1223,7 @@ def guardar_pendiente(v):
 
 def get_pendiente(pid):
     """Pendiente de un vehículo del usuario; 404 si no existe o es de otra cuenta."""
+    chequear_id(pid)
     p = get_db().execute("SELECT p.* FROM pendientes p JOIN vehiculos v ON v.id = p.vehiculo_id "
                          "WHERE p.id = ? AND v.usuario_id = ?", (pid, g.usuario["id"])).fetchone()
     if p is None:
@@ -1183,8 +1231,19 @@ def get_pendiente(pid):
     return p
 
 
+def formulario_registro_con_error(v, d, rid, mensaje):
+    """Vuelve a mostrar el formulario de registro con lo que se había cargado."""
+    flash(mensaje, "error")
+    return render_template("registro_form.html", v=v,
+                           r={**d, "fecha": request.form.get("fecha", d["fecha"]),
+                              "prox_fecha": request.form.get("prox_fecha", d["prox_fecha"]),
+                              "id": rid, "pendiente": to_int(request.form.get("pendiente"))},
+                           adjuntos=adjuntos_por_registro(v["id"]).get(rid, []))
+
+
 def guardar_registro(v, rid=None):
-    """Alta o edición de un registro con sus fotos y facturas."""
+    """Alta o edición de un registro con sus fotos y facturas. O se guarda todo (registro,
+    adjuntos y archivos) o no se guarda nada: si algo falla, se revierte y se avisa."""
     if rid is None and request.form.get("modo") == "pendiente":
         return guardar_pendiente(v)
     d = datos_registro_form()
@@ -1195,39 +1254,51 @@ def guardar_registro(v, rid=None):
         error = "La fecha del trabajo tiene que ser válida, desde 1980 hasta hoy."
     elif request.form.get("prox_fecha") and not d["prox_fecha"]:
         error = "La fecha del próximo control no es válida o está fuera del rango permitido."
+    elif d["km"] is not None and d["km"] > KM_MAX:
+        error = f"El kilometraje {miles(d['km'])} km no parece real: revisalo (el máximo es {miles(KM_MAX)} km)."
+    elif d["prox_km"] is not None and d["prox_km"] > KM_MAX:
+        error = f"El próximo control no puede ser a más de {miles(KM_MAX)} km."
     if error:
-        flash(error, "error")
-        return render_template("registro_form.html", v=v,
-                               r={**d, "fecha": request.form.get("fecha", d["fecha"]),
-                                  "prox_fecha": request.form.get("prox_fecha", d["prox_fecha"]),
-                                  "id": rid, "pendiente": to_int(request.form.get("pendiente"))},
-                               adjuntos=adjuntos_por_registro(v["id"]).get(rid, []))
+        return formulario_registro_con_error(v, d, rid, error)
     db = get_db()
-    if rid is None:
-        d["vehiculo_id"] = v["id"]
-        rid = db.execute(
-            "INSERT INTO registros (vehiculo_id, fecha, km, categoria, titulo, detalle, costo, "
-            "taller, hecho_por, prox_km, prox_fecha) VALUES (:vehiculo_id, :fecha, :km, :categoria, "
-            ":titulo, :detalle, :costo, :taller, :hecho_por, :prox_km, :prox_fecha)", d).lastrowid
-        # Si venía de «Ya lo hice» en un pendiente, ese pendiente se cierra.
-        pid = to_int(request.form.get("pendiente"))
-        if pid:
-            db.execute("DELETE FROM pendientes WHERE id = ? AND vehiculo_id = ?", (pid, v["id"]))
-        flash("Registro agregado a la bitácora.", "ok")
-    else:
-        d["id"] = rid
-        db.execute(
-            "UPDATE registros SET fecha=:fecha, km=:km, categoria=:categoria, titulo=:titulo, "
-            "detalle=:detalle, costo=:costo, taller=:taller, hecho_por=:hecho_por, prox_km=:prox_km, "
-            "prox_fecha=:prox_fecha WHERE id=:id", d)
-        quitar = [to_int(x) for x in request.form.getlist("quitar")]
-        borrar = [a for a in adjuntos_por_registro(v["id"]).get(rid, []) if a["id"] in quitar]
-        for a in borrar:
-            db.execute("DELETE FROM archivos WHERE id = ?", (a["id"],))
-        archivos.borrar([a["archivo"] for a in borrar])
-        flash("Registro actualizado.", "ok")
-    db.commit()
-    subir_archivos(v["id"], registro_id=rid)
+    escritos, quitados = [], []
+    try:
+        if rid is None:
+            d["vehiculo_id"] = v["id"]
+            rid = db.execute(
+                "INSERT INTO registros (vehiculo_id, fecha, km, categoria, titulo, detalle, costo, "
+                "taller, hecho_por, prox_km, prox_fecha) VALUES (:vehiculo_id, :fecha, :km, :categoria, "
+                ":titulo, :detalle, :costo, :taller, :hecho_por, :prox_km, :prox_fecha)", d).lastrowid
+            # Si venía de «Ya lo hice» en un pendiente, ese pendiente se cierra.
+            pid = to_int(request.form.get("pendiente"))
+            if pid:
+                db.execute("DELETE FROM pendientes WHERE id = ? AND vehiculo_id = ?", (pid, v["id"]))
+            mensaje_ok = "Registro agregado a la bitácora."
+        else:
+            d["id"] = rid
+            db.execute(
+                "UPDATE registros SET fecha=:fecha, km=:km, categoria=:categoria, titulo=:titulo, "
+                "detalle=:detalle, costo=:costo, taller=:taller, hecho_por=:hecho_por, prox_km=:prox_km, "
+                "prox_fecha=:prox_fecha WHERE id=:id", d)
+            quitar = [to_int(x) for x in request.form.getlist("quitar")]
+            borrar = [a for a in adjuntos_por_registro(v["id"]).get(rid, []) if a["id"] in quitar]
+            for a in borrar:
+                db.execute("DELETE FROM archivos WHERE id = ?", (a["id"],))
+            # Los archivos reemplazados se borran del disco recién si el guardado salió bien.
+            quitados = [a["archivo"] for a in borrar]
+            mensaje_ok = "Registro actualizado."
+        # Los archivos se guardan en el disco antes del commit: si algo falla, se borran.
+        escritos = subir_archivos(v["id"], registro_id=rid)
+        db.commit()
+    except (sqlite3.Error, OSError) as e:
+        db.rollback()
+        archivos.borrar(escritos)
+        app.logger.exception("No se pudo guardar el registro: %s", e)
+        return formulario_registro_con_error(
+            v, d, rid, "No se pudo guardar el registro (problema con la base o con los archivos). "
+                       "Probá de nuevo; si sigue pasando, avisá al contacto de la página de Privacidad.")
+    archivos.borrar(quitados)
+    flash(mensaje_ok, "ok")
     return redirect(url_for("vehiculo", vid=v["id"]))
 
 
@@ -1238,8 +1309,12 @@ def no_encontrado(e):
 
 @app.errorhandler(OverflowError)
 def numero_enorme(e):
-    # /vehiculo/99999999999999999999: no es un id posible, es lo mismo que uno que no existe
-    return render_template("404.html"), 404
+    # Un número imposible en la URL (/vehiculo/99999999999999999999) o en un cálculo de fechas:
+    # nunca es «no encontrado», así que se muestra como una página rota, no como un 404.
+    app.logger.warning("Número fuera de rango: %s", e)
+    return render_template("404.html", codigo="Ups", titulo="Un número fuera de rango",
+                           mensaje="Algún dato tiene un número imposible (por ejemplo, un kilometraje "
+                                   "demasiado grande). Revisá el último dato que cargaste."), 500
 
 
 @app.errorhandler(500)

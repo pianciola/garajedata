@@ -8,7 +8,9 @@ def boveda_subir(vid):
     get_vehiculo(vid)
     categoria = request.form.get("categoria")
     categoria = categoria if categoria in archivos.BOVEDA else "otro"
-    n = subir_archivos(vid, categoria=categoria)
+    nombres = subir_archivos(vid, categoria=categoria)
+    get_db().commit()
+    n = len(nombres)
     if n:
         flash("Documento guardado en la bóveda." if n == 1 else f"{n} documentos guardados en la bóveda.", "ok")
     elif not request.files.getlist("archivos"):

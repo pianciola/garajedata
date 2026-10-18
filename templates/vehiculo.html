@@ -211,7 +211,7 @@
     <summary><h2>Bóveda digital</h2><span>{{ boveda|length }} archivos · ver detalle</span></summary>
     <div class="panel-head">
       <h2>Bóveda digital</h2>
-      <span class="muted small" title="Espacio usado por tu cuenta">{{ '%.1f'|format(espacio / 1048576) }} / 100 MB</span>
+      <span class="muted small" title="Espacio usado por tu cuenta">{{ ('%.1f'|format(espacio / 1048576))|replace('.', ',') }} / 100 MB</span>
     </div>
     {% set por_cat = {} %}{% for a in boveda %}{% set _ = por_cat.update({a.categoria: (por_cat.get(a.categoria) or 0) + 1}) %}{% endfor %}
     {% set elegida = boveda_cat if boveda_cat in BOVEDA else ((boveda|first).categoria if boveda and (boveda|first).categoria in BOVEDA else 'cedula') %}

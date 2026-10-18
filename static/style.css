@@ -990,8 +990,10 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
   user-select: none; -webkit-user-drag: none;
 }
 .car-photo.foto-completa img { object-fit: contain; }
-#stage-foto { cursor: grab; touch-action: none; }
-#stage-foto.arrastrando { cursor: grabbing; }
+/* El visor de la foto (el div real es [data-ed=stage]): sin touch-action el gesto no se puede
+   arrastrar en el celular porque el navegador se queda con el scroll. */
+.foto-editor [data-ed="stage"] { cursor: grab; touch-action: none; }
+.foto-editor [data-ed="stage"].arrastrando { cursor: grabbing; }
 .foto-ajuste { display: grid; gap: 10px; padding: 14px; border: 1px dashed var(--border-strong); border-radius: 8px; background: #0e1013; }
 .foto-ajuste-titulo { display: flex; justify-content: space-between; align-items: center; }
 .foto-ajuste-titulo strong { font-family: var(--display); letter-spacing: .08em; text-transform: uppercase; }
@@ -1822,6 +1824,7 @@ input[type="date"].fecha-invalida { border-color: var(--danger); box-shadow: 0 0
 .admin-sistema div { display: flex; justify-content: space-between; gap: 12px; padding: 6px 10px; background: var(--surface-2); border-radius: 6px; }
 .admin-sistema dt { color: var(--muted); }
 .admin-sistema dd { margin: 0; font-weight: 600; }
+.admin-alerta { margin: 12px 0 0; padding: 10px 12px; border: 1px solid rgb(var(--accent-rgb) / .55); border-radius: 6px; background: rgb(var(--accent-rgb) / .12); font-size: .92rem; }
 .admin-tabla-wrap { overflow-x: auto; }
 .admin-tabla { width: 100%; border-collapse: collapse; font-size: .9rem; white-space: nowrap; }
 .admin-tabla th { text-align: left; padding: 8px 10px; color: var(--muted); font-family: var(--display); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; border-bottom: 1px solid var(--border); }

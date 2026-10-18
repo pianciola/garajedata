@@ -2,7 +2,7 @@
 estimados del plan y los vencimientos de papeles de todos los vehículos, mes por mes."""
 import calendar
 
-from mantenimiento import DIAS_MES, sumar_meses
+from mantenimiento import dias_por_km, sumar_meses
 from nucleo import *  # noqa: F401,F403
 
 MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
@@ -29,7 +29,7 @@ def agenda_de(uid, hasta):
             if r["faltan_dias"] is not None:
                 fechas.append((hoy + timedelta(days=r["faltan_dias"]), False))
             if r["faltan_km"] is not None:
-                fechas.append((hoy + timedelta(days=round(r["faltan_km"] / kpm * DIAS_MES)), True))
+                fechas.append((hoy + timedelta(days=dias_por_km(r["faltan_km"], kpm)), True))
             if not fechas:
                 continue
             fecha, estimado = min(fechas)

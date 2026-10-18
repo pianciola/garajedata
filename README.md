@@ -7,7 +7,8 @@ crea su cuenta y ve solo sus vehículos.
 ## Funciones
 
 - Resumen de controles y vencimientos pendientes con acceso directo desde el inicio.
-- Formulario único de Nuevo registro, con categorías agrupadas en Mantenimiento y cuidado, Gastos y papeles y Otro. Incluye Neumáticos, Chapa y pintura y Accesorios y modificaciones; Combustible pertenece a Gastos y papeles.
+- Formulario único de Nuevo registro, con las categorías agrupadas en Mantenimiento y Gastos y
+  papeles (dentro de esta última está «Otro»). Incluye Neumáticos, Chapa y pintura y Accesorios.
 - Perfiles con imagen destacada y secciones desplegables; acceso móvil que acompaña el scroll.
 - Gastos del mes frente al mismo tramo del anterior, importes faltantes y costo por km con lecturas fechadas y crecientes.
 - Marca SVG en `static/img/logo.svg` y `logo-completo.svg` (letras en curvas). El paquete `exports/garajedata-marca.zip` incluye SVG, PNG de 4096 px y marca completa de 6000 px de ancho. Para regenerar: `tools/exportar_marca.py` (fonttools y brotli) y `tools/exportar_rasters.cjs` (sharp). Son herramientas de diseño, no dependencias del servidor.
@@ -46,8 +47,8 @@ python app.py
 Abrí http://127.0.0.1:5000. Los datos se guardan en `bitacora.db` y los archivos subidos en
 `uploads/` (ninguno de los dos se sube a git). En Windows también sirve `Iniciar GarajeData.bat`.
 
-Pruebas: `pytest` (corre `tools/probar_paginas.py`, que abre todas las páginas y formularios con
-una base temporal y termina con `TODO OK`). En GitHub corren solas en cada push.
+Pruebas: `pytest` (abre todas las páginas y formularios con una base temporal, ataca la app con
+`tools/auditoria.py` y prueba la lógica de fechas y kilometrajes). En GitHub corren solas en cada push.
 
 ## Código
 

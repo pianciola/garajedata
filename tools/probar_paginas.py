@@ -128,12 +128,27 @@ esperar("sin plan", c.post("/vehiculo/2/editar", data={"uso": "poco"}), 302)
 
 # Documentación y vencimientos
 esperar("form documentos", c.get("/vehiculo/3/documentos"), 200)
+faltante = (date.today() - timedelta(days=40)).isoformat()
 esperar("guardar documentos", c.post("/vehiculo/3/documentos", data={
-    "vence_vtv": (date.today() - timedelta(days=40)).isoformat(), "cada_vtv": "1", "vence_seguro_pago": (date.today() + timedelta(days=200)).isoformat(), "cada_seguro_pago": "1",
-    "detalle_seguro": "La Segunda", "vence_registro": "fecha mala"}), 302)
+    "vence_vtv": faltante, "cada_vtv": "1", "vence_seguro_pago": (date.today() + timedelta(days=200)).isoformat(), "cada_seguro_pago": "1",
+    "detalle_seguro": "La Segunda"}), 302)
 html = c.get("/vehiculo/3").get_data(as_text=True)
 if "Venció hace" not in html or "La Segunda" not in html:
     fallas.append("no se ven los vencimientos")
+# Una fecha inválida avisa y no toca nada (antes se descartaba en silencio y hasta borraba el vencimiento).
+r = esperar("documentos con fecha mala", c.post("/vehiculo/3/documentos", data={
+    "vence_vtv": "fecha mala", "cada_vtv": "1", "detalle_vtv": "planta"}), 200)
+if "no es válida" not in r.get_data(as_text=True):
+    fallas.append("no avisa cuando la fecha de un vencimiento es inválida")
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT vence FROM documentos WHERE vehiculo_id = 3 AND tipo = 'vtv'").fetchone()[0] != faltante:
+        fallas.append("una fecha inválida borró o cambió el vencimiento guardado")
+# Una fecha vieja (vencida hace años) sí se puede cargar y queda como vencida.
+esperar("documentos con fecha vieja", c.post("/vehiculo/3/documentos", data={
+    "vence_matafuego": "2020-05-01", "cada_matafuego": "12"}), 302)
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT vence FROM documentos WHERE vehiculo_id = 3 AND tipo = 'matafuego'").fetchone()[0] != "2020-05-01":
+        fallas.append("no se pudo cargar un vencimiento viejo")
 html = c.get("/").get_data(as_text=True)
 if "Próximo control" not in html or "Gastado" in html or "prox-vencido" not in html and "prox-pronto" not in html and "prox-ok" not in html:
     fallas.append("la tarjeta no muestra el próximo control")
@@ -301,6 +316,23 @@ esperar("km que baja", c.post("/vehiculo/3/km", data={"km": "1.000"}), 302)
 with sqlite3.connect(DB) as db:
     if db.execute("SELECT km_manual FROM vehiculos WHERE id = 3").fetchone()[0] != 987654:
         fallas.append("el odómetro bajó o no se guardó")
+# Un kilometraje imposible se avisa y no se guarda (tampoco puede romper las páginas).
+esperar("km imposible", c.post("/vehiculo/3/km", data={"km": "999999999999"}), 302)
+if "no parece real" not in c.get("/vehiculo/3").get_data(as_text=True):
+    fallas.append("no avisa de un kilometraje imposible")
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT km_manual FROM vehiculos WHERE id = 3").fetchone()[0] != 987654:
+        fallas.append("guardó un kilometraje imposible")
+# Un año imposible tampoco: se vuelve a mostrar el formulario y no se toca la base.
+r = esperar("editar con año imposible", c.post("/vehiculo/3/editar", data={
+    "marca": "Ford", "modelo": "Focus", "anio": "999999", "km_inicial": "129.500"}), 200)
+if "año tiene que estar" not in r.get_data(as_text=True):
+    fallas.append("no avisa de un año imposible")
+with sqlite3.connect(DB) as db:
+    if db.execute("SELECT anio FROM vehiculos WHERE id = 3").fetchone()[0] is not None:
+        fallas.append("guardó un año imposible")
+for p in ("/", "/vehiculo/3", "/calendario"):
+    esperar(f"página sana después de datos raros {p}", c.get(p), 200)
 # Fechas inválidas se rechazan; los próximos controles históricos se pueden conservar.
 with sqlite3.connect(DB) as db:
     antes = db.execute("SELECT COUNT(*) FROM registros WHERE vehiculo_id = 3").fetchone()[0]

@@ -10,6 +10,17 @@ from datetime import date, timedelta
 
 DIAS_MES = 30.44
 
+# Tope para las estimaciones por kilómetros: más de ~100 años es un dato mal cargado, no una fecha
+# real, y sin el tope una cifra absurda desborda las sumas de fechas (OverflowError).
+DIAS_MAX = 36_500
+
+
+def dias_por_km(km, kpm):
+    """Días estimados para recorrer «km» al ritmo «kpm» (km por mes), acotados a ±100 años."""
+    if not kpm:
+        return DIAS_MAX if (km or 0) >= 0 else -DIAS_MAX
+    return max(-DIAS_MAX, min(DIAS_MAX, round(km / kpm * DIAS_MES)))
+
 # Perfiles de uso: (nombre, km por mes, descripción).
 USOS = {
     "poco": ("Manejo poco", 500, "Hasta ~6.000 km por año: salidas cortas y fines de semana."),
@@ -121,16 +132,18 @@ def estado(dias, faltan_km=None, aviso_dias=30):
     return "ok"
 
 
-def plan_mantenimiento(v, registros, hoy=None):
+def plan_mantenimiento(v, registros, hoy=None, km_hoy=None):
     """Para cada service del plan: último registro que lo menciona y cuándo toca
-    el próximo, por km (estimados con el perfil de uso) o por tiempo."""
+    el próximo, por km (estimados con el perfil de uso) o por tiempo.
+    «km_hoy» se recibe ya calculado para que la ficha y los recordatorios usen el mismo."""
     if "carroceria" in v.keys() and v["carroceria"] == "moto":
         return []  # Los intervalos del plan son de autos; la moto usa los controles de su manual.
     kpm = km_por_mes(v)
     if not kpm:
         return []
     hoy = hoy or date.today()
-    km_hoy = km_estimado(v, registros, hoy)
+    if km_hoy is None:
+        km_hoy = km_estimado(v, registros, hoy)
     items = []
     for clave, nombre, cada_km, cada_meses, palabras, no_aplica in PLAN:
         if v["combustible"] in no_aplica:
@@ -153,7 +166,7 @@ def plan_mantenimiento(v, registros, hoy=None):
         if ultimo["km"]:
             proximo_km = ultimo["km"] + cada_km
             faltan_km = proximo_km - km_hoy
-            por_km = hoy + timedelta(days=round(faltan_km / kpm * DIAS_MES))
+            por_km = hoy + timedelta(days=dias_por_km(faltan_km, kpm))
             cuando = min(por_tiempo, por_km)
         dias = (cuando - hoy).days
         total = max(1, (cuando - desde).days)

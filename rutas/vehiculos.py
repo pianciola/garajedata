@@ -80,6 +80,11 @@ def vehiculos_orden():
 def vehiculo_nuevo():
     if request.method == "POST":
         d = datos_vehiculo_form()
+        error = error_numeros_vehiculo(d)
+        if error:
+            # Se vuelve a mostrar el formulario con lo que se había cargado.
+            flash(error, "error")
+            return render_template("vehiculo_form.html", v=vehiculo_form_valores(d), medido=None), 200
         ultimo = get_db().execute("SELECT MAX(orden) FROM vehiculos WHERE usuario_id = ?",
                                   (g.usuario["id"],)).fetchone()[0]
         d.update(usuario_id=g.usuario["id"], creado=date.today().isoformat(),
@@ -107,8 +112,10 @@ def vehiculo(vid):
         where.append("categoria = ?")
         params.append(cat)
     if q:
-        where.append("(titulo LIKE ? OR detalle LIKE ? OR taller LIKE ?)")
-        params += [f"%{q}%"] * 3
+        # % y _ son comodines de SQL: quien busca «%» busca el signo, no «cualquier cosa».
+        patron = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        where.append("(titulo LIKE ? ESCAPE '\\' OR detalle LIKE ? ESCAPE '\\' OR taller LIKE ? ESCAPE '\\')")
+        params += [f"%{patron}%"] * 3
     registros = db.execute(
         f"SELECT * FROM registros WHERE {' AND '.join(where)} "
         "ORDER BY fecha DESC, km DESC, id DESC", params).fetchall()
@@ -138,6 +145,8 @@ def vehiculo_km(vid):
     km = to_int(request.form.get("km"))
     if km is None:
         flash("Escribí el kilometraje que marca hoy el auto.", "error")
+    elif km > KM_MAX:
+        flash(f"El kilometraje {miles(km)} km no parece real: revisalo (el máximo es {miles(KM_MAX)} km).", "error")
     elif km < km_actual(v):
         flash(f"El auto ya tiene cargados {miles(km_actual(v))} km: el odómetro no puede bajar. "
               "Si te equivocaste antes, corregí el registro o el km inicial.", "error")
@@ -155,6 +164,11 @@ def vehiculo_editar(vid):
     v = get_vehiculo(vid)
     if request.method == "POST":
         d = datos_vehiculo_form()
+        error = error_numeros_vehiculo(d)
+        if error:
+            flash(error, "error")
+            return render_template("vehiculo_form.html", v=vehiculo_form_valores(d, v),
+                                   medido=promedio_medido(registros_de(vid))), 200
         d["id"] = vid
         get_db().execute(
             f"UPDATE vehiculos SET {', '.join(f'{c} = :{c}' for c in CAMPOS_VEHICULO)} WHERE id = :id", d)
@@ -221,31 +235,51 @@ def vehiculo_exportar(vid):
 def documentos(vid):
     v = get_vehiculo(vid)
     db = get_db()
+    guardados = {d["tipo"]: d for d in documentos_de(vid)}
     if request.method == "POST":
-        for tipo in DOCUMENTOS:
-            # un vencimiento puede estar ya vencido, pero no de hace años
-            vence = to_fecha(request.form.get(f"vence_{tipo}"), minimo=date.today() - timedelta(days=365))
-            detalle = texto(f"detalle_{tipo}", 120)
+        # Se arma la lista completa antes de tocar la base: si una fecha está mal, no se guarda nada.
+        nueva, errores = {}, []
+        for tipo, nombre in DOCUMENTOS.items():
+            if request.form.get(f"vence_{tipo}") is None and request.form.get(f"detalle_{tipo}") is None:
+                # El formulario no traía ese documento: queda como estaba.
+                d = guardados.get(tipo)
+                nueva[tipo] = {"vence": (d["vence"] if d else "") or "",
+                               "cada_meses": d["cada_meses"] if d else None,
+                               "detalle": (d["detalle"] if d else "") or ""}
+                continue
+            crudo = (request.form.get(f"vence_{tipo}") or "").strip()
+            # Se acepta cualquier fecha desde 1980: un papel puede estar vencido hace años y
+            # conviene tenerlo a la vista. Lo que no es una fecha se avisa, no se descarta.
+            vence = to_fecha(crudo)
+            if crudo and not vence:
+                errores.append(f"La fecha de {nombre} no es válida.")
             cada = to_int(request.form.get(f"cada_{tipo}"))
-            cada = cada if cada in REPETICIONES else None
-            if not vence and not detalle:
+            nueva[tipo] = {"vence": vence or "",
+                           "cada_meses": cada if cada in REPETICIONES else None,
+                           "detalle": texto(f"detalle_{tipo}", 120)}
+        if errores:
+            flash(" ".join(errores) + " Revisá la fecha (día, mes y año) y volvé a guardar; "
+                                      "no se cambió ningún vencimiento.", "error")
+            return render_template("documentos.html", v=v, docs=nueva, sugerida=REPETICION_SUGERIDA), 200
+        for tipo, d in nueva.items():
+            if not d["vence"] and not d["detalle"]:
                 db.execute("DELETE FROM documentos WHERE vehiculo_id = ? AND tipo = ?", (vid, tipo))
                 continue
             db.execute("INSERT INTO documentos (vehiculo_id, tipo, vence, cada_meses, detalle) "
                        "VALUES (?, ?, ?, ?, ?) ON CONFLICT (vehiculo_id, tipo) DO UPDATE SET "
                        "vence = excluded.vence, cada_meses = excluded.cada_meses, "
-                       "detalle = excluded.detalle", (vid, tipo, vence, cada, detalle))
+                       "detalle = excluded.detalle", (vid, tipo, d["vence"] or None, d["cada_meses"], d["detalle"]))
         db.commit()
         flash("Vencimientos guardados.", "ok")
         return redirect(url_for("vehiculo", vid=vid) + "#documentacion")
-    docs = {d["tipo"]: d for d in documentos_de(vid)}
-    return render_template("documentos.html", v=v, docs=docs, sugerida=REPETICION_SUGERIDA)
+    return render_template("documentos.html", v=v, docs=guardados, sugerida=REPETICION_SUGERIDA)
 
 
 @app.route("/documento/<int:did>/renovar", methods=["POST"])
 @requiere_login
 def documento_renovar(did):
     """"Ya lo pagué / renové": corre el vencimiento según cada cuánto se repite."""
+    chequear_id(did)
     d = get_db().execute("SELECT * FROM documentos WHERE id = ?", (did,)).fetchone()
     if d is None:
         abort(404)

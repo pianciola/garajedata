@@ -105,6 +105,7 @@ def importar_zip(contenido):
         usados = espacio_usado()
         avisos, nuevos_archivos = [], []
         n_veh = n_reg = n_arch = 0
+        fuera_de_rango = 0
         ultimo = db.execute("SELECT MAX(orden) FROM vehiculos WHERE usuario_id = ?", (uid,)).fetchone()[0] or 0
         try:
             for v in vehiculos:
@@ -112,6 +113,11 @@ def importar_zip(contenido):
                     continue
                 fila = limpiar(v, COLS_VEHICULO)
                 fila["nombre"] = fila.get("nombre") or ""
+                # Un kilometraje que no puede ser real no se importa (avisado al final).
+                for campo in ("km_inicial", "km_manual"):
+                    if fila.get(campo) is not None and fila[campo] > KM_MAX:
+                        fila[campo] = None
+                        fuera_de_rango += 1
                 if fila.get("imagen_modo") not in ("3d", "foto"):
                     fila["imagen_modo"] = "3d"
                 ultimo += 1
@@ -132,6 +138,10 @@ def importar_zip(contenido):
                     fr["categoria"] = categoria_valida(fr.get("categoria"))
                     if fr.get("hecho_por") not in HECHO_POR:
                         fr["hecho_por"] = None
+                    for campo in ("km", "prox_km"):
+                        if fr.get(campo) is not None and fr[campo] > KM_MAX:
+                            fr[campo] = None
+                            fuera_de_rango += 1
                     fr["vehiculo_id"] = vid
                     cols = list(fr)
                     ids_reg[r.get("id")] = db.execute(
@@ -193,6 +203,8 @@ def importar_zip(contenido):
             db.rollback()
             archivos.borrar(nuevos_archivos)
             raise
+    if fuera_de_rango:
+        avisos.append(f"{fuera_de_rango} kilometraje(s) que no pueden ser reales quedaron afuera.")
     return n_veh, n_reg, n_arch, avisos
 
 

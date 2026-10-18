@@ -2,6 +2,7 @@
 import zipfile
 from tempfile import SpooledTemporaryFile
 
+from mantenimiento import dias_por_km
 from nucleo import *  # noqa: F401,F403
 
 
@@ -81,7 +82,7 @@ def eventos_de(uid):
         for r in a["recordatorios"]:
             reg = r["registro"]
             dias = [d for d in (r["faltan_dias"],
-                                round(r["faltan_km"] / kpm * 30.44) if r["faltan_km"] is not None else None)
+                                dias_por_km(r["faltan_km"], kpm) if r["faltan_km"] is not None else None)
                     if d is not None]
             if not dias:
                 continue

@@ -38,7 +38,7 @@
   </div>
 
   <div class="panel-tab" id="panel-seguridad" role="tabpanel" aria-labelledby="tab-seguridad" data-panel="seguridad">
-    <details class="acordeon" {% if request.method == 'POST' %}open{% endif %}>
+    <details class="acordeon" {% if request.method == 'POST' and request.form.get('accion') == 'clave' %}open{% endif %}>
       <summary><span>Cambiar contraseña</span></summary>
       <form method="post" class="form auth-form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="accion" value="clave">
@@ -57,7 +57,7 @@
         <div class="form-actions"><button class="btn btn-primary" type="submit">Cambiar contraseña</button></div>
       </form>
     </details>
-    <details class="acordeon">
+    <details class="acordeon" {% if request.method == 'POST' and request.form.get('accion') == 'codigo' %}open{% endif %}>
       <summary><span>Código de recuperación</span></summary>
       <p class="muted">¿Lo perdiste? Generá uno nuevo; el anterior deja de servir.</p>
       <form method="post" class="form auth-form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
@@ -142,7 +142,7 @@
       </form>
     </details>
     <p class="muted small"><a href="{{ url_for('privacidad') }}">Política de privacidad</a> · <a href="{{ url_for('terminos') }}">Términos y condiciones</a></p>
-    <details class="danger-zone borrar-cuenta">
+    <details class="danger-zone borrar-cuenta" {% if request.method == 'POST' and request.form.get('accion') == 'borrar' %}open{% endif %}>
       <summary><strong>Borrar mi cuenta</strong></summary>
       <p class="muted">Se borran la cuenta, todos los vehículos, registros y archivos. No se puede deshacer: descargá tus datos antes.</p>
       <form method="post" class="form auth-form" data-confirmar="¿Borrar la cuenta y TODOS sus datos para siempre?"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
