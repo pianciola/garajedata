@@ -50,6 +50,7 @@ python app.py                  # local en http://127.0.0.1:5000
 - Calendario en la página: `/calendario` (`rutas/agenda.py`, botón en la barra de arriba). Junta próximos controles de los registros, services estimados del plan y vencimientos (los que se repiten se proyectan). El .ics para Google/Apple/Outlook está en `rutas/datos.py`.
 - Recuperar una cuenta: código de recuperación (se puede bajar como .txt) o importar la copia .zip de «Mis datos» (`rutas/importar.py`, valida todo como una subida normal).
 - SEO: `meta description`/Open Graph en `base.html` (imagen `static/img/og.jpg`), `robots.txt` y `sitemap.xml` en `rutas/sitio.py`; lo privado lleva `X-Robots-Tag: noindex`. Capturas de la portada en `static/img/muestra/`.
+- `requirements.txt` fija las versiones exactas que tiene PythonAnywhere (Flask 3.0.3, Pillow 10.4.0…); GitHub Actions (`.github/workflows/pruebas.yml`) corre las pruebas con esas versiones en cada push.
 - Contraseñas: mínimo 8 caracteres (las cuentas viejas con 6 siguen entrando).
 - Textos legales en `legal.py` (adaptados de MacroCenter, fecha en `ACTUALIZACION`): si cambia qué datos
   guarda o a quién se los muestra la app, **actualizar ese texto**. Crear cuenta exige aceptarlos.
