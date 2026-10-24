@@ -29,6 +29,7 @@
 </head>
 {%- set tema = tema_marca(v.marca, v.carroceria) if (v is defined and v and v.marca) else none %}
 <body{% if tema %} class="con-tema" style="{{ tema.estilo }}" data-marca="{{ tema.marca }}"{% endif %}>
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <a class="brand" href="{{ url_for('index') }}">
@@ -47,7 +48,7 @@
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap" id="contenido" tabindex="-1">
     {% with msgs = get_flashed_messages(with_categories=true) %}
       {% for cat, msg in msgs %}
         <div class="flash flash-{{ cat }}">{{ msg }}</div>

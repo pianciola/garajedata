@@ -1109,6 +1109,16 @@ input[type="checkbox"] { width: auto; padding: 0; accent-color: var(--accent); }
 .borrar-cuenta .auth-form { margin-top: 12px; }
 .transfer-zone { border-color: var(--border); background: none; margin-bottom: 12px; }
 .footer a { color: var(--muted); text-decoration: underline; }
+/* En pantallas táctiles, los enlaces del pie tienen área cómoda para el dedo (unos 44 px de alto). */
+@media (pointer: coarse) { .footer a { display: inline-block; padding: 12px 4px; } }
+
+/* «Saltar al contenido»: invisible hasta que se llega con el teclado. */
+.saltar {
+  position: absolute; left: 12px; top: -60px; z-index: 1000; padding: 10px 16px; border-radius: 8px;
+  background: var(--accent); color: var(--on-accent); font-weight: 700; text-decoration: none; transition: top .15s;
+}
+.saltar:focus { top: 12px; }
+main:focus { outline: none; }
 
 /* ---------- primera vez ---------- */
 .bienvenida-pasos { text-align: left; max-width: 640px; margin: 0 auto; padding: 32px 28px; }

@@ -1,2 +1,6 @@
-Flask>=3.0
-Pillow>=10.0
+# Versiones exactas, las mismas que usa el sitio publicado en PythonAnywhere (python3.13).
+# Si se actualizan allá, actualizarlas acá: las pruebas de GitHub instalan estas.
+Flask==3.0.3
+Werkzeug==3.0.4
+Jinja2==3.1.4
+Pillow==10.4.0
