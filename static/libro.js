@@ -43,8 +43,8 @@
       const fechas = visibles.map((it) => it.dataset.fecha).sort();
       per.textContent = fechas.length ? `${fecha(fechas[0])} – ${fecha(fechas[fechas.length - 1])}` : "—";
     }
-    const tot = document.getElementById("res-total");
-    if (tot) tot.textContent = plata(visibles.reduce((s, it) => s + (parseFloat(it.dataset.costo) || 0), 0));
+    const total = plata(visibles.reduce((s, it) => s + (parseFloat(it.dataset.costo) || 0), 0));
+    libro.querySelectorAll("[data-total]").forEach((t) => { t.textContent = total; });
     document.querySelectorAll("#libro-cats [data-cat]").forEach((c) => {
       const cant = visibles.filter((it) => it.dataset.cat === c.dataset.cat).length;
       c.textContent = `${c.dataset.etiqueta}: ${cant}`;

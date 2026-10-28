@@ -40,10 +40,16 @@
 {% endif %}
 
 <article class="libro" id="libro" data-clave="libro:{{ 'c' if compartido else 'v' }}{{ v.id }}">
+  {% set num_doc = 'GD-%05d-%s'|format(v.id, hoy.replace('-', '')) %}
+  {# Pie de cada hoja del PDF: número de documento y página. #}
+  <style>@media print { @page { @bottom-left { content: "GarajeData · Libro de servicio · N.º {{ num_doc }}"; } } }</style>
   <header class="libro-head">
     {% from "_logo.html" import logo %}
-    <div class="libro-marca">{{ logo('', 34, true) }}<span>Garaje<b>Data</b> · Libro de servicio</span></div>
-    <div class="muted small">Generado el {{ hoy|fecha }}</div>
+    <div class="libro-marca">{{ logo('', 34, true) }}<span>Garaje<b>Data</b></span></div>
+    <div class="libro-doc">
+      <div class="libro-doc-titulo">Libro de servicio</div>
+      <div class="libro-doc-num">N.º {{ num_doc }} · Emitido el {{ hoy|fecha }}</div>
+    </div>
   </header>
 
   <section class="libro-auto">
@@ -64,7 +70,7 @@
     <div data-s="km"><span>Kilometraje</span><strong>{{ km_hoy|miles }} km</strong></div>
     <div data-s="resumen"><span>Registros</span><strong id="res-n">{{ registros|length }}</strong></div>
     <div data-s="resumen"><span>Período</span><strong id="res-periodo">{% if desde %}{{ desde|fecha }} – {{ hasta|fecha }}{% else %}—{% endif %}</strong></div>
-    {% if mostrar_costos %}<div data-s="costos"><span>Invertido</span><strong id="res-total">{{ total|plata }}</strong></div>{% endif %}
+    {% if mostrar_costos %}<div data-s="costos"><span>Invertido</span><strong id="res-total" data-total>{{ total|plata }}</strong></div>{% endif %}
   </section>
 
   {% if registros %}
@@ -88,6 +94,9 @@
   <section class="libro-seccion">
     <h2>Historial de mantenimiento</h2>
     {% if registros %}
+    <div class="libro-cols" aria-hidden="true">
+      <span>Fecha</span><span data-s="kmitem">Km</span><span>Trabajo realizado</span>{% if mostrar_costos %}<span data-s="costos">Importe</span>{% endif %}
+    </div>
     <ol class="libro-lista">
       {% for r in registros %}
       <li class="libro-item cat-{{ r.categoria }}" data-id="{{ r.id }}" data-fecha="{{ r.fecha }}" data-costo="{{ r.costo if r.costo is not none else '' }}" data-cat="{{ r.categoria }}">
@@ -103,7 +112,7 @@
           </div>
           <h3>{{ r.titulo }}</h3>
           {% if r.detalle %}<p class="detail" data-s="detalle">{{ r.detalle }}</p>{% endif %}
-          {% set q_ = quien(r) %}{% if q_ %}<p class="muted small" data-s="quien">Hecho por: {{ q_ }}</p>{% endif %}
+          {% set q_ = quien(r) %}{% if q_ %}<p class="muted small" data-s="quien">{{ 'Realizado por el titular' if r.hecho_por == 'yo' else 'Realizado por: ' ~ q_ }}</p>{% endif %}
           {% if adjuntos.get(r.id) %}
           <div class="libro-adjuntos" data-s="adjuntos">
             {% for a in adjuntos[r.id] %}
@@ -119,6 +128,7 @@
       </li>
       {% endfor %}
     </ol>
+    {% if mostrar_costos %}<div class="libro-total" data-s="costos"><span>Total invertido</span><strong data-total>{{ total|plata }}</strong></div>{% endif %}
     {% else %}
     <p class="muted">Todavía no hay registros cargados.</p>
     {% endif %}
@@ -135,10 +145,11 @@
       </svg>
     </div>
     <div class="certificado-texto">
-      <div class="certificado-titulo">Certificado de historial</div>
+      <div class="certificado-titulo">Constancia de historial</div>
       <p class="certificado-auto"><b>{{ nombre_auto(v) }}</b>{% if v.patente %} · Patente {{ v.patente|upper }}{% endif %}{% if v.vin %} · VIN {{ v.vin }}{% endif %}</p>
       <p class="libro-pie" id="libro-pie">Historial cargado por el dueño del vehículo en GarajeData.</p>
-      <p class="certificado-num">N.º GD-{{ '%05d'|format(v.id) }}-{{ hoy.replace('-', '') }} · Emitido el {{ hoy|fecha }}</p>
+      <p class="certificado-aviso">Los trabajos y los importes los informa el titular; GarajeData no los inspecciona ni los verifica.</p>
+      <p class="certificado-num">N.º {{ num_doc }} · Emitido el {{ hoy|fecha }}</p>
     </div>
   </footer>
 </article>
